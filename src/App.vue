@@ -30,6 +30,7 @@
     <LoginWin v-if="!playerId" />
     <SelectRoomWin v-else-if="!sessionId" />
     <MainWindow v-else />
+    
     <span id="version">v{{ version }}</span>
   </div>
 </template>
@@ -39,7 +40,6 @@
 </script>
 
 <script>
-/* eslint-disable */
 import { mapState } from "vuex";
 import { version } from "../package.json";
 import LoginWin from "@/views/Login";
@@ -69,7 +69,7 @@ export default {
     ...mapState(["grimoire", "session"]),
     ...mapState("players", ["players"]),
     ...mapState("loginbackend",["playerId"]),
-    ...mapState("session",["sessionId"]),
+    ...mapState("loginbackend",["sessionId"]),
   },
   data() {
     return {
@@ -78,9 +78,13 @@ export default {
   },
   methods: {
     keyup({ key, ctrlKey, metaKey }) {
-      return;
       if (!ctrlKey || metaKey) return;
       switch (key.toLocaleLowerCase()) {
+        case "m":
+          console.log("cleaning");
+          this.$store.commit("loginbackend/setPlayerId",'');
+          //this.$store.commit("loginbackend/setSessionId",'');
+          break;
         case "g":
           this.$store.commit("toggleGrimoire");
           break;

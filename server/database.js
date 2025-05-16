@@ -30,7 +30,7 @@ function user_login(username, password, callback) {
     
         if (row.password == password) {
           console.log('密码匹配，返回 token');
-          callback(TOKEN_SHIFT + row.token)
+          callback(TOKEN_SHIFT + row.token + "")
         } else {
           console.log('密码不匹配');
           callback(0);
@@ -57,7 +57,7 @@ function fetch_user_data(token, callback) {
           return
         }
         callback({
-            token: TOKEN_SHIFT + row.token,
+            token: TOKEN_SHIFT + row.token + "",
             username: row.username,
             password: row.password,
         })

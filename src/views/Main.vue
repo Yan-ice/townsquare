@@ -2,7 +2,6 @@
     <div style="width: 100vw; height: 100vh;">
       <TownSquare />
       <Menu ref="menu"></Menu>
-      <SoundDetector />
       <EditionModal />
       <FabledModal />
       <RolesModal />
@@ -11,6 +10,9 @@
       <VoteHistoryModal />
       <GameStateModal />
       <Gradients />
+      <!-- <Intro /> -->
+      <!-- <Vote /> -->
+      <TownInfo />
     </div>
       
   </template>
@@ -31,7 +33,6 @@
   import FabledModal from "@/components/modals/FabledModal";
   import VoteHistoryModal from "@/components/modals/VoteHistoryModal";
   import GameStateModal from "@/components/modals/GameStateModal";
-  import SoundDetector from "@/components/SoundDetector.vue"; 
   import TownSquare from "@/components/TownSquare"
 
   export default {
@@ -49,7 +50,6 @@
       EditionModal,
       RolesModal,
       Gradients,
-      SoundDetector,
     },
     computed: {
       ...mapState(["grimoire", "session"]),

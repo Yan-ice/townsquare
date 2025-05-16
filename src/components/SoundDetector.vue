@@ -40,7 +40,7 @@ const startListening = async () => {
       volume.value = isLoud.value ? Math.min(1, average / 100) : 0;
 
       // 更新 Vuex 中 players 的 isSpeaking 状态
-      store.commit("loginbackend/setIsSpeaking", isLoud.value);
+      store.commit("loginbackend/setPlayerIsSpeaking", isLoud.value);
 
       animationFrameId = requestAnimationFrame(checkVolume);
     };

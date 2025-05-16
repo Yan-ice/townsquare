@@ -2,11 +2,11 @@ class CommandPacket {
   constructor(header = "", session = "") {
     this.header = header;
     this.session = session;
-    this.commands = [];
-
     this.sender = "";
     this.receiver = "";
-
+    this.commands = [];
+    
+    //this.sender_socket = ''; //should be filled immediately after deserializing.
   }
   
   addCommand(cmd, param) {
@@ -17,7 +17,9 @@ class CommandPacket {
     return JSON.stringify({
       header: this.header,
       session: this.session,
-      commands: this.commands
+      commands: this.commands,
+      sender: this.sender,
+      receiver: this.receiver,
     });
   }
   
@@ -30,7 +32,9 @@ class CommandPacket {
   static deserialize(jsonStr) {
     try {
       const obj = JSON.parse(jsonStr);
-      const packet = new CommandPacket(obj.header);
+      const packet = new CommandPacket(obj.header, obj.session);
+      packet.sender = obj.sender;
+      packet.receiver = obj.receiver;
       if (Array.isArray(obj.commands)) {
         packet.commands = obj.commands;
       }

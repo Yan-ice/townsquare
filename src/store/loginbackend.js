@@ -1,8 +1,10 @@
 const state = () => ({
+    sessionId: '',
     playerId: '',
     username: '默认用户名',
     pwd: '2333',
     isSpeaking: false,
+    commandToServer: '',
 });
 
 // mutations helper functions
@@ -11,6 +13,8 @@ const set = (key) => (state, val) => {
   };
 const mutations = {
     setPlayerId: set("playerId"),
+    setSessionId: set("sessionId"),
+    setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
     loginWithData(state, payload) {
         state.username = payload.id;

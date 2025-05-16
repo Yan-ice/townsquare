@@ -9,7 +9,7 @@
           dead: player.isDead,
           marked: session.markedPlayer === index,
           'no-vote': player.isVoteless,
-          you: session.sessionId && player.id && player.id === loginbackend.playerId,
+          you: loginbackend.sessionId && player.id && player.id === loginbackend.playerId,
           'vote-yes': session.votes[index],
           'vote-lock': voteLocked,
         },
@@ -87,7 +87,7 @@
       <!-- Claimed seat icon -->
       <font-awesome-icon
         icon="chair"
-        v-if="player.id && session.sessionId"
+        v-if="player.id && loginbackend.sessionId"
         class="seat"
         :class="{ highlight: session.isRolesDistributed }"
       />
@@ -148,7 +148,7 @@
             </li>
             <li
               @click="updatePlayer('id', '', true)"
-              v-if="player.id && session.sessionId"
+              v-if="player.id && loginbackend.sessionId"
             >
               <font-awesome-icon icon="chair" />
               Empty seat
@@ -230,7 +230,7 @@ export default {
   },
   computed: {
     ...mapState("players", ["players"]),
-    ...mapState(["grimoire", "session"]),
+    ...mapState(["grimoire", "session", "loginbackend"]),
     ...mapGetters({ nightOrder: "players/nightOrder" }),
     index: function () {
       return this.players.indexOf(this.player);

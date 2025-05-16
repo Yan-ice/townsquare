@@ -38,233 +38,269 @@ function heartbeat() {
   this.isAlive = true;
 }
 
+// currently online player
+//token: {
+//  'token': token,
+//  'socket': client,
+//  'username': data['username'],
+//}
+const online_players = {};
+
 // map of channels currently in use
+//
+//sessionID: [{token socket username}, {token socket username}...]
+//
 const channels = {};
-
-// metrics
-const metrics = {
-  players_concurrent: new client.Gauge({
-    name: "players_concurrent",
-    help: "Concurrent Players",
-    collect() {
-      this.set(wss.clients.size);
-    }
-  }),
-  channels_concurrent: new client.Gauge({
-    name: "channels_concurrent",
-    help: "Concurrent Channels",
-    collect() {
-      this.set(Object.keys(channels).length);
-    }
-  }),
-  channels_list: new client.Gauge({
-    name: "channel_players",
-    help: "Players in each channel",
-    labelNames: ["name"],
-    collect() {
-      for (let channel in channels) {
-        this.set(
-          { name: channel },
-          channels[channel].filter(
-            ws =>
-              ws &&
-              (ws.readyState === WebSocket.OPEN ||
-                ws.readyState === WebSocket.CONNECTING)
-          ).length
-        );
-      }
-    }
-  }),
-  messages_incoming: new client.Counter({
-    name: "messages_incoming",
-    help: "Incoming messages"
-  }),
-  messages_outgoing: new client.Counter({
-    name: "messages_outgoing",
-    help: "Outgoing messages"
-  }),
-  connection_terminated_host: new client.Counter({
-    name: "connection_terminated_host",
-    help: "Terminated connection due to host already present"
-  }),
-  connection_terminated_spam: new client.Counter({
-    name: "connection_terminated_spam",
-    help: "Terminated connection due to message spam"
-  }),
-  connection_terminated_timeout: new client.Counter({
-    name: "connection_terminated_timeout",
-    help: "Terminated connection due to timeout"
-  })
-};
-
-// register metrics
-for (let metric in metrics) {
-  register.registerMetric(metrics[metric]);
-}
 
 const CommandPacket = require('./packet.js');
 
 // a new client connects
 wss.on("connection", function connection(ws, req) {
-  console.log(ws.channel, "new connection found");
+  console.log("new connection found");
   // url pattern: clocktower.online/<channel>/<playerId|host>
-  const url = req.url.toLocaleLowerCase().split("/");
-  ws.playerId = url.pop();
-
-  if(ws.playerId == "login") {
-    ws.isAlive = true;
-    ws.pingStart = new Date().getTime();
-    console.log("login request found");
-
-    ws.on("message", (data)=>{
-      packet = CommandPacket.deserialize(data);
-      packet.sender_socket = ws;
-      switch(packet.header) {
-        case "login":
-          const packetanaly = require('./loginserver.js');
-          packet.forEachCommand(packetanaly.analyse_command);
-
-      }
-    });
-
-    return;
-  }
-  ws.channel = url.pop();
+  // const url = req.url.toLocaleLowerCase().split("/");
+  // ws.playerId = url.pop();
   // check for another host on this channel
-  if (
-    ws.playerId === "host" &&
-    channels[ws.channel] &&
-    channels[ws.channel].some(
-      client =>
-        client !== ws &&
-        client.readyState === WebSocket.OPEN &&
-        client.playerId === "host"
-    )
-  ) {
-    console.log(ws.channel, "duplicate host");
-    ws.close(1000, `The channel "${ws.channel}" already has a host`);
-    metrics.connection_terminated_host.inc();
-    return;
-  }
+
   ws.isAlive = true;
   ws.pingStart = new Date().getTime();
-  ws.counter = 0;
-  // add channel to list
-  if (!channels[ws.channel]) {
-    channels[ws.channel] = [];
-  }
-  channels[ws.channel].push(ws);
+
+  ws.on("message", (data)=>{
+
+      ws.counter++;
+      if (ws.counter > (5 * PING_INTERVAL) / 1000) {
+          console.log("disconnecting user due to spam");
+          ws.close(
+            1000,
+            "Your app seems to be malfunctioning, please clear your browser cache."
+          );
+          return;
+      }
+
+      packet = CommandPacket.deserialize(data);
+      console.log(packet);
+      packet.sender_socket = ws;
+
+      //try fill sender if not exist
+      if(!packet.sender) {
+        for (let playerid in online_players) {
+          if (
+            online_players[playerid]['socket'] == ws
+          ) {
+            packet.sender = playerid;
+          }
+        }
+      }
+      //try fill sessionID if not exist
+      if(!packet.session) {
+        for (let channel in channels) {
+          if (
+            channels[channel].some(
+              (player) => {
+                return player['token'] == packet.sender;
+              }
+            )
+          ) {
+            packet.session = channel;
+          }
+        }
+      }
+      switch(packet.header) {
+
+        case "login":
+          console.log("login request found");
+          packet.forEachCommand(analyse_login_command);
+          break;
+
+        case "host":
+          console.log("host request found");
+          const sender_player = online_players[packet.sender];
+          if(sender_player) {
+            set_joingame(packet.session, sender_player);
+          }else{
+            console.log("You must login first.");
+          }
+          
+          break;
+        case "ping":
+            // ping messages will only be sent host -> all or all -> host
+            // channels[ws.channel].forEach(function each(client) {
+            //   if (
+            //     client !== ws &&
+            //     client.readyState === WebSocket.OPEN &&
+            //     (ws.playerId === "host" || client.playerId === "host")
+            //   ) {
+            //     client.send(
+            //       data.replace(/latency/, (client.latency || 0) + (ws.latency || 0))
+            //     );
+            //     metrics.messages_outgoing.inc();
+            //   }
+            // });
+            break;
+        case "sync":
+
+            break;
+        case "direct":
+          channels[packet.session].forEach((player) => {
+              if(player['token'] == packet.receiver) {
+                player['socket'].send(packet);
+              }
+          });
+          break;
+        case "boardcast":
+          channels[packet.session].forEach((player) => {
+              packet.receiver = player['token'];
+              player['socket'].send(packet);
+          });
+          break;
+        default:
+          console.log("Unknown packet type:", packet.header);
+          break;
+      }
+  });
+
   // start ping pong
   ws.ping(noop);
   ws.on("pong", heartbeat);
   // handle message
+  }
+);
 
-  ws.on("message", function incoming(data) {
-    metrics.messages_incoming.inc();
-    // check rate limit (max 5msg/second)
-    ws.counter++;
-    if (ws.counter > (5 * PING_INTERVAL) / 1000) {
-      console.log(ws.channel, "disconnecting user due to spam");
-      ws.close(
-        1000,
-        "Your app seems to be malfunctioning, please clear your browser cache."
-      );
-      metrics.connection_terminated_spam.inc();
-      return;
+function response(client, command, data) {
+  const a = new CommandPacket("login");
+  a.addCommand(command,data)
+  client.send(a.serialize());
+};
+
+
+function set_online(client, token) {
+  //previous socket online
+  if(online_players[token]) {
+    if (online_players[token]['socket'] === WebSocket.OPEN) {
+      online_players[token]['socket'].close(1000, "Login in other site.");
     }
-    const messageType = data
-      .toLocaleLowerCase()
-      .substr(1)
-      .split(",", 1)
-      .pop();
-    switch (messageType) {
-      case '"ping"':
-        // ping messages will only be sent host -> all or all -> host
-        channels[ws.channel].forEach(function each(client) {
-          if (
-            client !== ws &&
-            client.readyState === WebSocket.OPEN &&
-            (ws.playerId === "host" || client.playerId === "host")
-          ) {
-            client.send(
-              data.replace(/latency/, (client.latency || 0) + (ws.latency || 0))
-            );
-            metrics.messages_outgoing.inc();
-          }
-        });
-        break;
-      case '"direct"':
-        // handle "direct" messages differently
-        console.log(
-          new Date(),
-          wss.clients.size,
-          ws.channel,
-          ws.playerId,
-          data
-        );
-        try {
-          const dataToPlayer = JSON.parse(data)[1];
-          channels[ws.channel].forEach(function each(client) {
-            if (
-              client !== ws &&
-              client.readyState === WebSocket.OPEN &&
-              dataToPlayer[client.playerId]
-            ) {
-              client.send(JSON.stringify(dataToPlayer[client.playerId]));
-              metrics.messages_outgoing.inc();
-            }
-          });
-        } catch (e) {
-          console.log("error parsing direct message JSON", e);
-        }
-        break;
-      default:
-        // all other messages
-        console.log(
-          new Date(),
-          wss.clients.size,
-          ws.channel,
-          ws.playerId,
-          data
-        );
-        channels[ws.channel].forEach(function each(client) {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(data);
-            metrics.messages_outgoing.inc();
-          }
-        });
-        break;
+  }
+  //response login success
+  const datab = require('./database.js');
+  datab.fetch_user_data(token, (data)=>{
+    online_players[token] = {
+      'token': token,
+      'socket': client,
+      'username': data['username'],
     }
+    console.log("login success.");
+    const a = new CommandPacket("login");
+    a.addCommand("success",data);
+
+    for (let channel in channels) {
+      if (
+        channels[channel].some(
+          (player) => {
+            return player['token'] == token;
+          }
+        )
+      ) {
+        a.addCommand("session_restore", channel);
+      }
+    }
+
+    client.send(a.serialize());
   });
-});
+}
+
+
+function set_joingame(session, player) {
+  //previous socket online
+            if(channels[session]) {
+              if(!channels[session].some((pl)=> {
+                  if(pl.token == player.token) {
+                    pl.username = player.username;
+                    pl.socket = player.socket;
+                    console.log(session, "You back to game (already in).");
+                    return true;
+                  }
+                  return false;
+                })) {
+                channels[session].push(player);
+                console.log(session, "You join the game.");
+              }
+            }else{
+              channels[session] = []
+              channels[session].push(player);
+              console.log(session, "You host the game.");
+            }
+}
+
+function analyse_login_command(packet, cmd, param) {
+  switch (cmd) {
+      case 'login':
+          try {
+          const datab = require('./database.js');
+          datab.db_init();
+  
+          const loginData = param;
+          datab.user_login(loginData["username"], loginData["password"], (token)=>{
+              if (token > 0) {
+                  console.log(loginData["username"], "login success:", token);
+                  set_online(packet.sender_socket, token);
+              }else{
+                  console.log(loginData["username"], "login failed.");
+                  packet.sender_socket.close(1000, `Incorrect username or password.`);
+              }
+          });
+          } catch (e) {
+              console.log("error parsing direct message JSON", e);
+          }
+          break;
+      case 'token':
+          try {
+              const datab = require('./database.js');
+              datab.db_init();
+
+              set_online(packet.sender_socket, param.token);
+
+          } catch (e) {
+              console.log("error parsing direct message JSON", e);
+          }
+          break;
+      default:
+          console.log("default", cmd, param);
+  }
+  
+};
 
 // start ping interval timer
 const interval = setInterval(function ping() {
   // ping each client
   wss.clients.forEach(function each(ws) {
     if (ws.isAlive === false) {
-      metrics.connection_terminated_timeout.inc();
       return ws.terminate();
     }
     ws.isAlive = false;
     ws.pingStart = new Date().getTime();
     ws.ping(noop);
   });
+  console.log(channels);
   // clean up empty channels
-  for (let channel in channels) {
-    if (
-      !channels[channel].length ||
-      !channels[channel].some(
-        ws =>
-          ws &&
-          (ws.readyState === WebSocket.OPEN ||
-            ws.readyState === WebSocket.CONNECTING)
-      )
-    ) {
-      metrics.channels_list.remove({ name: channel });
-      delete channels[channel];
+  if (channels.length > 0) {
+    for (let channel in channels) {
+      if (
+        !channels[channel].length ||
+        !channels[channel].some(
+          (player) => {
+            console.log(player);
+            return player['socket'] &&
+            (player['socket'].readyState === WebSocket.OPEN ||
+              player['socket'].readyState === WebSocket.CONNECTING)
+          }
+            
+        )
+      ) {
+        delete channels[channel];
+      }
     }
   }
+  
 }, PING_INTERVAL);
 
 // handle server shutdown

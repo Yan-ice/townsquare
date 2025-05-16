@@ -2,7 +2,7 @@
   <div id="controls">
     <span
       class="nomlog-summary"
-      v-show="session.voteHistory.length && session.sessionId"
+      v-show="session.voteHistory.length && loginbackend.sessionId"
       @click="toggleModal('voteHistory')"
       :title="`${session.voteHistory.length} recent ${
         session.voteHistory.length == 1 ? 'nomination' : 'nominations'
@@ -17,7 +17,7 @@
         spectator: session.isSpectator,
         reconnecting: session.isReconnecting,
       }"
-      v-if="session.sessionId"
+      v-if="loginbackend.sessionId"
       @click="leaveSession"
       :title="`${session.playerCount} other players in this session${
         session.ping ? ' (' + session.ping + 'ms latency)' : ''
@@ -111,11 +111,11 @@
 
         <template v-if="tab === 'session'">
           <!-- Session -->
-          <li class="headline" v-if="session.sessionId">
+          <li class="headline" v-if="loginbackend.sessionId">
             {{ session.isSpectator ? "Playing" : "Hosting" }}
           </li>
           <li class="headline" v-else>Live Session</li>
-          <template v-if="!session.sessionId">
+          <template v-if="!loginbackend.sessionId">
             <li @click="hostSession">Host (Storyteller)<em>[H]</em></li>
             <li @click="joinSession">Join (Player)<em>[J]</em></li>
           </template>
@@ -140,7 +140,7 @@
             </li>
             <li @click="leaveSession">
               Leave Session
-              <em>{{ session.sessionId }}</em>
+              <em>{{ loginbackend.sessionId }}</em>
             </li>
           </template>
         </template>
@@ -229,8 +229,9 @@ import { mapMutations, mapState } from "vuex";
 
 export default {
   computed: {
-    ...mapState(["grimoire", "session", "edition"]),
+    ...mapState(["grimoire", "session","loginbackend", "edition"]),
     ...mapState("players", ["players"]),
+    ...mapState("loginbackend",["sessionId"]),
   },
   data() {
     return {
@@ -245,7 +246,7 @@ export default {
       }
     },
     hostSession() {
-      if (this.session.sessionId) return;
+      if (this.loginbackend.sessionId) return;
       const sessionId = prompt(
         "Enter a channel number / name for your session",
         Math.round(Math.random() * 10000),
@@ -253,13 +254,13 @@ export default {
       if (sessionId) {
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", false);
-        this.$store.commit("session/setSessionId", sessionId);
+        this.$store.commit("loginbackend/setSessionId", sessionId);
         this.copySessionUrl();
       }
     },
     copySessionUrl() {
       const url = window.location.href.split("#")[0];
-      const link = url + "#" + this.session.sessionId;
+      const link = url + "#" + this.loginbackend.sessionId;
       navigator.clipboard.writeText(link);
     },
     distributeRoles() {
@@ -284,7 +285,7 @@ export default {
       }
     },
     joinSession() {
-      if (this.session.sessionId) return this.leaveSession();
+      if (this.loginbackend.sessionId) return this.leaveSession();
       let sessionId = prompt(
         "Enter the channel number / name of the session you want to join",
       );
@@ -295,14 +296,14 @@ export default {
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", true);
         this.$store.commit("toggleGrimoire", false);
-        this.$store.commit("session/setSessionId", sessionId);
+        this.$store.commit("loginbackend/setSessionId", sessionId);
 
       }
     },
     leaveSession() {
       if (confirm("Are you sure you want to leave the active live game?")) {
         this.$store.commit("session/setSpectator", false);
-        this.$store.commit("session/setSessionId", "");
+        this.$store.commit("loginbackend/setSessionId", "");
       }
     },
     addPlayer() {
@@ -312,7 +313,7 @@ export default {
       if (name) {
         this.$store.commit("players/add", name);
       }
-      
+
     },
     randomizeSeatings() {
       if (this.session.isSpectator) return;

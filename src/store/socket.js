@@ -16,38 +16,38 @@ class LiveSession {
     // reconnect to previous session
   }
 
-  /**
-   * Open a new session for the passed channel.
-   * @param channel
-   * @private
-   */
-  _open(channel) {
-    this.disconnect();
-    this._socket = new WebSocket(
-      this._wss +
-        channel +
-        "/" +
-        (this._isSpectator ? this._store.state.loginbackend.playerId : "host"),
-    );
-    this._socket.addEventListener("message", this._handleMessage.bind(this));
-    this._socket.onopen = this._onOpen.bind(this);
-    this._socket.onclose = (err) => {
-      this._socket = null;
-      clearInterval(this._pingTimer);
-      this._pingTimer = null;
-      if (err.code !== 1000) {
-        // connection interrupted, reconnect after 3 seconds
-        this._store.commit("session/setReconnecting", true);
-        this._reconnectTimer = setTimeout(
-          () => this.connect(channel),
-          3 * 1000,
-        );
-      } else {
-        this._store.commit("session/setSessionId", "");
-        if (err.reason) alert(err.reason);
-      }
-    };
-  }
+  // /**
+  //  * Open a new session for the passed channel.
+  //  * @param channel
+  //  * @private
+  //  */
+  // _open(channel) {
+  //   this.disconnect();
+  //   this._socket = new WebSocket(
+  //     this._wss +
+  //       channel +
+  //       "/" +
+  //       (this._isSpectator ? this._store.state.loginbackend.playerId : "host"),
+  //   );
+  //   this._socket.addEventListener("message", this._handleMessage.bind(this));
+  //   this._socket.onopen = this._onOpen.bind(this);
+  //   this._socket.onclose = (err) => {
+  //     this._socket = null;
+  //     clearInterval(this._pingTimer);
+  //     this._pingTimer = null;
+  //     if (err.code !== 1000) {
+  //       // connection interrupted, reconnect after 3 seconds
+  //       this._store.commit("session/setReconnecting", true);
+  //       this._reconnectTimer = setTimeout(
+  //         () => this.connect(channel),
+  //         3 * 1000,
+  //       );
+  //     } else {
+  //       this._store.commit("loginbackend/setSessionId", "");
+  //       if (err.reason) alert(err.reason);
+  //     }
+  //   };
+  // }
 
   /**
    * Open a new session for the passed channel.
@@ -72,6 +72,10 @@ class LiveSession {
             case "failed":
               prompt("Username or password incorrect.");
               break;
+            case "session_restore":
+              prompt("You come back to previous session.");
+              this._store.commit("loginbackend/setSessionId", param);
+              break;
           }
         })
         
@@ -91,7 +95,7 @@ class LiveSession {
             token: "100004",
           });
         }
-        this._sendpacket(cmd);
+        this._sendPacket(cmd);
         
       }
       this._socket.onopen = onOpenL.bind(this);
@@ -101,7 +105,7 @@ class LiveSession {
         clearInterval(this._pingTimer);
         this._pingTimer = null;
         if (err.code !== 1000) {
-          this._store.commit("session/setSessionId", "");
+          this._store.commit("loginbackend/setSessionId", "");
           this._store.commit("loginbackend/setPlayerId", "");
           if (err.reason) alert(err.reason);
         }
@@ -115,21 +119,14 @@ class LiveSession {
    * @param params
    * @private
    */
-  _sendpacket(packet) {
-    if (this._socket && this._socket.readyState === 1) {
-      this._socket.send(packet.serialize());
-    }
-  }
-
-  /**
-   * Send a message through the socket.
-   * @param command
-   * @param params
-   * @private
-   */
   _send(command, params) {
-    if (this._socket && this._socket.readyState === 1) {
-      this._socket.send(JSON.stringify([command, params]));
+    const sessionId = this._store.state.loginbackend.sessionId;
+    const senderId = this._store.state.loginbackend.playerId;
+    if (this._socket && this._socket.readyState == 1) {
+      const packetx = new CommandPacket("boardcast", sessionId);
+      packetx.sender = senderId;
+      packetx.addCommand(command, params);
+      this._sendPacket(packetx);
     }
   }
 
@@ -143,7 +140,15 @@ class LiveSession {
    */
   _sendDirect(playerId, command, params) {
     if (playerId) {
-      this._send("direct", { [playerId]: [command, params] });
+      const sessionId = this._store.state.loginbackend.sessionId;
+      const senderId = this._store.state.loginbackend.playerId;
+      if (this._socket && this._socket.readyState == 1) {
+        const packetx = new CommandPacket("direct", sessionId);
+        packetx.sender = senderId;
+        packetx.receiver = playerId;
+        packetx.addCommand(command, params);
+        this._sendPacket(packetx);
+      }
     } else {
       this._send(command, params);
     }
@@ -182,21 +187,18 @@ class LiveSession {
     this._pingTimer = setTimeout(this._ping.bind(this), this._pingInterval);
   }
 
+
+  _handlePacket(packetdata) {
+    const packet = CommandPacket.deserialize(packetdata);
+    packet.forEachCommand(this._handleMessage);
+  }
   /**
    * Yan_ice: mark.
    * Handle an incoming socket message.
    * @param data
    * @private
    */
-  _handleMessage({ data }) {
-
-    
-    let command, params;
-    try {
-      [command, params] = JSON.parse(data);
-    } catch (err) {
-      console.log("unsupported socket message", data);
-    }
+  _handleMessage(packet, command, params) {
     switch (command) {
       case "getGamestate":
         this.sendGamestate(params);
@@ -302,6 +304,11 @@ class LiveSession {
     }
   }
 
+  xjoinSession(sessionID) {
+    const packet = new CommandPacket("host", sessionID);
+    packet.sender = this._store.state.loginbackend.playerId;
+    this._sendPacket(packet);
+  }
   /**
    * Close the current session, if any.
    */
@@ -481,7 +488,7 @@ class LiveSession {
             `Please load them before joining! ` +
             `Missing roles: ${missing.join(", ")}`,
         );
-        this.disconnect();
+        //this.disconnect();
         this._store.commit("toggleModal", "edition");
       }
     }
@@ -881,6 +888,19 @@ class LiveSession {
     }
   }
 
+    /**
+     * Send a CommandPacket through the socket.
+     * @param command
+     * @param params
+     * @private
+    */
+  _sendPacket(packet) {
+      console.log("packet", packet);
+      if (this._socket && this._socket.readyState == 1) {
+        this._socket.send(packet.serialize());
+      }
+  }
+
   /**
    * Swap two player seats. ST only
    * @param payload
@@ -909,6 +929,7 @@ class LiveSession {
   }
 }
 
+
 export default (store) => {
   // setup
   const session = new LiveSession(store);
@@ -922,12 +943,9 @@ export default (store) => {
       case "loginbackend/loginWithToken":
         session.login(true);
         break;
-      case "session/setSessionId":
-        if (state.session.sessionId) {
-          session.connect(state.session.sessionId);
-        } else {
-          window.location.hash = "";
-          session.disconnect();
+      case "loginbackend/setSessionId":
+        if (state.loginbackend.sessionId) {
+          session.xjoinSession(state.loginbackend.sessionId);
         }
         break;
       case "session/claimSeat":
@@ -996,11 +1014,4 @@ export default (store) => {
     }
   });
 
-  // check for session Id in hash
-  const sessionId = window.location.hash.substr(1);
-  if (sessionId) {
-    store.commit("session/setSpectator", true);
-    store.commit("session/setSessionId", sessionId);
-    store.commit("toggleGrimoire", false);
-  }
 };

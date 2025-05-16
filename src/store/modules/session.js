@@ -12,7 +12,6 @@ const handleVote = (state, [index, vote]) => {
 };
 
 const state = () => ({
-  sessionId: "",
   isSpectator: false,
   isReconnecting: false,
   playerCount: 0,
@@ -51,12 +50,6 @@ const mutations = {
   setVoteHistoryAllowed: set("isVoteHistoryAllowed"),
   claimSeat: set("claimedSeat"),
   distributeRoles: set("isRolesDistributed"),
-  setSessionId(state, sessionId) {
-    state.sessionId = sessionId
-      .toLocaleLowerCase()
-      .replace(/[^0-9a-z]/g, "")
-      .substr(0, 10);
-  },
 
   nomination(
     state,

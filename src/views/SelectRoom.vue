@@ -28,7 +28,7 @@ export default {
 
   methods: {
     handleSubmit() {
-      this.$store.commit('session/setSessionId', this.room);
+      this.$store.commit('loginbackend/setSessionId', this.room);
       
     },
 

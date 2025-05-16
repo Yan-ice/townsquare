@@ -61,14 +61,14 @@ module.exports = (store) => {
   }
 
   /**** Session related data *****/
-  if (localStorage.getItem("playerId")) {
-    store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));
-  }
-  if (localStorage.getItem("session") && !window.location.hash.substr(1)) {
-    const [spectator, sessionId] = JSON.parse(localStorage.getItem("session"));
-    store.commit("session/setSpectator", spectator);
-    store.commit("session/setSessionId", sessionId);
-  }
+  // if (localStorage.getItem("playerId")) {
+  //   store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));
+  // }
+  // if (localStorage.getItem("session") && !window.location.hash.substr(1)) {
+  //   const [spectator, sessionId] = JSON.parse(localStorage.getItem("session"));
+  //   store.commit("session/setSpectator", spectator);
+  //   store.commit("loginbackend/setSessionId", sessionId);
+  // }
 
   // listen to mutations
   store.subscribe(({ type, payload }, state) => {
@@ -167,7 +167,7 @@ module.exports = (store) => {
           localStorage.removeItem("players");
         }
         break;
-      case "session/setSessionId":
+      case "loginbackend/setSessionId":
         if (payload) {
           localStorage.setItem(
             "session",
