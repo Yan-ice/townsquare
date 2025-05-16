@@ -102,11 +102,33 @@ for (let metric in metrics) {
   register.registerMetric(metrics[metric]);
 }
 
+const CommandPacket = require('./packet.js');
+
 // a new client connects
 wss.on("connection", function connection(ws, req) {
+  console.log(ws.channel, "new connection found");
   // url pattern: clocktower.online/<channel>/<playerId|host>
   const url = req.url.toLocaleLowerCase().split("/");
   ws.playerId = url.pop();
+
+  if(ws.playerId == "login") {
+    ws.isAlive = true;
+    ws.pingStart = new Date().getTime();
+    console.log("login request found");
+
+    ws.on("message", (data)=>{
+      packet = CommandPacket.deserialize(data);
+      packet.sender_socket = ws;
+      switch(packet.header) {
+        case "login":
+          const packetanaly = require('./loginserver.js');
+          packet.forEachCommand(packetanaly.analyse_command);
+
+      }
+    });
+
+    return;
+  }
   ws.channel = url.pop();
   // check for another host on this channel
   if (
@@ -136,6 +158,7 @@ wss.on("connection", function connection(ws, req) {
   ws.ping(noop);
   ws.on("pong", heartbeat);
   // handle message
+
   ws.on("message", function incoming(data) {
     metrics.messages_incoming.inc();
     // check rate limit (max 5msg/second)

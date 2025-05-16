@@ -1,16 +1,19 @@
+
 <template>
   <div class="token" @click="setRole" :class="[role.id]">
-    <span
-      class="icon"
-      v-if="role.id"
-      :style="{
-        backgroundImage: `url(${
-          role.image && grimoire.isImageOptIn
-            ? role.image
-            : require('../assets/icons/' + (role.imageAlt || role.id) + '.png')
-        })`
-      }"
-    ></span>
+    
+      <span
+        class="icon"
+        v-if="role.id"
+        :style="{
+          backgroundImage: `url(${
+            role.image && grimoire.isImageOptIn
+              ? role.image
+              : require('../assets/icons/' + (role.imageAlt || role.id) + '.png')
+          })`,
+        }"
+      ></span>
+
     <span
       class="leaf-left"
       v-if="role.firstNight || role.firstNightReminder"
@@ -48,35 +51,37 @@
 
 <script>
 import { mapState } from "vuex";
+//import VoiceRing from './VoiceRing.vue';
 
 export default {
   name: "Token",
+  //components: { VoiceRing },
   props: {
     role: {
       type: Object,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
   computed: {
-    reminderLeaves: function() {
+    reminderLeaves: function () {
       return (
         (this.role.reminders || []).length +
         (this.role.remindersGlobal || []).length
       );
     },
-    ...mapState(["grimoire"])
+    ...mapState(["grimoire"]),
   },
   data() {
     return {};
   },
   filters: {
-    nameToFontSize: name => (name && name.length > 10 ? "90%" : "110%")
+    nameToFontSize: (name) => (name && name.length > 10 ? "90%" : "110%"),
   },
   methods: {
     setRole() {
       this.$emit("set-role");
-    }
-  }
+    },
+  },
 };
 </script>
 
