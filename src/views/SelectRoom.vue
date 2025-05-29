@@ -98,4 +98,4 @@ export default {
 .logout-button:hover {
   background-color: #d9363e;
 }
-</s
+</style>

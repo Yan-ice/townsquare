@@ -27,6 +27,7 @@
       <Vote v-if="session.nomination"></Vote>
     </transition>
 
+    <CommunicateSystem />
     <LoginWin v-if="!playerId" />
     <SelectRoomWin v-else-if="!sessionId" />
     <MainWindow v-else />
@@ -45,6 +46,7 @@ import { version } from "../package.json";
 import LoginWin from "@/views/Login";
 import MainWindow from "@/views/Main";
 import SelectRoomWin from "@/views/SelectRoom";
+import CommunicateSystem from "@/views/CommunicateSystem"
 
 export default {
   components: {
