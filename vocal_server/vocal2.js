@@ -21,44 +21,21 @@ const CODECS = {
             channels: 2,
           };
 
-const rooms = new Map(); // roomId => { router, users: Map{userId, peers} }
+const rooms = new Map(); // roomId => { router, peers: Map<socketId, peer> }
 
 let worker;
 
 (async () => {
   worker = await mediasoup.createWorker();
 
-function closeConnection(io, roomId, userId) {
-    const room = rooms.get(roomId);
-    if(room) {
-        const peer = room.users.get(userId);
-        if(peer) {
-            console.log('Client disconnected:', peer.id);
-            io.to(peer.id).emit("closedByRemote");
-            peer.producer.close();
-            for (const consumer of peer.consumers) consumer.close();
-            for (const transport of Object.values(peer.transports)) transport.close();
-
-            room.users.delete(userId);
-        }
-    }
-}
-
 io.on("connection", (socket) => {
 
-  socket.on("initializeTalk", async ({roomId, userId}, callback) => {
-    console.log('Client initialize:', socket.id, roomId, userId);
-
-    closeConnection(io, roomId, userId);
-
+  socket.on("initializeTalk", async ({roomId}, callback) => {
+    console.log('Client initialize:', socket.id);
     if (!rooms.has(roomId)) {
       const router = await worker.createRouter({ mediaCodecs: [ CODECS ] });
-      rooms.set(roomId, { router, users: new Map()});
+      rooms.set(roomId, { router, peers: new Map(), producers: [] });
     }
-
-    socket.data.userId = userId;
-    socket.data.roomId = roomId;
-
     const room = rooms.get(roomId);
 
     // 创建 send 和 recv transport
@@ -76,11 +53,11 @@ io.on("connection", (socket) => {
     const peer = {
       id: socket.id,
       transports: { send: sendTransport, recv: recvTransport },
-      producer: null,
+      producers: [],
       consumers: []
     };
 
-    room.users.set(userId, peer);
+    room.peers.set(socket.id, peer);
 
     // 当客户端建立 sendTransport 时自动 connect
     socket.on("transport-connect", async ({ transportId, dtlsParameters }) => {
@@ -107,26 +84,32 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("startTalk", async ({rtpCapabilities}, callback) => {
+  socket.on("startTalk", async ({roomId, rtpCapabilities}, callback) => {
+    // 创建房间与 Router（如需）
+    console.log('Client startTalk:', socket.id);
 
-    console.log('Client startTalk:', socket.data.roomId, socket.data.userId);
+    const room = rooms.get(roomId);
 
-    const room = rooms.get(socket.data.roomId);
-    const peer = room.users.get(socket.data.userId);
+    const peer = room.peers.get(socket.id);
+
     peer.rtpCapabilities = rtpCapabilities;
 
     // 当客户端调用 sendTransport.produce 时，服务端创建 Producer
     socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
       const transport = peer.transports.send;
       const producer = await transport.produce({ kind, rtpParameters });
+      producer.on('transportclose', () => console.log('Producer closed'));
+        producer.on('trackended', () => console.log('Producer track ended'));
 
-      peer.producer = producer;
-      console.log('Client has new producer:', socket.data.userId, producer.id);
+      console.log('Producer created, id:', producer.id, 'kind:', producer.kind);
+
+      peer.producers.push(producer);
+      room.producers.push(producer);
 
       // 通知其他人有新 producer（可选）
-      for (let [otherId, otherPeer] of room.users.entries()) {
-        if (otherId !== socket.data.userId) {
-          io.to(otherPeer.id).emit("newProducer", { producerId: producer.id, socketId: socket.id });
+      for (let [otherId, otherPeer] of room.peers.entries()) {
+        if (otherId !== socket.id) {
+          io.to(otherId).emit("newProducer", { producerId: producer.id, socketId: socket.id });
         }
       }
 
@@ -135,7 +118,7 @@ io.on("connection", (socket) => {
 
     // 客户端发送 consume 请求时，立即创建 consumer
     socket.on("consume", async ({ producerId }, callback) => {
-      console.log(socket.data.userId, "want consume", producerId);
+      const producer = room.producers.find(p => p.id === producerId);
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
         console.log("cannot consume.");
         return callback({ error: "Can't consume" });
@@ -145,7 +128,7 @@ io.on("connection", (socket) => {
         rtpCapabilities,
         paused: false,
       });
-      console.log(consumer.id, "consume", producerId);
+      console.log(producerId, "is consumed by", consumer.id);
       peer.consumers.push(consumer);
       callback({
         id: consumer.id,
@@ -157,20 +140,22 @@ io.on("connection", (socket) => {
 
     // 给客户端返回所有初始化信息
     callback({
-      existingProducers: Array.from(room.users.values())
-                    .map(peer => peer.producer)
-                    .filter(Boolean).map(producer => producer.id),
+      existingProducers: room.producers.map(p => ({ producerId: p.id })),
     });
   });
 
   socket.on('disconnect', () => {
         // 清理 peer 相关资源
-        closeConnection(io, socket.data.roomId, socket.data.userId);
-        room = rooms[socket.data.roomId];
-        if (room && room.users.size === 0) {
+        for (const producer of peer.producers) producer.close();
+        for (const consumer of peer.consumers) consumer.close();
+        for (const transport of Object.values(peer.transports)) transport.close();
+
+        room.peers.delete(socket.id);
+        if (room.peers.size === 0) {
           room.router.close();
           rooms.delete(roomId);
         }
+        console.log('Client disconnected:', socket.id);
     });
 });
 
