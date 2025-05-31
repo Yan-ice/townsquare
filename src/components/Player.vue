@@ -6,10 +6,12 @@
       class="player"
       :class="[
         {
+          //you: loginbackend.sessionId && player.id && player.id === loginbackend.playerId,
+          you: player.id && player.isTalking,
+          
           dead: player.isDead,
           marked: session.markedPlayer === index,
           'no-vote': player.isVoteless,
-          you: loginbackend.sessionId && player.id && player.id === loginbackend.playerId,
           'vote-yes': session.votes[index],
           'vote-lock': voteLocked,
         },
@@ -71,12 +73,6 @@
           title="Swap seats with this player"
         />
         <font-awesome-icon
-          icon="redo-alt"
-          class="move"
-          @click="movePlayer(player)"
-          title="Move player to this seat"
-        />
-        <font-awesome-icon
           icon="hand-point-right"
           class="nominate"
           @click="nominatePlayer(player)"
@@ -121,7 +117,7 @@
 
       <transition name="fold">
         <ul class="menu" v-if="isMenuOpen">
-          <li
+          <!-- <li
             @click="changePronouns"
             v-if="
               !session.isSpectator ||
@@ -129,15 +125,11 @@
             "
           >
             <font-awesome-icon icon="venus-mars" />Change Pronouns
-          </li>
+          </li> -->
           <template v-if="!session.isSpectator">
-            <li @click="changeName">
+            <!-- <li @click="changeName">
               <font-awesome-icon icon="user-edit" />Rename
-            </li>
-            <li @click="movePlayer()" :class="{ disabled: session.lockedVote }">
-              <font-awesome-icon icon="redo-alt" />
-              Move player
-            </li>
+            </li> -->
             <li @click="swapPlayer()" :class="{ disabled: session.lockedVote }">
               <font-awesome-icon icon="exchange-alt" />
               Swap seats
@@ -146,13 +138,13 @@
               <font-awesome-icon icon="times-circle" />
               Remove
             </li>
-            <li
+            <!-- <li
               @click="updatePlayer('id', '', true)"
               v-if="player.id && loginbackend.sessionId"
             >
               <font-awesome-icon icon="chair" />
               Empty seat
-            </li>
+            </li> -->
             <template v-if="!session.nomination">
               <li @click="nominatePlayer()">
                 <font-awesome-icon icon="hand-point-right" />

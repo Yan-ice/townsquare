@@ -83,7 +83,7 @@
             Background image
             <em><font-awesome-icon icon="image" /></em>
           </li>
-          <li v-if="!edition.isOfficial" @click="imageOptIn">
+          <!-- <li v-if="!edition.isOfficial" @click="imageOptIn">
             <small>Show Custom Images</small>
             <em
               ><font-awesome-icon
@@ -92,21 +92,21 @@
                   grimoire.isImageOptIn ? 'check-square' : 'square',
                 ]"
             /></em>
-          </li>
-          <li @click="toggleStatic">
+          </li> -->
+          <!-- <li @click="toggleStatic">
             Disable Animations
             <em
               ><font-awesome-icon
                 :icon="['fas', grimoire.isStatic ? 'check-square' : 'square']"
             /></em>
-          </li>
-          <li @click="toggleMuted">
+          </li> -->
+          <!-- <li @click="toggleMuted">
             Mute Sounds
             <em
               ><font-awesome-icon
                 :icon="['fas', grimoire.isMuted ? 'volume-mute' : 'volume-up']"
             /></em>
-          </li>
+          </li> -->
         </template>
 
         <template v-if="tab === 'session'">
@@ -120,14 +120,10 @@
             <li @click="joinSession">Join (Player)<em>[J]</em></li>
           </template>
           <template v-else>
-            <li v-if="session.ping">
+            <!-- <li v-if="session.ping">
               Delay to {{ session.isSpectator ? "host" : "players" }}
               <em>{{ session.ping }}ms</em>
-            </li>
-            <li @click="copySessionUrl">
-              Copy player link
-              <em><font-awesome-icon icon="copy" /></em>
-            </li>
+            </li> -->
             <li v-if="!session.isSpectator" @click="distributeRoles">
               Send Characters
               <em><font-awesome-icon icon="theater-masks" /></em>
@@ -149,14 +145,14 @@
           <!-- Users -->
           <li class="headline">Players</li>
           <li @click="addPlayer" v-if="players.length < 20">Add<em>[A]</em></li>
-          <li @click="randomizeSeatings" v-if="players.length > 2">
+          <!-- <li @click="randomizeSeatings" v-if="players.length > 2">
             Randomize
             <em><font-awesome-icon icon="dice" /></em>
-          </li>
-          <li @click="clearPlayers" v-if="players.length">
+          </li> -->
+          <!-- <li @click="clearPlayers" v-if="players.length">
             Remove all
             <em><font-awesome-icon icon="trash-alt" /></em>
-          </li>
+          </li> -->
         </template>
 
         <template v-if="tab === 'characters'">
@@ -173,10 +169,10 @@
             Choose & Assign
             <em>[C]</em>
           </li>
-          <li v-if="!session.isSpectator" @click="toggleModal('fabled')">
+          <!-- <li v-if="!session.isSpectator" @click="toggleModal('fabled')">
             Add Fabled
             <em><font-awesome-icon icon="dragon" /></em>
-          </li>
+          </li> -->
           <li @click="clearRoles" v-if="players.length">
             Remove all
             <em><font-awesome-icon icon="trash-alt" /></em>
@@ -252,10 +248,11 @@ export default {
         Math.round(Math.random() * 10000),
       );
       if (sessionId) {
+        // removed.
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", false);
-        this.$store.commit("loginbackend/setSessionId", sessionId);
-        this.copySessionUrl();
+        //this.$store.commit("loginbackend/setSessionId", sessionId);
+        //this.copySessionUrl();
       }
     },
     copySessionUrl() {
@@ -293,6 +290,7 @@ export default {
         sessionId = sessionId.split("#").pop();
       }
       if (sessionId) {
+        // removed
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", true);
         this.$store.commit("toggleGrimoire", false);
@@ -303,17 +301,13 @@ export default {
     leaveSession() {
       if (confirm("Are you sure you want to leave the active live game?")) {
         this.$store.commit("session/setSpectator", false);
-        this.$store.commit("loginbackend/setSessionId", "");
+        this.$store.dispatch("loginbackend/leaveSession");
       }
     },
     addPlayer() {
       if (this.session.isSpectator) return;
       if (this.players.length >= 20) return;
-      const name = prompt("Player name");
-      if (name) {
-        this.$store.commit("players/add", name);
-      }
-
+      this.$store.commit("players/add", "---");
     },
     randomizeSeatings() {
       if (this.session.isSpectator) return;

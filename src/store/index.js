@@ -111,7 +111,7 @@ export default new Vuex.Store({
       isMenuOpen: false,
       isStatic: false,
       isMuted: false,
-      isImageOptIn: false,
+      isImageOptIn: true,
       zoom: 0,
       background: "",
     },
@@ -186,6 +186,15 @@ export default new Vuex.Store({
         if (modal === name) continue;
         modals[modal] = false;
       }
+    },
+    update_claim(state) {
+      for(let a = 0; a < state.players.length; a++){
+          if (state.players[a].id == state.loginbackend.playerId) {
+            this.$store.commit("claimSeat", a);
+            return;
+          }
+      }
+      this.$store.commit("claimSeat", -1);
     },
     /**
      * Store custom roles

@@ -3,6 +3,7 @@
     <h3>Mediasoup Vue2 Audio Room</h3>
     <div>
       <input v-model="roomId" placeholder="Enter room ID" />
+      <input v-model="userId" placeholder="Enter room ID" />
       <button @click="joinRoom" :disabled="joined">Join Room</button>
     </div>
     <div v-if="joined">
@@ -29,9 +30,8 @@ export default {
       device: null,
       sendTransport: null,
       recvTransport: null,
-      producers: [],
-      consumers: [],
       roomId: "",
+      userId: "",
       joined: false,
       producing: false,
       remoteAudios: [],
@@ -92,7 +92,9 @@ export default {
         sendTransportOptions,
         recvTransportOptions,
       } = await this.promise_request(this.socket, "initializeTalk",
-        {roomId: this.roomId}
+        {roomId: this.roomId,
+          userId: this.userId
+        }
       );
       this.joined = true;
       await this.device.load({ routerRtpCapabilities: routerRtpCapabilities });
@@ -137,13 +139,22 @@ export default {
         // 获取音频轨，立即 produce
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const track = stream.getAudioTracks()[0];
-        console.log("track", track);
         await this.sendTransport.produce({ track });
 
         // 立即 consume 所有其他 producer
-        for (let { producerId } of existingProducers) {
+        console.log(existingProducers);
+        for (let producerId of existingProducers) {
+          console.log(producerId);
           this.consume(producerId);
         }
+
+      this.socket.on("closedByRemote", () => {
+        track.stop();
+        this.joined = false;
+        this.sendTransport.close();
+        this.recvTransport.close();
+        alert("close by remote.");
+      });
     },
   },
 };

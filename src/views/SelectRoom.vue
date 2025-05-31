@@ -12,6 +12,7 @@
 </template>
 
 <script>
+
 export default {
   computed: {
     username() {
@@ -28,8 +29,8 @@ export default {
 
   methods: {
     handleSubmit() {
-      this.$store.commit('loginbackend/setSessionId', this.room);
-      
+      this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
+      //this.$store.commit('loginbackend/setSessionId', this.room);
     },
 
     logout() {

@@ -102,7 +102,7 @@ export default {
   },
   computed: {
     ...mapGetters({ nightOrder: "players/nightOrder" }),
-    ...mapState(["grimoire", "roles", "session"]),
+    ...mapState(["grimoire", "roles", "session", "loginbackend"]),
     ...mapState("players", ["players", "bluffs", "fabled"]),
   },
   data() {
@@ -174,6 +174,7 @@ export default {
             ]);
           }
         }
+        this.$store.commit("players/kick", playerIndex);
         this.$store.commit("players/remove", playerIndex);
       }
     },

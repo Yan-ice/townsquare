@@ -21,17 +21,15 @@
       loop
     ></video>
     <div class="backdrop"></div>
-    <transition name="blur">
-      <Intro v-if="!players.length"></Intro>
-      <TownInfo v-if="players.length && !session.nomination"></TownInfo>
-      <Vote v-if="session.nomination"></Vote>
-    </transition>
 
-    <CommunicateSystem />
     <LoginWin v-if="!playerId" />
     <SelectRoomWin v-else-if="!sessionId" />
     <MainWindow v-else />
-    
+    <transition name="blur">
+        <Intro v-if="!players.length"></Intro>
+        <TownInfo v-if="players.length && !session.nomination"></TownInfo>
+        <Vote v-if="session.nomination"></Vote>
+    </transition>
     <span id="version">v{{ version }}</span>
   </div>
 </template>
@@ -46,7 +44,7 @@ import { version } from "../package.json";
 import LoginWin from "@/views/Login";
 import MainWindow from "@/views/Main";
 import SelectRoomWin from "@/views/SelectRoom";
-import CommunicateSystem from "@/views/CommunicateSystem"
+import Vote from "@/components/Vote";
 
 export default {
   components: {
@@ -56,7 +54,7 @@ export default {
     // VoteHistoryModal,
     // FabledModal,
     // NightOrderModal,
-    // Vote,
+    Vote,
     // ReferenceModal,
     // Intro,
     // TownInfo,
@@ -82,11 +80,6 @@ export default {
     keyup({ key, ctrlKey, metaKey }) {
       if (!ctrlKey || metaKey) return;
       switch (key.toLocaleLowerCase()) {
-        case "m":
-          console.log("cleaning");
-          this.$store.commit("loginbackend/setPlayerId",'');
-          //this.$store.commit("loginbackend/setSessionId",'');
-          break;
         case "g":
           this.$store.commit("toggleGrimoire");
           break;

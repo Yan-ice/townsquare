@@ -10,8 +10,6 @@
       <VoteHistoryModal />
       <GameStateModal />
       <Gradients />
-      <!-- <Intro /> -->
-      <!-- <Vote /> -->
       <TownInfo />
     </div>
       
@@ -27,7 +25,6 @@
   import EditionModal from "@/components/modals/EditionModal";
   import Intro from "@/components/Intro";
   import ReferenceModal from "@/components/modals/ReferenceModal";
-  import Vote from "@/components/Vote";
   import Gradients from "@/components/Gradients";
   import NightOrderModal from "@/components/modals/NightOrderModal";
   import FabledModal from "@/components/modals/FabledModal";
@@ -42,7 +39,6 @@
       VoteHistoryModal,
       FabledModal,
       NightOrderModal,
-      Vote,
       ReferenceModal,
       Intro,
       TownInfo,
@@ -52,8 +48,10 @@
       Gradients,
     },
     computed: {
-      ...mapState(["grimoire", "session"]),
-      ...mapState("players", ["players"]),
+    ...mapState(["grimoire", "session"]),
+    ...mapState("players", ["players"]),
+    ...mapState("loginbackend",["playerId"]),
+    ...mapState("loginbackend",["sessionId"]),
     },
     data() {
       return {

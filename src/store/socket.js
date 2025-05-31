@@ -16,83 +16,31 @@ class LiveSession {
     // reconnect to previous session
   }
 
-  // /**
-  //  * Open a new session for the passed channel.
-  //  * @param channel
-  //  * @private
-  //  */
-  // _open(channel) {
-  //   this.disconnect();
-  //   this._socket = new WebSocket(
-  //     this._wss +
-  //       channel +
-  //       "/" +
-  //       (this._isSpectator ? this._store.state.loginbackend.playerId : "host"),
-  //   );
-  //   this._socket.addEventListener("message", this._handleMessage.bind(this));
-  //   this._socket.onopen = this._onOpen.bind(this);
-  //   this._socket.onclose = (err) => {
-  //     this._socket = null;
-  //     clearInterval(this._pingTimer);
-  //     this._pingTimer = null;
-  //     if (err.code !== 1000) {
-  //       // connection interrupted, reconnect after 3 seconds
-  //       this._store.commit("session/setReconnecting", true);
-  //       this._reconnectTimer = setTimeout(
-  //         () => this.connect(channel),
-  //         3 * 1000,
-  //       );
-  //     } else {
-  //       this._store.commit("loginbackend/setSessionId", "");
-  //       if (err.reason) alert(err.reason);
-  //     }
-  //   };
-  // }
-
   /**
    * Open a new session for the passed channel.
    * @param channel
    * @private
    */
-    login(withToken) {
+    login(usrname, pwd) {
 
       this._socket = new WebSocket(
         this._wss + "login",
       );
-      
-      const onLoginResponse = ({ data }) => {
-        const packet = CommandPacket.deserialize(data);
-        
-        packet.forEachCommand((packet, cmd, param) => {
-          console.log(cmd, param);
-          switch (cmd) {
-            case "success":  
-              this._store.commit("loginbackend/setPlayerId", param['token']);
-              break;
-            case "failed":
-              prompt("Username or password incorrect.");
-              break;
-            case "session_restore":
-              prompt("You come back to previous session.");
-              this._store.commit("loginbackend/setSessionId", param);
-              break;
-          }
-        })
-        
-      }
-      this._socket.addEventListener("message", onLoginResponse.bind(this));
 
+      this._socket.addEventListener("message", this._handlePacket.bind(this));
+      
+      console.log("login with",usrname, pwd);
       const onOpenL = () =>{
         const cmd = new CommandPacket("login");
-        if(withToken){
+        if(usrname != ''){
           cmd.addCommand("login",{
-            username: "yanice",
-            password: "abced",
+            username: usrname,
+            password: pwd,
           });
           
         }else{
           cmd.addCommand("token",{
-            token: "100004",
+            token: pwd,
           });
         }
         this._sendPacket(cmd);
@@ -105,8 +53,9 @@ class LiveSession {
         clearInterval(this._pingTimer);
         this._pingTimer = null;
         if (err.code !== 1000) {
-          this._store.commit("loginbackend/setSessionId", "");
-          this._store.commit("loginbackend/setPlayerId", "");
+          this.$store.dispatch("loginbackend/logout");
+          //this._store.commit("loginbackend/setSessionId", "");
+          //this._store.commit("loginbackend/setPlayerId", "");
           if (err.reason) alert(err.reason);
         }
       };
@@ -154,43 +103,165 @@ class LiveSession {
     }
   }
 
-  /**
-   * Open event handler for socket.
-   * @private
-   */
-  _onOpen() {
-    if (this._isSpectator) {
-      this._sendDirect(
-        "host",
-        "getGamestate",
-        this._store.state.loginbackend.playerId,
-      );
-    } else {
-      this.sendGamestate();
+  _handlePacket(rawevt) {
+    console.log("raw:", rawevt.data);
+    const packet = CommandPacket.deserialize(rawevt.data);
+    switch(packet.header) {
+      case 'login':
+        packet.forEachCommand(this._handleLogin.bind(this));
+        return;
+      case 'sessionset':
+        packet.forEachCommand(this._handleSession.bind(this));
+        return;
+      case 'require':
+        packet.forEachCommand(this._handleRequire.bind(this));
+        return;
+      case 'sync':
+        packet.forEachCommand(this._handleSync.bind(this));
+        return;
+      default:
+        packet.forEachCommand(this._handleMessage.bind(this));
     }
-    this._ping();
   }
 
+  _handleLogin(packet, command, params){
+          switch (command) {
+            case "success":  
+              this._store.commit("loginbackend/setPlayerId", params['token']);
+              break;
+            case "failed":
+              alert("Username or password incorrect.");
+              break;
+            case "session_restore":
+              alert("You come back to previous session.");
+              this._store.dispatch("loginbackend/joinSession", {sessionId: params});
+              //this._store.commit("loginbackend/setSessionId", param);
+              break;
+          }
+        
+  }
+
+  _handleSession(packet, command, params) {
+      switch (command) {
+        case 'state':
+          if(params == 'host') {
+            this._isSpectator = false;
+            this._store.commit("session/setSpectator", false);
+            this.sendGamestate();
+            alert("You are the host.");
+            break;
+          }else{
+            this._isSpectator = true;
+            this._store.commit("session/setSpectator", true);
+            this._sendDirect(
+                "host",
+                "getGamestate",
+                this._store.state.loginbackend.playerId,
+              );
+            alert("You are the player.");
+
+            const autocom = new CommandPacket("sessionset");
+            autocom.addCommand("autoclaim");
+            this._sendPacket(autocom)
+
+            break;
+          }
+        // case 'seatinfo':
+        //   console.log("updating seat");
+        //   // remove previous seat
+        //   this._store.commit("players/update_seat", {
+        //       index: params.seatid,
+        //       property: 'id',
+        //       value: params.playerId,
+        //   });
+        //   this._store.commit("players/update_seat", {
+        //       index: params.seatid,
+        //       property: 'name',
+        //       value: params.username,
+        //   });
+        //   break;
+        case 'reset':
+          console.log("This is a new game.");
+          this._store.commit("players/clear");
+          break;
+      }
+  }
   /**
-   * Send a ping message with player ID and ST flag.
+   * Yan_ice: mark.
+   * Handle an incoming socket message.
+   * @param data
    * @private
    */
-  _ping() {
-    this._handlePing();
-    this._send("ping", [
-      this._isSpectator
-        ? this._store.state.loginbackend.playerId
-        : Object.keys(this._players).length,
-      "latency",
-    ]);
-    clearTimeout(this._pingTimer);
-    this._pingTimer = setTimeout(this._ping.bind(this), this._pingInterval);
-  }
+  _handleRequire(packet, command, params) {
+    switch(command){
+      case 'leave_session':
+        alert(params);
+        this._store.dispatch("loginbackend/leaveSession");
+        break;
+      case 'logout':
+        alert(params);
+        this.disconnect();
+        break;
+      case 'prepare_seat': // prepare a seat for user
+        {
+          const playersls = this._store.state.players.players;
+          if(playersls.some((player) => player.id == params.token)) {
+            return;
+          }
 
+          for (let i = 0; i < playersls.length; i++) {
+            const player = playersls[i];
+            if (player.id == '') {
+              this._store.commit("players/update", {
+                player,
+                property: "id",
+                value: params.token,
+              });
+              this._store.commit("players/update", {
+                player,
+                property: "name",
+                value: params.username,
+              });
+              this._store.commit("players/update_claim");
+              return;
+            }
+          }
 
-  _handlePacket(packetdata) {
-    const packet = CommandPacket.deserialize(packetdata);
-    packet.forEachCommand(this._handleMessage);
+          this._store.commit("players/add");
+          const player = playersls[playersls.length-1];
+          this._store.commit("players/update", {
+                player,
+                property: "id",
+                value: params.token,
+          });
+          this._store.commit("players/update", {
+                player,
+                property: "name",
+                value: params.username,
+          });
+          this._store.commit("players/update_claim");
+          break;
+        }
+      case 'clean_seat':
+        {
+          const playersls = this._store.state.players.players;
+          for (let i = 0; i < playersls.length; i++) {
+            const player = playersls[i];
+            if (player.id == params) {
+              this._store.commit("players/update", {
+                player,
+                property: "id",
+                value: '',
+              });
+              this._store.commit("players/update", {
+                    player,
+                    property: "name",
+                    value: '---',
+              });
+            }
+          }
+        }
+      }
   }
   /**
    * Yan_ice: mark.
@@ -281,8 +352,21 @@ class LiveSession {
       case "pronouns":
         this._updatePlayerPronouns(params);
         break;
+      case "speaking":
+        {
+          this._store.commit("players/speak", 
+            {
+              idx: params[0],
+              value: params[1]
+            }
+          );
+        }
+        break;
+        
     }
   }
+
+  
 
   /**
    * Connect to a new live session, either as host or spectator.
@@ -292,7 +376,8 @@ class LiveSession {
   connect(sessionID) {
 
     if (!this._store.state.loginbackend.playerId) {
-      this.login();
+      alert("error.");
+      //this.login();
     }else{
       this._pings = {};
       this._store.commit("session/setPlayerCount", 0);
@@ -305,8 +390,15 @@ class LiveSession {
   }
 
   xjoinSession(sessionID) {
-    const packet = new CommandPacket("host", sessionID);
+    const packet = new CommandPacket("sessionset", sessionID);
     packet.sender = this._store.state.loginbackend.playerId;
+    packet.addCommand("join","roompwd");
+    this._sendPacket(packet);
+  }
+  xleaveSession() {
+    const packet = new CommandPacket("sessionset", '');
+    packet.sender = this._store.state.loginbackend.playerId;
+    packet.addCommand("leave","-");
     this._sendPacket(packet);
   }
   /**
@@ -320,7 +412,7 @@ class LiveSession {
     clearTimeout(this._reconnectTimer);
     if (this._socket) {
       if (this._isSpectator) {
-        this._sendDirect("host", "bye", this._store.state.loginbackend.playerId);
+        this._sendDirect("sessionset", "bye", this._store.state.loginbackend.playerId);
       }
       this._socket.close(1000);
       this._socket = null;
@@ -693,10 +785,13 @@ class LiveSession {
    */
   claimSeat(seat) {
     if (!this._isSpectator) return;
-    const players = this._store.state.players.players;
-    if (players.length > seat && (seat < 0 || !players[seat].id)) {
-      this._send("claim", [seat, this._store.state.loginbackend.playerId]);
-    }
+    const packet = new CommandPacket("sessionset");
+    packet.addCommand("claimseat",seat);
+    this._sendPacket(packet);
+    // const players = this._store.state.players.players;
+    // if (players.length > seat && (seat < 0 || !players[seat].id)) {
+    //   this._send("claim", [seat, this._store.state.loginbackend.playerId]);
+    // }
   }
 
   /**
@@ -768,61 +863,6 @@ class LiveSession {
   }
 
   /**
-   * Set the isVoteInProgress status. ST only
-   */
-  setVoteInProgress() {
-    if (this._isSpectator) return;
-    this._send("isVoteInProgress", this._store.state.session.isVoteInProgress);
-  }
-
-  /**
-   * Send the isNight status. ST only
-   */
-  setIsNight() {
-    if (this._isSpectator) return;
-    this._send("isNight", this._store.state.grimoire.isNight);
-  }
-
-  /**
-   * Send the isVoteHistoryAllowed state. ST only
-   */
-  setVoteHistoryAllowed() {
-    if (this._isSpectator) return;
-    this._send(
-      "isVoteHistoryAllowed",
-      this._store.state.session.isVoteHistoryAllowed,
-    );
-  }
-
-  /**
-   * Send the voting speed. ST only
-   * @param votingSpeed voting speed in seconds, minimum 1
-   */
-  setVotingSpeed(votingSpeed) {
-    if (this._isSpectator) return;
-    if (votingSpeed) {
-      this._send("votingSpeed", votingSpeed);
-    }
-  }
-
-  /**
-   * Set which player is on the block. ST only
-   * @param playerIndex, player id or -1 for empty
-   */
-  setMarked(playerIndex) {
-    if (this._isSpectator) return;
-    this._send("marked", playerIndex);
-  }
-
-  /**
-   * Clear the vote history for everyone. ST only
-   */
-  clearVoteHistory() {
-    if (this._isSpectator) return;
-    this._send("clearVoteHistory");
-  }
-
-  /**
    * Send a vote. Player or ST
    * @param index Seat of the player
    * @param sync Flag whether to sync this vote with others or not
@@ -869,6 +909,15 @@ class LiveSession {
     this._send("lock", [this._store.state.session.lockedVote, votes[index]]);
   }
 
+  setSpeaking(isspeaking) { // todo: send speaking to host
+
+    const players = this._store.state.players.players;
+    for(let a = 0;a<players.length;a++){
+      if(players[a].id == this._store.state.loginbackend.playerId) {
+        this._sendDirect("host", "speaking", [a, isspeaking]);
+      }
+    }
+  }
   /**
    * Update vote lock and the locked vote, if it differs. Player only
    * @param lock
@@ -896,36 +945,43 @@ class LiveSession {
     */
   _sendPacket(packet) {
       console.log("packet", packet);
+      const sessionId = this._store.state.loginbackend.sessionId;
+      packet.session = sessionId;
       if (this._socket && this._socket.readyState == 1) {
         this._socket.send(packet.serialize());
       }
   }
 
   /**
-   * Swap two player seats. ST only
+   * ST boardcast the action
    * @param payload
    */
-  swapPlayer(payload) {
+  requestSync(type, payload) {
     if (this._isSpectator) return;
-    this._send("swap", payload);
+    const packet = new CommandPacket("sync");
+    packet.addCommand(type, payload);
+    this._sendPacket(packet);
   }
 
   /**
-   * Move a player to another seat. ST only
+   * Player sync the action
    * @param payload
    */
-  movePlayer(payload) {
-    if (this._isSpectator) return;
-    this._send("move", payload);
+  _handleSync(packet, type, payload) {
+    if (!this._isSpectator) return;
+    this._store.commit(type, payload);
   }
 
   /**
-   * Remove a player. ST only
+   * Kick a player. ST only
    * @param payload
    */
-  removePlayer(payload) {
-    if (this._isSpectator) return;
-    this._send("remove", payload);
+  kickPlayer(idx) {
+        if (this._isSpectator) return;
+    const playersls = this._store.state.players.players;
+    const packet = new CommandPacket("sessionset");
+    packet.addCommand("kick", playersls[idx].id);
+    this._sendPacket(packet);
   }
 }
 
@@ -938,18 +994,27 @@ export default (store) => {
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
       case "loginbackend/loginWithData":
-        session.login(false);
+        session.login(payload.username, payload.password);
         break;
       case "loginbackend/loginWithToken":
-        session.login(true);
+        session.login('', payload.playerId);
         break;
       case "loginbackend/setSessionId":
         if (state.loginbackend.sessionId) {
           session.xjoinSession(state.loginbackend.sessionId);
+        } else{
+          session.xleaveSession();
         }
         break;
       case "session/claimSeat":
-        session.claimSeat(payload);
+        //session.claimSeat(payload);
+        //session.requestSync(type, payload);
+        break;
+      case "players/kick":
+        session.kickPlayer(payload);
+        break;
+      case "players/remove":
+        session.requestSync(type, payload);
         break;
       case "session/distributeRoles":
         if (payload) {
@@ -958,46 +1023,39 @@ export default (store) => {
         break;
       case "session/nomination":
       case "session/setNomination":
-        session.nomination(payload);
-        break;
       case "session/setVoteInProgress":
-        session.setVoteInProgress(payload);
+      case "session/setVotingSpeed":
+      case "toggleNight":
+      case "session/setVoteHistoryAllowed":
+      case "session/setMarkedPlayer":
+      case "players/speak":
+      case "players/swap":
+      case "players/move":
+      case "session/clearVoteHistory":
+        session.requestSync(type, payload);
         break;
+      case "session/sendCommand":
+        session._sendPacket(payload);
+        break;
+      case "loginbackend/setPlayerIsSpeaking":
+        session.setSpeaking(payload);
+        break
+
       case "session/voteSync":
+        //session.sync_mutation(type, payload);
         session.vote(payload);
         break;
       case "session/lockVote":
         session.lockVote();
         break;
-      case "session/setVotingSpeed":
-        session.setVotingSpeed(payload);
-        break;
-      case "session/clearVoteHistory":
-        session.clearVoteHistory();
-        break;
-      case "session/setVoteHistoryAllowed":
-        session.setVoteHistoryAllowed();
-        break;
-      case "toggleNight":
-        session.setIsNight();
-        break;
+
       case "setEdition":
+        //session.sync_mutation(type, payload);
         session.sendEdition();
         break;
       case "players/setFabled":
+        //session.sync_mutation(type, payload);
         session.sendFabled();
-        break;
-      case "session/setMarkedPlayer":
-        session.setMarked(payload);
-        break;
-      case "players/swap":
-        session.swapPlayer(payload);
-        break;
-      case "players/move":
-        session.movePlayer(payload);
-        break;
-      case "players/remove":
-        session.removePlayer(payload);
         break;
       case "players/set":
       case "players/clear":

@@ -116,7 +116,7 @@ import { mapGetters, mapState } from "vuex";
 export default {
   computed: {
     ...mapState("players", ["players"]),
-    ...mapState(["session", "grimoire"]),
+    ...mapState(["session", "grimoire", "loginbackend"]),
     ...mapGetters({ alive: "players/alive" }),
     nominator: function () {
       return this.players[this.session.nomination[0]];

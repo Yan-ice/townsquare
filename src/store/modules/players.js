@@ -4,6 +4,7 @@ const NEWPLAYER = {
   role: {},
   reminders: [],
   isVoteless: false,
+  isTalking: null,
   isDead: false,
   pronouns: "",
 };
@@ -116,11 +117,37 @@ const mutations = {
       state.players[index][property] = value;
     }
   },
-  add(state, name) {
+
+  add(state) {
     state.players.push({
-      ...NEWPLAYER,
-      name,
+      name: "---",
+      id: "",
+      role: {},
+      reminders: [],
+      isVoteless: false,
+      isDead: false,
+      pronouns: "",
     });
+  },
+  kick(state, idx) {
+    const player = state.players[idx];
+    player.name = '---';
+    //nothing here, only for subscribe
+  },
+  speak(state, {idx, value}) {
+    if(value){
+      const player = state.players[idx];
+
+      if (player.isTalking) {
+        clearTimeout(player.isTalking);
+      }
+
+      player.isTalking = setTimeout(() => {
+        player.isTalking = null;
+      }, 1500);
+    }
+    
+    //nothing here, only for subscribe
   },
   remove(state, index) {
     state.players.splice(index, 1);
