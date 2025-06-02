@@ -1,4 +1,4 @@
 .idea
 dist
 *.pem
-*.cache
+node_modules/.cache/
