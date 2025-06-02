@@ -93,6 +93,21 @@ const actions = {
     commit("set", players);
     commit("setBluff");
   },
+  speak({ commit, state }, { idx, value }) {
+    if (value) {
+      commit('setTalking', { idx, flag: true });
+
+      const player = state.players[idx];
+      if (player.talkingTimer) {
+        clearTimeout(player.talkingTimer);
+      }
+
+      player.talkingTimer = setTimeout(() => {
+        commit('setTalking', { idx, flag: false });
+        player.talkingTimer = null;
+      }, 1500);
+    }
+  }
 };
 
 const mutations = {
@@ -117,6 +132,12 @@ const mutations = {
     if (index >= 0) {
       state.players[index][property] = value;
     }
+  },
+
+  setTalking(state, { idx, flag }) {
+    const player = state.players[idx];
+    // 用 Vue.set 保证响应式
+    Vue.set(player, 'isTalkingFlag', flag);
   },
 
   add(state) {

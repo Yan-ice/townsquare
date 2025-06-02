@@ -380,7 +380,7 @@ class LiveSession {
         break;
       case "speaking":
         {
-          this._store.commit("players/speak", 
+          this._store.dispatch("players/speak", 
             {
               idx: params[0],
               value: params[1]
@@ -1064,7 +1064,7 @@ export default (store) => {
         session._sendPacket(payload);
         break;
       case "loginbackend/setPlayerIsSpeaking":
-        session.setSpeaking(payload);
+        session.setSpeaking(payload); //from player to host
         break
 
       case "session/voteSync":
