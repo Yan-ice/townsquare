@@ -67,7 +67,6 @@ class MediasoupRoom {
       return;
     }
     const track = this.stream.getAudioTracks()[0];
-    this.producer = await this.sendTransport.produce({ track });
 
     this.roomId = roomId;
     this.userId = userId;
@@ -135,6 +134,8 @@ class MediasoupRoom {
       roomId,
       rtpCapabilities: this.device.rtpCapabilities,
     });
+
+    this.producer = await this.sendTransport.produce({ track });
 
     // 启动音量检测
     this.startVolumeMonitor(this.stream);
