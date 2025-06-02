@@ -15,17 +15,18 @@ const PING_INTERVAL = 30000; // 30 seconds
 const options = {};
 
 if (process.env.NODE_ENV !== "development") {
-  options.cert = fs.readFileSync("cert.pem");
-  options.key = fs.readFileSync("key.pem");
+  options.cert = fs.readFileSync("/etc/letsencrypt/live/clocktower1.yanice.space/fullchain.pem");
+  options.key = fs.readFileSync("/etc/letsencrypt/live/clocktower1.yanice.space/privkey.pem");
 }
 
 const server = https.createServer(options);
+
 const wss = new WebSocket.Server({
   ...(process.env.NODE_ENV === "development" ? { port: 8081 } : { server }),
   verifyClient: info =>
     info.origin &&
     !!info.origin.match(
-      /^https?:\/\/([^.]+\.github\.io|localhost|clocktower\.online|eddbra1nprivatetownsquare\.xyz)/i
+       /^https?:\/\/(localhost|clocktower1.yanice.space[^.])/i
     )
 });
 

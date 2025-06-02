@@ -6,6 +6,7 @@ const mediasoup = require('mediasoup');
 
 const app = express();
 const server = http.createServer(app);
+
 const io = socketIO(server, {
   cors: {
     origin: "http://localhost:8080",
