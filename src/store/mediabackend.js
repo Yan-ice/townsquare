@@ -61,11 +61,30 @@ class MediasoupRoom {
     this.roomId = roomId;
     this.userId = userId;
     this.serverURL = store.state.loginbackend.vocalServer;
-    this.socket = io(this.serverURL);
+
+    this.socket = io(this.serverURL, { timeout: 5000, reconnection: false });
+
     this.device = new mediasoupClient.Device();
 
     this.socket.on("newProducer", ({ producerId }) => {
       this.consume(producerId);
+    });
+    this.socket.on("connect_error", () => {
+      alert("无法连接至语音服务器：状态异常。")
+      this.socket = null;
+      this.device = null;
+      this.joined = false;
+      this.sendTransport = null;
+      this.recvTransport = null;
+    });
+
+    this.socket.on("disconnect", (reason) => {
+      console.warn("连接断开", reason);
+      this.socket = null;
+      this.device = null;
+      this.joined = false;
+      this.sendTransport = null;
+      this.recvTransport = null;
     });
 
     const {

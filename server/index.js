@@ -1,5 +1,5 @@
 const fs = require("fs");
-const https = require("https");
+const http = require("http");
 const WebSocket = require("ws");
 const client = require("prom-client");
 
@@ -17,18 +17,14 @@ const options = {};
 if (process.env.NODE_ENV !== "development") {
   options.cert = fs.readFileSync("./cert.pem");
   options.key = fs.readFileSync("./privkey.pem");
-  options.port = 8081;
 }
 
-const server = https.createServer(options);
+const server = http.createServer(options);
 
 const wss = new WebSocket.Server({
   ...(process.env.NODE_ENV === "development" ? { port: 8081 } : { server }),
   verifyClient: info =>
-    info.origin &&
-    !!info.origin.match(
-       /^https?:\/\/(localhost|clocktower1.yanice.space[^.])/i
-    )
+    info.origin
 });
 
 function noop() {}
@@ -406,8 +402,8 @@ wss.on("close", function close() {
 
 // prod mode with stats API
 if (process.env.NODE_ENV !== "development") {
-  console.log("server starting");
-  server.listen(8080);
+  console.log("server starting at :8081");
+  server.listen(8081);
   server.on("request", (req, res) => {
     res.setHeader("Content-Type", register.contentType);
     register.metrics().then(out => res.end(out));

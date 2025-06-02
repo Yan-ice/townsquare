@@ -9,11 +9,23 @@ const server = http.createServer(app);
 
 const io = socketIO(server, {
   cors: {
-    origin: "http://localhost:8080",
+    origin: "*", //TODO: * is dangerous.
     methods: ["GET", "POST"],
     credentials: true
   }
 });
+
+const RtcOption = {
+        listenIps: [
+          { 
+            ip: "0.0.0.0",
+            announcedIp: '111.229.112.80', 
+          }
+        ],
+        enableUdp: true,
+        enableTcp: true,
+        preferUdp: true,
+      }
 
 const CODECS = {
             kind: 'audio',
@@ -64,12 +76,7 @@ io.on("connection", (socket) => {
 
     // 创建 send 和 recv transport
     const createTransport = async () => {
-      return await room.router.createWebRtcTransport({
-        listenIps: [{ ip: "127.0.0.1" }],
-        enableUdp: true,
-        enableTcp: true,
-        preferUdp: true,
-      });
+      return await room.router.createWebRtcTransport(RtcOption);
     };
     const sendTransport = await createTransport();
     const recvTransport = await createTransport();
