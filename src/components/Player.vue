@@ -7,7 +7,7 @@
       :class="[
         {
           //you: loginbackend.sessionId && player.id && player.id === loginbackend.playerId,
-          you: player.id && player.isTalking,
+          you: player.id && player.isTalkingFlag,
           
           dead: player.isDead,
           marked: session.markedPlayer === index,

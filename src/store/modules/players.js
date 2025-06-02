@@ -4,7 +4,8 @@ const NEWPLAYER = {
   role: {},
   reminders: [],
   isVoteless: false,
-  isTalking: null,
+  talkingTimer: null,
+  isTalkingFlag: false,
   isDead: false,
   pronouns: "",
 };
@@ -134,20 +135,22 @@ const mutations = {
     player.name = '---';
     //nothing here, only for subscribe
   },
-  speak(state, {idx, value}) {
-    if(value){
+  speak(state, { idx, value }) {
+    if (value) {
       const player = state.players[idx];
 
-      if (player.isTalking) {
-        clearTimeout(player.isTalking);
+      if (player.talkingTimer) {
+        clearTimeout(player.talkingTimer);
       }
 
-      player.isTalking = setTimeout(() => {
-        player.isTalking = null;
+      player.isTalkingFlag = true;  // 明确表示正在讲话
+
+      player.talkingTimer = setTimeout(() => {
+        player.isTalkingFlag = false;  // 定时结束，关闭状态
+        player.talkingTimer = null;
       }, 1500);
     }
-    
-    //nothing here, only for subscribe
+  // nothing here, only for subscribe
   },
   remove(state, index) {
     state.players.splice(index, 1);
