@@ -58,6 +58,17 @@ class MediasoupRoom {
       console.warn("Already joined");
       return;
     }
+
+    // 获取音频流并produce
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } else {
+      alert("浏览器不支持麦克风, 或未通过安全环境");
+      return;
+    }
+    const track = this.stream.getAudioTracks()[0];
+    this.producer = await this.sendTransport.produce({ track });
+
     this.roomId = roomId;
     this.userId = userId;
     this.serverURL = store.state.loginbackend.vocalServer;
@@ -124,11 +135,6 @@ class MediasoupRoom {
       roomId,
       rtpCapabilities: this.device.rtpCapabilities,
     });
-
-    // 获取音频流并produce
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const track = this.stream.getAudioTracks()[0];
-    this.producer = await this.sendTransport.produce({ track });
 
     // 启动音量检测
     this.startVolumeMonitor(this.stream);

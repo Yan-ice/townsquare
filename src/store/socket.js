@@ -248,7 +248,7 @@ class LiveSession {
                 property: "name",
                 value: params.username,
               });
-              this._store.commit("players/update_claim");
+              //this._store.commit("players/update_claim");
               return;
             }
           }
@@ -265,7 +265,7 @@ class LiveSession {
                 property: "name",
                 value: params.username,
           });
-          this._store.commit("players/update_claim");
+          //this._store.commit("players/update_claim");
           break;
         }
       case 'clean_seat':
@@ -1054,7 +1054,7 @@ export default (store) => {
       case "toggleNight":
       case "session/setVoteHistoryAllowed":
       case "session/setMarkedPlayer":
-      case "players/speak":
+      case "players/setTalking":
       case "players/swap":
       case "players/move":
       case "session/clearVoteHistory":
