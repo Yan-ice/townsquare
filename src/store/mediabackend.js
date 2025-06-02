@@ -60,7 +60,8 @@ class MediasoupRoom {
     }
     this.roomId = roomId;
     this.userId = userId;
-    this.socket = io("http://localhost:3000");
+    this.serverURL = store.state.loginbackend.vocalServer;
+    this.socket = io(this.serverURL);
     this.device = new mediasoupClient.Device();
 
     this.socket.on("newProducer", ({ producerId }) => {

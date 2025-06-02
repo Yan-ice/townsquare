@@ -4,7 +4,8 @@
       <form @submit.prevent="handleSubmit" class="login-form">
         <input v-model="username" type="text" placeholder="账号" required />
         <input v-model="password" type="password" placeholder="密码" required />
-        <button type="submit">确认</button>
+        <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required />
+        <button :disabled="$store.state.loginbackend.username!=''" type="submit">确认</button>
       </form>
     </div>
   </template>
@@ -15,21 +16,21 @@
       return {
         username: '',
         password: '',
-        room: ''
+        serverurl: '',
       }
     },
 
     methods: {
       handleSubmit() {
-        console.log('账号:', this.username)
-        console.log('密码:', this.password)
-        
+        this.$store.commit('loginbackend/setServerURL', this.serverurl);
+
         this.$store.commit('loginbackend/setPlayerId', '');
         // 传递对象给 mutation
         this.$store.commit('loginbackend/loginWithData', {
           username: this.username,
           password: this.password
-        })
+        });
+
         // 这里你可以调用接口或做其他操作
       }
     }

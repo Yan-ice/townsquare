@@ -15,8 +15,9 @@ const PING_INTERVAL = 30000; // 30 seconds
 const options = {};
 
 if (process.env.NODE_ENV !== "development") {
-  options.cert = fs.readFileSync("/etc/letsencrypt/live/clocktower1.yanice.space/fullchain.pem");
-  options.key = fs.readFileSync("/etc/letsencrypt/live/clocktower1.yanice.space/privkey.pem");
+  options.cert = fs.readFileSync("./cert.pem");
+  options.key = fs.readFileSync("./privkey.pem");
+  options.port = 8081;
 }
 
 const server = https.createServer(options);

@@ -2,8 +2,8 @@ const CommandPacket = require('./packet.js');
 
 class LiveSession {
   constructor(store) {
-    // this._wss = "wss://live.clocktower.online:8080/";
-    this._wss = "ws://localhost:8081/"; // uncomment if using local server with NODE_ENV=development
+    // this._wss = "wss://clocktower1:8080/";
+    //this._wss = "ws://localhost:8081/"; // uncomment if using local server with NODE_ENV=development
     this._socket = null;
     this._isSpectator = true;
     this._gamestate = [];
@@ -22,6 +22,7 @@ class LiveSession {
    * @private
    */
     login(usrname, pwd) {
+      this._wss = this._store.state.loginbackend.backendServer;
 
       this._socket = new WebSocket(
         this._wss + "login",
@@ -30,7 +31,21 @@ class LiveSession {
       this._socket.addEventListener("message", this._handlePacket.bind(this));
       
       console.log("login with",usrname, pwd);
+
+      // 设置连接超时（单位：毫秒）
+      const timeoutDuration = 5000;
+      let timeoutHandle = setTimeout(() => {
+          if (this._socket && this._socket.readyState !== WebSocket.OPEN) {
+            alert("无法连接到服务器。检查你的区服号，或服务器状态异常。");
+            this._socket.close();
+            this._socket = null;
+            this._store.commit("loginbackend/resetServerURL");
+          }
+      }, timeoutDuration);
+        
       const onOpenL = () =>{
+        clearTimeout(timeoutHandle); // 连接成功，取消超时计时器
+
         const cmd = new CommandPacket("login");
         if(usrname != ''){
           cmd.addCommand("login",{
@@ -53,11 +68,22 @@ class LiveSession {
         clearInterval(this._pingTimer);
         this._pingTimer = null;
         if (err.code !== 1000) {
-          this.$store.dispatch("loginbackend/logout");
+          this._store.dispatch("loginbackend/logout");
           //this._store.commit("loginbackend/setSessionId", "");
           //this._store.commit("loginbackend/setPlayerId", "");
           if (err.reason) alert(err.reason);
         }
+      };
+
+      this._socket.onerror = () => {
+        alert("服务器状态异常。");
+        this._socket = null;
+        if (this._pingTimer) {
+          clearInterval(this._pingTimer);
+          this._pingTimer = null;
+        }
+        // 可选：触发退出登录或提示
+        this._store.commit("loginbackend/resetServerURL");
       };
 
     }

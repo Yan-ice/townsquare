@@ -1,10 +1,12 @@
 const state = () => ({
     sessionId: '',
     playerId: '',
-    username: '默认用户名',
+    username: '',
     pwd: '2333',
     isSpeaking: false,
     commandToServer: null,
+    backendServer: null,
+    vocalServer: null,
 });
 
 // mutations helper functions
@@ -18,6 +20,17 @@ const mutations = {
     setSessionId: set("sessionId"),
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
+    resetServerURL(state) {
+        state.backendServer = null;
+        state.vocalServer = null;
+        state.sessionId = '';
+        state.playerId = '';
+        state.username = '';
+    },
+    setServerURL(state, url) {
+        state.backendServer = "ws://"+url+":8081/";
+        state.vocalServer = "ws://"+url+":8082/";
+    },
     loginWithData(state, payload) {
         state.username = payload.id;
         state.pwd = payload.pwd;
@@ -28,7 +41,9 @@ const mutations = {
         console.log("login with token.");
     },
     logout(state) {
-        state.playerId = "";
+        state.playerId = '';
+        state.username = '';
+        state.pwd = '';
         console.log("logout success.");
     },
 };
