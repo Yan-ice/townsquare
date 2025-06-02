@@ -1,11 +1,19 @@
 // server.js
 const express = require('express');
-const http = require('http');
+const https = require('https');
 const socketIO = require('socket.io');
 const mediasoup = require('mediasoup');
 
 const app = express();
-const server = http.createServer(app);
+
+const options = {
+  key: fs.readFileSync('./privkey.pem'),
+  cert: fs.readFileSync('./cert.pem'),
+  // 如果有中间证书也加上：
+  // ca: fs.readFileSync('./chain.pem'),
+};
+
+const server = https.createServer(options, app);
 
 const io = socketIO(server, {
   cors: {

@@ -1,5 +1,5 @@
 const fs = require("fs");
-const http = require("http");
+const https = require("https");
 const WebSocket = require("ws");
 const client = require("prom-client");
 
@@ -19,7 +19,7 @@ if (process.env.NODE_ENV !== "development") {
   options.key = fs.readFileSync("./privkey.pem");
 }
 
-const server = http.createServer(options);
+const server = https.createServer(options);
 
 const wss = new WebSocket.Server({
   ...(process.env.NODE_ENV === "development" ? { port: 8081 } : { server }),
