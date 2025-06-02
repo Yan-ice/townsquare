@@ -28,8 +28,8 @@ const mutations = {
         state.username = '';
     },
     setServerURL(state, url) {
-        state.backendServer = "ws://"+url+":8081/";
-        state.vocalServer = "ws://"+url+":8082/";
+        state.backendServer = "wss://"+url+":8081/";
+        state.vocalServer = "wss://"+url+":8082/";
     },
     loginWithData(state, payload) {
         state.username = payload.id;

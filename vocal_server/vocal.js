@@ -48,7 +48,7 @@ function closeConnection(io, roomId, userId) {
         if(peer) {
             console.log('Client disconnected:', peer.id);
             io.to(peer.id).emit("closedByRemote");
-            peer.producer.close();
+            if(peer.producer) peer.producer.close();
             for (const consumer of peer.consumers) consumer.close();
             for (const transport of Object.values(peer.transports)) transport.close();
 
