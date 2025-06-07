@@ -356,6 +356,7 @@ function analyse_login_command(packet, cmd, param) {
                   console.log(loginData["username"], "login failed.");
                   const a = new CommandPacket("login");
                   a.addCommand("failed","密码不匹配");
+                  packet.sender_socket.send(a.serialize());
               }
           });
           } catch (e) {
