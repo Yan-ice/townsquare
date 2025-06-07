@@ -35,7 +35,7 @@ export default {
 
     logout() {
       // 清除登录状态
-      this.$store.commit('loginbackend/setPlayerId', "");
+      this.$store.commit('loginbackend/logout', "");
     }
   }
 };

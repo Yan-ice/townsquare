@@ -80,7 +80,7 @@ class MediasoupRoom {
       this.consume(producerId);
     });
     this.socket.on("connect_error", () => {
-      alert("无法连接至语音服务器：状态异常。")
+      alert("无法连接至语音服务器：状态异常。");
       this.socket = null;
       this.device = null;
       this.joined = false;
@@ -177,6 +177,8 @@ class MediasoupRoom {
   async leaveRoom() {
     if (!this.joined) return;
 
+    this.stopVolumeMonitor();
+
     if (this.producer) {
       await this.producer.close();
       this.producer = null;
@@ -197,8 +199,6 @@ class MediasoupRoom {
       this.socket.disconnect();
       this.socket = null;
     }
-
-    this.stopVolumeMonitor();
 
     this.joined = false;
     this.roomId = null;

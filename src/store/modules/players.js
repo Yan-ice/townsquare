@@ -22,6 +22,9 @@ const getters = {
   alive({ players }) {
     return players.filter((player) => !player.isDead).length;
   },
+  index({ player }) {
+    return this.players.indexOf(player);
+  },
   nonTravelers({ players }) {
     const nonTravelers = players.filter(
       (player) => player.role.team !== "traveler",

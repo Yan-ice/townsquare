@@ -22,9 +22,10 @@
     ></video>
     <div class="backdrop"></div>
 
-    <LoginWin v-if="!playerId" />
-    <SelectRoomWin v-else-if="!sessionId" />
+    <LoginWin v-if="playerId" />
+    <SelectRoomWin v-else-if="sessionId" />
     <MainWindow v-else />
+
     <transition name="blur">
         <Intro v-if="!players.length"></Intro>
         <TownInfo v-if="players.length && !session.nomination"></TownInfo>

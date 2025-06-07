@@ -1,7 +1,7 @@
 <template>
   <li :style="zoom">
 
-      <div
+    <div
       ref="player"
       class="player"
       :class="[
@@ -11,16 +11,18 @@
           
           dead: player.isDead,
           marked: session.markedPlayer === index,
+          //huge: (index() % 3 == 1),
           'no-vote': player.isVoteless,
           'vote-yes': session.votes[index],
           'vote-lock': voteLocked,
         },
         player.role.team,
       ]"
-      >
-
+    >
+      
       <div class="shroud" @click="toggleStatus()"></div>
       <div class="life" @click="toggleStatus()"></div>
+      
 
       <div
         class="night-order first"
@@ -166,6 +168,7 @@
           </li>
         </ul>
       </transition>
+    
     </div>
 
     <template v-if="player.reminders">
@@ -432,7 +435,7 @@ export default {
   z-index: 2;
   .life {
     border-radius: 50%;
-    width: 100%;
+    width: 50%;
     background: url("../assets/life.png") center center;
     background-size: 100%;
     border: 3px solid black;
@@ -501,6 +504,11 @@ export default {
 }
 
 /***** Role token ******/
+.player.huge .token{
+  position: absolute;
+  width: 100%;
+}
+
 .player .token {
   position: absolute;
   left: 0;
@@ -630,7 +638,7 @@ li.move:not(.from) .player .overlay svg.move {
   }
 
   .player.you.#{$name} .token {
-    animation: #{$name}-glow 5s ease-in-out infinite;
+    animation: #{$name}-glow 2s ease-in-out infinite;
   }
 }
 
@@ -643,6 +651,7 @@ li.move:not(.from) .player .overlay svg.move {
 .player.you .token {
   animation: townsfolk-glow 5s ease-in-out infinite;
 }
+
 
 /****** Marked icon ******/
 .player .marked {

@@ -54,6 +54,7 @@ const actions = {
 
   async logout({ state, commit }) {
 
+    commit("setPlayerId", '');
     if (state.sessionId) {
       try {
         await mediasoupRoom.leaveRoom();
@@ -61,7 +62,7 @@ const actions = {
         console.warn("leaveRoom error:", e);
       }
     }
-    commit("setPlayerId", '');
+
   },
 
   async joinSession({ state, commit }, payload) {
@@ -71,16 +72,14 @@ const actions = {
       console.warn("playerId not set, cannot joinRoom");
       return;
     }
+    commit("setSessionId", payload.sessionId);
 
-    console.log("joinRoom", state.playerId, payload.sessionId);
-    console.log(mediasoupRoom);
     try {
       await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
     } catch (e) {
       console.error("joinRoom failed:", e);
       alert("错误：无法连接至语音服务器。");
     }
-    commit("setSessionId", payload.sessionId);
   },
 
   async leaveSession({ state, commit }) {
@@ -89,12 +88,13 @@ const actions = {
       console.warn("playerId not set, cannot leaveRoom");
       return;
     }
+    commit("setSessionId", '');
     try {
         await mediasoupRoom.leaveRoom();
     } catch (e) {
         console.warn("leaveRoom error:", e);
     }
-    commit("setSessionId", '');
+
   },
 
 

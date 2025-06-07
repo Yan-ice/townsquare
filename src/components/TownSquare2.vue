@@ -8,21 +8,37 @@
       vote: session.nomination,
     }"
   >
-    <ul class="circle" :class="['size-' + players.length]">
+    <ul class="circle" :class="['size-' + ( players.length + ((players.length-1-(players.length-1)%3)/3 + 1) )]">
 
-      <Player
-        v-for="(player, index) in players"
-        :key="index"
-        :player="player"
-        @trigger="handleTrigger(index, $event)"
-        :class="{
-          from: Math.max(swap, move, nominate) === index,
-          swap: swap > -1,
-          move: move > -1,
-          nominate: nominate > -1,
-        }"
-      ></Player> 
-
+      <!-- 每 3 个 Player 后插入一个空控件 -->
+      <template v-for="(player, index) in players">
+          <Player
+            :key="index"
+            :player="player"
+            @trigger="handleTrigger(index, $event)"
+            :class="[{
+              from: Math.max(swap, move, nominate) === index,
+              swap: swap > -1,
+              move: move > -1,
+              nominate: nominate > -1,
+              major: index % 3 === 0,
+              minor: index % 3 !== 0,
+            },
+            'playerwrapper'
+            ]
+            "
+          ></Player>
+        <div
+          v-if="(index + 1) % 3 === 0"
+          :key="'empty-' + index"
+          class="empty-slot"
+        ></div>
+      </template>
+      <div
+          v-if="(index + 1) % 3 === 0"
+          :key="'empty-' + index"
+          class="empty-slot"
+      ></div>
     </ul>
 
     <div
@@ -293,9 +309,10 @@ export default {
 
     > .player {
       margin-left: -50%;
-      width: 100%;
       pointer-events: all;
+      width: 115%;
     }
+
     > .reminder {
       margin-left: -25%;
       width: 50%;
@@ -303,6 +320,9 @@ export default {
     }
   }
 }
+
+
+
 
 @mixin on-circle($item-count) {
   $angle: math.div(360, $item-count);
@@ -392,7 +412,7 @@ export default {
   }
 }
 
-@for $i from 1 through 30 {
+@for $i from 1 through 32 {
   .circle.size-#{$i} > li {
     @include on-circle($item-count: $i);
   }

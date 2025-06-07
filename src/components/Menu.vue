@@ -43,19 +43,27 @@
 
         <template v-if="tab === 'grimoire'">
           <!-- Grimoire -->
-          <li class="headline">Grimoire</li>
+          <li class="headline">魔典选项</li>
           <li @click="toggleGrimoire" v-if="players.length">
-            <template v-if="!grimoire.isPublic">Hide</template>
-            <template v-if="grimoire.isPublic">Show</template>
+            <template v-if="!grimoire.isPublic">隐藏魔典</template>
+            <template v-if="grimoire.isPublic">显示魔典</template>
             <em>[G]</em>
           </li>
           <li @click="toggleNight" v-if="!session.isSpectator">
-            <template v-if="!grimoire.isNight">Switch to Night</template>
-            <template v-if="grimoire.isNight">Switch to Day</template>
+            <template v-if="!grimoire.isNight">切换到夜晚</template>
+            <template v-if="grimoire.isNight">切换到白天</template>
             <em>[S]</em>
           </li>
+          <li @click="toggleModal('reference')">
+            角色能力表
+            <em>[R]</em>
+          </li>
+          <li @click="toggleModal('nightOrder')">
+            夜晚顺序表
+            <em>[N]</em>
+          </li>
           <li @click="toggleNightOrder" v-if="players.length">
-            Night order
+            显示夜晚顺序
             <em>
               <font-awesome-icon
                 :icon="[
@@ -66,7 +74,7 @@
             </em>
           </li>
           <li v-if="players.length">
-            Zoom
+            大小缩放
             <em>
               <font-awesome-icon
                 @click="setZoom(grimoire.zoom - 1)"
@@ -80,7 +88,7 @@
             </em>
           </li>
           <li @click="setBackground">
-            Background image
+            背景图片
             <em><font-awesome-icon icon="image" /></em>
           </li>
           <!-- <li v-if="!edition.isOfficial" @click="imageOptIn">
@@ -112,12 +120,12 @@
         <template v-if="tab === 'session'">
           <!-- Session -->
           <li class="headline" v-if="loginbackend.sessionId">
-            {{ session.isSpectator ? "Playing" : "Hosting" }}
+            {{ session.isSpectator ? "游戏中" : "说书中" }}
           </li>
-          <li class="headline" v-else>Live Session</li>
+          <li class="headline" v-else>线上游戏</li>
           <template v-if="!loginbackend.sessionId">
-            <li @click="hostSession">Host (Storyteller)<em>[H]</em></li>
-            <li @click="joinSession">Join (Player)<em>[J]</em></li>
+            <li @click="hostSession">主持游戏(废弃)<em>[H]</em></li>
+            <li @click="joinSession">加入游戏(废弃)<em>[J]</em></li>
           </template>
           <template v-else>
             <!-- <li v-if="session.ping">
@@ -125,17 +133,17 @@
               <em>{{ session.ping }}ms</em>
             </li> -->
             <li v-if="!session.isSpectator" @click="distributeRoles">
-              Send Characters
+              派发角色
               <em><font-awesome-icon icon="theater-masks" /></em>
             </li>
             <li
               v-if="session.voteHistory.length || !session.isSpectator"
               @click="toggleModal('voteHistory')"
             >
-              Vote history<em>[V]</em>
+              投票记录<em>[V]</em>
             </li>
             <li @click="leaveSession">
-              Leave Session
+              离开房间
               <em>{{ loginbackend.sessionId }}</em>
             </li>
           </template>
@@ -143,8 +151,8 @@
 
         <template v-if="tab === 'players' && !session.isSpectator">
           <!-- Users -->
-          <li class="headline">Players</li>
-          <li @click="addPlayer" v-if="players.length < 20">Add<em>[A]</em></li>
+          <li class="headline">玩家选项</li>
+          <li @click="addPlayer" v-if="players.length < 20">添加座位<em>[A]</em></li>
           <!-- <li @click="randomizeSeatings" v-if="players.length > 2">
             Randomize
             <em><font-awesome-icon icon="dice" /></em>
@@ -157,16 +165,16 @@
 
         <template v-if="tab === 'characters'">
           <!-- Characters -->
-          <li class="headline">Characters</li>
+          <li class="headline">角色选项</li>
           <li v-if="!session.isSpectator" @click="toggleModal('edition')">
-            Select Edition
+            选择剧本
             <em>[E]</em>
           </li>
           <li
             @click="toggleModal('roles')"
             v-if="!session.isSpectator && players.length > 4"
           >
-            Choose & Assign
+            分配角色
             <em>[C]</em>
           </li>
           <!-- <li v-if="!session.isSpectator" @click="toggleModal('fabled')">
@@ -174,42 +182,25 @@
             <em><font-awesome-icon icon="dragon" /></em>
           </li> -->
           <li @click="clearRoles" v-if="players.length">
-            Remove all
+            清空角色
             <em><font-awesome-icon icon="trash-alt" /></em>
           </li>
         </template>
 
         <template v-if="tab === 'help'">
           <!-- Help -->
-          <li class="headline">Help</li>
-          <li @click="toggleModal('reference')">
-            Reference Sheet
-            <em>[R]</em>
-          </li>
-          <li @click="toggleModal('nightOrder')">
-            Night Order Sheet
-            <em>[N]</em>
-          </li>
+          <li class="headline">帮助</li>
+          
           <li @click="toggleModal('gameState')">
-            Game State JSON
+            JSON
             <em><font-awesome-icon icon="file-code" /></em>
           </li>
           <li>
-            <a href="https://discord.gg/Gd7ybwWbFk" target="_blank">
-              Join Discord
+            <a href="https://github.com/yan-ice/townsquare" target="_blank">
+              源码
             </a>
             <em>
-              <a href="https://discord.gg/Gd7ybwWbFk" target="_blank">
-                <font-awesome-icon :icon="['fab', 'discord']" />
-              </a>
-            </em>
-          </li>
-          <li>
-            <a href="https://github.com/bra1n/townsquare" target="_blank">
-              Source code
-            </a>
-            <em>
-              <a href="https://github.com/bra1n/townsquare" target="_blank">
+              <a href="https://github.com/yan-ice/townsquare" target="_blank">
                 <font-awesome-icon :icon="['fab', 'github']" />
               </a>
             </em>
@@ -263,7 +254,7 @@ export default {
     distributeRoles() {
       if (this.session.isSpectator) return;
       const popup =
-        "Do you want to distribute assigned characters to all SEATED players?";
+        "你确认要给所有入座玩家派发角色吗？";
       if (confirm(popup)) {
         this.$store.commit("session/distributeRoles", true);
         setTimeout(

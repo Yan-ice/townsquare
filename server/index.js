@@ -227,6 +227,25 @@ function set_leavegame(client, session, player) {
 }
 
 function set_joingame(client, session, player) {
+
+      for (let channel in channels) {
+          if (channel == session) {
+            continue;
+          }
+          if ( channels[channel].host.token == packet.sender ||
+            channels[channel].players.some(
+              (player) => {
+                return player['token'] == packet.sender;
+              }
+            )
+          ){
+            const a = new CommandPacket("require", session);
+            a.addCommand("note", "You aleady in another game.");
+            client.send(a.serialize());  
+            return;
+          }
+      }
+
       if(!channels[session]) {
         channels[session] = {
           host: player,
@@ -318,8 +337,6 @@ function analyse_room_command(packet, cmd, param) {
         {token: sender_player.token, username: sender_player.username});
       
       break;
-    case "talking":
-      
   }
 }
 
@@ -337,7 +354,8 @@ function analyse_login_command(packet, cmd, param) {
                   set_online(packet.sender_socket, token);
               }else{
                   console.log(loginData["username"], "login failed.");
-                  packet.sender_socket.close(1000, `Incorrect username or password.`);
+                  const a = new CommandPacket("login");
+                  a.addCommand("failed","密码不匹配");
               }
           });
           } catch (e) {
