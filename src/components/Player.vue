@@ -119,26 +119,17 @@
 
       <transition name="fold">
         <ul class="menu" v-if="isMenuOpen">
-          <!-- <li
-            @click="changePronouns"
-            v-if="
-              !session.isSpectator ||
-              (session.isSpectator && player.id === loginbackend.playerId)
-            "
-          >
-            <font-awesome-icon icon="venus-mars" />Change Pronouns
-          </li> -->
           <template v-if="!session.isSpectator">
             <!-- <li @click="changeName">
               <font-awesome-icon icon="user-edit" />Rename
             </li> -->
             <li @click="swapPlayer()" :class="{ disabled: session.lockedVote }">
               <font-awesome-icon icon="exchange-alt" />
-              Swap seats
+              交换座位
             </li>
-            <li @click="removePlayer" :class="{ disabled: session.lockedVote }">
+            <li @click="removePlayer()" :class="{ disabled: session.lockedVote }">
               <font-awesome-icon icon="times-circle" />
-              Remove
+              移除座位
             </li>
             <!-- <li
               @click="updatePlayer('id', '', true)"
@@ -150,11 +141,23 @@
             <template v-if="!session.nomination">
               <li @click="nominatePlayer()">
                 <font-awesome-icon icon="hand-point-right" />
-                Nomination
+                提名玩家
               </li>
             </template>
           </template>
-          <li
+
+          <template v-if="player.id && player.id !== loginbackend.playerId">
+            <li @click="tellPlayer()" :class="{ disabled: session.lockedVote }">
+                <font-awesome-icon icon="times-circle" />
+                发送私信
+            </li>
+            <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
+                <font-awesome-icon icon="times-circle" />
+                发起私聊
+            </li>
+          </template>
+          
+          <!-- <li
             @click="claimSeat"
             v-if="session.isSpectator"
             :class="{ disabled: player.id && player.id !== loginbackend.playerId }"
@@ -165,7 +168,7 @@
               Vacate seat
             </template>
             <template v-else> Seat occupied</template>
-          </li>
+          </li> -->
         </ul>
       </transition>
     
@@ -258,6 +261,15 @@ export default {
     };
   },
   methods: {
+    tellPlayer() {
+      const messag = prompt("输入给 "+this.player.name+" 发的私信消息：");
+      console.log(messag);
+      this.$store.commit("loginbackend/tell",{receiver: this.player.id, message: messag});
+    },
+    privateChat() {
+      alert("私聊请求已经发送");
+      this.$store.commit("session/privateChatRequest", this.player.id);
+    },
     changePronouns() {
       if (this.session.isSpectator && this.player.id !== this.loginbackend.playerId)
         return;

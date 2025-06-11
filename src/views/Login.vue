@@ -2,7 +2,7 @@
     <div class="login-container">
       <h2 class="title">用户登录</h2>
       <form @submit.prevent="handleSubmit" class="login-form">
-        <input v-model="username" type="text" placeholder="账号" required />
+        <input v-model="username" type="text" placeholder="用户名" required />
         <input v-model="password" type="password" placeholder="密码" required />
         <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required />
         <button :disabled="$store.state.loginbackend.username!=''" type="submit">确认</button>

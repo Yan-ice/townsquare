@@ -54,97 +54,14 @@ function closeConnection(io, roomId, userId) {
         const peer = room.users.get(userId);
         if(peer) {
             console.log('Client disconnected:', peer.id);
-            // io.to(peer.id).emit("closedByRemote");
+            io.to(peer.id).emit("closedByRemote");
             if(peer.producer) peer.producer.close();
             for (const consumer of peer.consumers) consumer.close();
             for (const transport of Object.values(peer.transports)) transport.close();
 
-            room.users.forEach(otherPeer => {
-              if (otherPeer.id !== peer.id) {
-                otherPeer.consumers = otherPeer.consumers.filter(consumer => {
-                    if (consumer.producerId === peer.producer?.id) {
-                        consumer.close(); // 关闭关联的Consumer
-                        // io.to(otherPeer.id).emit("consumerClosed", {
-                        //     consumerId: consumer.id
-                        // });
-                        return false; // 从数组中移除
-                    }
-                    return true;
-                });
-              }
-            }
-            );
-
             room.users.delete(userId);
         }
     }
-}
-
-function intoPrivate(io, roomId, userId) {
-    const room = rooms.get(roomId);
-    if(room) {
-        const peer = room.users.get(userId);
-        if(peer) {
-            console.log('Client into Private:', peer.id);
-            peer.consumers.forEach(consumer => {
-              consumer.pause();  // 关闭self的Consumer
-            });
-
-            room.users.forEach(otherPeer => {
-              if (otherPeer.id !== peer.id) {
-                otherPeer.consumers = otherPeer.consumers.forEach(consumer => {
-                    if (consumer.target === peer.userId) {
-                        consumer.pause(); // 关闭关联的Consumer
-                    }
-                });
-              }
-            }
-            );
-
-            peer.inprivate = true;
-        }
-    }
-}
-
-function leavePrivate(io, roomId, userId) {
-    const room = rooms.get(roomId);
-    if(room) {
-        const peer = room.users.get(userId);
-        if(peer) {
-            peer.inprivate = false;
-            console.log('Client leave Private:', peer.id);
-            // io.to(peer.id).emit("closedByRemote");
-            
-            peer.consumers.forEach(consumer => {
-              if(!room.users.get(consumer.target).inprivate) {
-                consumer.resume();
-              }
-            });
-
-            room.users.forEach(otherPeer => {
-              if (otherPeer.id !== peer.id && !otherPeer.inprivate) {
-                otherPeer.consumers = otherPeer.consumers.forEach(consumer => {
-                    if (consumer.target === userId) {
-                        consumer.resume(); // 关闭关联的Consumer
-                    }
-                });
-              }
-            }
-            );
-
-            peer.inprivate = true;
-        }
-    }
-}
-
-function findProducerId(roomId, userId) {
-  const room = rooms.get(roomId);
-  if(room) {
-    const peer = room.users.get(userId);
-    if(peer) {
-      return peer.producer.id;
-    }
-  }
 }
 
 io.on("connection", (socket) => {
@@ -175,8 +92,7 @@ io.on("connection", (socket) => {
       id: socket.id,
       transports: { send: sendTransport, recv: recvTransport },
       producer: null,
-      consumers: [],
-      inprivate: false,
+      consumers: []
     };
 
     room.users.set(userId, peer);
@@ -233,11 +149,8 @@ io.on("connection", (socket) => {
     });
 
     // 客户端发送 consume 请求时，立即创建 consumer
-    socket.on("consume", async ({ targetuserId }, callback) => {
-      console.log(socket.data.userId, "start consume", targetuserId);
-
-      const producerId = findProducerId(room.id, targetuserId);
-
+    socket.on("consume", async ({ producerId }, callback) => {
+      console.log(socket.data.userId, "want consume", producerId);
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
         console.log("cannot consume.");
         return callback({ error: "Can't consume" });
@@ -247,47 +160,14 @@ io.on("connection", (socket) => {
         rtpCapabilities,
         paused: false,
       });
-
-      consumer.target = targetuserId;
-
+      console.log(consumer.id, "consume", producerId);
       peer.consumers.push(consumer);
-
       callback({
         id: consumer.id,
         producerId,
         kind: consumer.kind,
         rtpParameters: consumer.rtpParameters,
       });
-    });
-
-    socket.on("into_private", async ({ target_user }, callback) => {
-      console.log(socket.data.userId, "into private");
-
-      intoPrivate(io, socket.data.roomId, socket.data.userId);
-
-      if (target_user) {
-        peer.consumers.forEach((consumer)=>
-          {
-            if(consumer.target == userId) {
-              consumer.resume();
-            }
-          }
-        );
-        room.users.get(target_user).consumers.forEach((consumer)=>
-          {
-            if(consumer.target == socket.data.userId) {
-              consumer.resume();
-            }
-          }
-        );
-      }
-      
-    });
-
-    socket.on("leave_private", async ({}, callback) => {
-      console.log(socket.data.userId, "leave private");
-
-      leavePrivate(io, socket.data.roomId, socket.data.userId);
     });
 
     // 给客户端返回所有初始化信息

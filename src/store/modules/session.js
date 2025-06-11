@@ -102,6 +102,13 @@ const mutations = {
   lockVote(state, lock) {
     state.lockedVote = lock !== undefined ? lock : state.lockedVote + 1;
   },
+    privateChatRequest(state, payload) { //listened by socket
+      console.log(state.username + "->"+payload.receiver+" send msg");
+    },
+    privateChatLeave(state) { //listened by socket
+      console.log(state.username + "leave private chat");
+    },
+
 };
 
 export default {

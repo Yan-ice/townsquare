@@ -250,7 +250,8 @@ function set_joingame(client, session, player) {
         channels[session] = {
           host: player,
           players: [],
-          seat: []
+          seat: [],
+          privchat_pair: [],
         }
         const a = new CommandPacket("sessionset", session);
         a.addCommand("state", "host");
@@ -336,6 +337,47 @@ function analyse_room_command(packet, cmd, param) {
       require_host(packet.session, "prepare_seat", 
         {token: sender_player.token, username: sender_player.username});
       
+      break;
+    case "private_chat":
+      let request = ['',''];
+      let receive = ['__x-','__x-'];
+      room.privchat_pair.forEach((pair)=>{
+        if (pair[0] == sender_player.token) {
+          request = pair;
+        }
+        if (pair[1] == sender_player.token) {
+          receive = pair;
+        }
+      });
+      if(param == request[1]) {
+        break; //chat request already exist.
+      }
+      if(request[0] == receive[1] && request[1] == receive[0]) {
+          const a = new CommandPacket("sessionset");
+          a.addCommand("private_chat", '');
+          sender_player.socket.send(a.serialize());
+          online_players[request[1]].socket.send(a.serialize());
+          //Originally in chat. disconnect.
+      }
+
+      //update chat request target.
+      room.privchat_pair.forEach((pair)=>{
+        if (pair[0] == sender_player.token) {
+          pair[1] = param;
+          request = pair;
+        }
+      });
+
+      if(request[0] == receive[1] && request[1] == receive[0]) {
+          const a = new CommandPacket("sessionset");
+          a.addCommand("private_chat", request[1]);
+          online_players[request[0]].socket.send(a.serialize());
+
+          const b = new CommandPacket("sessionset");
+          b.addCommand("private_chat", request[0]);
+          online_players[request[1]].socket.send(b.serialize());
+          //new private chat. connect.
+      }
       break;
   }
 }

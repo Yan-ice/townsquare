@@ -137,6 +137,13 @@
               <em><font-awesome-icon icon="theater-masks" /></em>
             </li>
             <li
+              v-if="session.isSpectator"
+              @click="tellST()"
+            >
+              私聊说书人<em>[T]</em>
+            </li>
+
+            <li
               v-if="session.voteHistory.length || !session.isSpectator"
               @click="toggleModal('voteHistory')"
             >
@@ -232,6 +239,12 @@ export default {
         this.$store.commit("setBackground", background);
       }
     },
+    tellST() {
+      const messag = prompt("输入给说书人发的私信消息：");
+      if (messag) {
+        this.$store.commit("loginbackend/tell", {receiver: 'host', message: messag});
+      }
+    },
     hostSession() {
       if (this.loginbackend.sessionId) return;
       const sessionId = prompt(
@@ -284,7 +297,7 @@ export default {
         // removed
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", true);
-        this.$store.commit("toggleGrimoire", false);
+        this.$store.commit("toggleGrimoire", true);
         this.$store.commit("loginbackend/setSessionId", sessionId);
 
       }

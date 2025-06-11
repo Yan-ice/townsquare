@@ -68,12 +68,6 @@
           case "a":
             this.$refs.menu.addPlayer();
             break;
-          case "h":
-            this.$refs.menu.hostSession();
-            break;
-          case "j":
-            this.$refs.menu.joinSession();
-            break;
           case "r":
             this.$store.commit("toggleModal", "reference");
             break;

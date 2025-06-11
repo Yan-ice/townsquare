@@ -21,7 +21,7 @@ module.exports = (store) => {
     store.commit("setZoom", parseFloat(localStorage.getItem("zoom")));
   }
   if (localStorage.getItem("isGrimoire")) {
-    store.commit("toggleGrimoire", false);
+    store.commit("toggleGrimoire", true);
     updatePagetitle(false);
   }
   if (localStorage.roles !== undefined) {

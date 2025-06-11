@@ -1,3 +1,5 @@
+import mediasoupRoom from './mediabackend.js';
+
 const CommandPacket = require('./packet.js');
 
 class LiveSession {
@@ -192,24 +194,17 @@ class LiveSession {
 
             break;
           }
-        // case 'seatinfo':
-        //   console.log("updating seat");
-        //   // remove previous seat
-        //   this._store.commit("players/update_seat", {
-        //       index: params.seatid,
-        //       property: 'id',
-        //       value: params.playerId,
-        //   });
-        //   this._store.commit("players/update_seat", {
-        //       index: params.seatid,
-        //       property: 'name',
-        //       value: params.username,
-        //   });
-        //   break;
         case 'reset':
           console.log("This is a new game.");
           this._store.commit("players/clear");
           break;
+        case 'private_chat':
+          if(params) {
+            mediasoupRoom.startPrivateChat(params);
+          }else{
+            mediasoupRoom.stopPrivateChat();
+          }
+          
       }
   }
   /**
@@ -388,7 +383,9 @@ class LiveSession {
           );
         }
         break;
-        
+      case "showmessage":
+        alert(params);
+        break;
     }
   }
 
@@ -819,7 +816,26 @@ class LiveSession {
     //   this._send("claim", [seat, this._store.state.loginbackend.playerId]);
     // }
   }
+  
+  tell(receiver, message) {
+    const mes = new CommandPacket("direct");
+    mes.receiver = receiver;
+    let sender = this._store.state.loginbackend.username;
+    if(!this._isSpectator){
+      sender = sender+"(说书人)";
+    }else{
+      const pls = this._store.state.players.players;
+      for(let a = 0;a<pls.length;a+=3){
+        if(this._store.state.loginbackend.playerId === pls[a].id) {
+          sender = sender+"("+(a/3 + 1)+"号)";
+        }
+      }
+    }
 
+    mes.addCommand("showmessage", sender+" 对你说：\n"+message);
+    this._sendPacket(mes);
+  }
+  
   /**
    * Update a player id associated with that seat.
    * @param index seat index or -1
@@ -1003,11 +1019,18 @@ class LiveSession {
    * @param payload
    */
   kickPlayer(idx) {
-        if (this._isSpectator) return;
+    if (this._isSpectator) return;
     const playersls = this._store.state.players.players;
     const packet = new CommandPacket("sessionset");
     packet.addCommand("kick", playersls[idx].id);
     this._sendPacket(packet);
+  }
+
+  sendPrivateChatRequest(targetId) { //enpty means leave chat.
+    if (!this._isSpectator) return;
+      const packet = new CommandPacket("sessionset");
+      packet.addCommand("private_chat", targetId);
+      this._sendPacket(packet);
   }
 }
 
@@ -1032,9 +1055,11 @@ export default (store) => {
           session.xleaveSession();
         }
         break;
-      case "session/claimSeat":
-        //session.claimSeat(payload);
-        //session.requestSync(type, payload);
+      case "session/privateChatRequest":
+        session.sendPrivateChatRequest(payload.target);
+        break;
+      case "session/privateChatLeave":
+        session.sendPrivateChatRequest('');
         break;
       case "players/kick":
         session.kickPlayer(payload);
@@ -1066,7 +1091,9 @@ export default (store) => {
       case "loginbackend/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host
         break
-
+      case "loginbackend/tell":
+        session.tell(payload.receiver, payload.message);
+        break;
       case "session/voteSync":
         //session.sync_mutation(type, payload);
         session.vote(payload);

@@ -174,6 +174,22 @@ class MediasoupRoom {
     });
   }
 
+  async startPrivateChat(target_usr_id) {
+    this.socket.emit("into_private", {
+      target_usr_id
+    }, async () =>{
+      //Not implemented yet.
+    });
+  }
+
+  async stopPrivateChat() {
+    this.socket.emit("leave_private", {
+      
+    }, async () =>{
+      //Not implemented yet.
+    });
+  }
+
   async leaveRoom() {
     if (!this.joined) return;
 

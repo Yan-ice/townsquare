@@ -20,6 +20,11 @@ const mutations = {
     setSessionId: set("sessionId"),
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
+    tell(state, payload) { //listened by socket
+      console.log(state.username + "->"+payload.receiver+" send msg");
+      alert("消息已发送:"+payload.message);
+    },
+
     resetServerURL(state) {
         state.backendServer = null;
         state.vocalServer = null;
@@ -32,7 +37,7 @@ const mutations = {
         state.vocalServer = "wss://"+url+":8082/";
     },
     loginWithData(state, payload) {
-        state.username = payload.id;
+        state.username = payload.username;
         state.pwd = payload.pwd;
         console.log("login with usrname.");
     },
