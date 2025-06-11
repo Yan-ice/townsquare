@@ -72,7 +72,7 @@ class MediasoupRoom {
     this.userId = userId;
     this.serverURL = store.state.loginbackend.vocalServer;
 
-    this.socket = io(this.serverURL, { timeout: 5000, reconnection: false });
+    this.socket = io(this.serverURL, { timeout: 10000, reconnection: false });
 
     this.device = new mediasoupClient.Device();
 

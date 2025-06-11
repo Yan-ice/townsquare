@@ -268,7 +268,7 @@ export default {
     },
     privateChat() {
       alert("私聊请求已经发送");
-      this.$store.commit("session/privateChatRequest", this.player.id);
+      this.$store.commit("session/privateChatRequest", {targetId: this.player.id});
     },
     changePronouns() {
       if (this.session.isSpectator && this.player.id !== this.loginbackend.playerId)

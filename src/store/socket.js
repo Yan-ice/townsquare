@@ -35,7 +35,7 @@ class LiveSession {
       console.log("login with",usrname, pwd);
 
       // 设置连接超时（单位：毫秒）
-      const timeoutDuration = 5000;
+      const timeoutDuration = 10000;
       let timeoutHandle = setTimeout(() => {
           if (this._socket && this._socket.readyState !== WebSocket.OPEN) {
             alert("无法连接到服务器。检查你的区服号，或服务器状态异常。");
@@ -986,7 +986,6 @@ class LiveSession {
      * @private
     */
   _sendPacket(packet) {
-      console.log("packet", packet);
       const sessionId = this._store.state.loginbackend.sessionId;
       packet.session = sessionId;
       if (this._socket && this._socket.readyState == 1) {
@@ -1056,7 +1055,7 @@ export default (store) => {
         }
         break;
       case "session/privateChatRequest":
-        session.sendPrivateChatRequest(payload.target);
+        session.sendPrivateChatRequest(payload.targetId);
         break;
       case "session/privateChatLeave":
         session.sendPrivateChatRequest('');

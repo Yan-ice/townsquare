@@ -85,14 +85,16 @@ function intoPrivate(io, roomId, userId) {
     if(room) {
         const peer = room.users.get(userId);
         if(peer) {
-            console.log('Client into Private:', peer.id);
+            console.log('Client into Private:', peer.userId);
+            console.log(peer);
+            console.log(peer.consumers);
             peer.consumers.forEach(consumer => {
               consumer.pause();  // 关闭self的Consumer
             });
 
             room.users.forEach(otherPeer => {
               if (otherPeer.id !== peer.id) {
-                otherPeer.consumers = otherPeer.consumers.forEach(consumer => {
+                otherPeer.consumers.forEach(consumer => {
                     if (consumer.target === peer.userId) {
                         consumer.pause(); // 关闭关联的Consumer
                     }
@@ -123,7 +125,7 @@ function leavePrivate(io, roomId, userId) {
 
             room.users.forEach(otherPeer => {
               if (otherPeer.id !== peer.id && !otherPeer.inprivate) {
-                otherPeer.consumers = otherPeer.consumers.forEach(consumer => {
+                otherPeer.consumers.forEach(consumer => {
                     if (consumer.target === userId) {
                         consumer.resume(); // 关闭关联的Consumer
                     }
@@ -173,7 +175,7 @@ io.on("connection", (socket) => {
 
     const peer = {
       id: socket.id,
-      userid: userId,
+      userId: userId,
       transports: { send: sendTransport, recv: recvTransport },
       producer: null,
       consumers: [],
@@ -237,10 +239,10 @@ io.on("connection", (socket) => {
     socket.on("consume", async ({ targetuserId }, callback) => {
       console.log(socket.data.userId, "start consume", targetuserId);
 
-      const producerId = findProducerId(room.id, targetuserId);
+      const producerId = findProducerId(socket.data.roomId, targetuserId);
 
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
-        console.log("cannot consume.");
+        console.log("cannot consume: "+producerId);
         return callback({ error: "Can't consume" });
       }
       const consumer = await peer.transports.recv.consume({

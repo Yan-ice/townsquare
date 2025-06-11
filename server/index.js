@@ -341,6 +341,7 @@ function analyse_room_command(packet, cmd, param) {
     case "private_chat":
       let request = ['',''];
       let receive = ['__x-','__x-'];
+
       room.privchat_pair.forEach((pair)=>{
         if (pair[0] == sender_player.token) {
           request = pair;
@@ -349,6 +350,11 @@ function analyse_room_command(packet, cmd, param) {
           receive = pair;
         }
       });
+
+      if(request[0] == '') {
+        room.privchat_pair.push([sender_player.token, param]) //request not exist.
+      }
+
       if(param == request[1]) {
         break; //chat request already exist.
       }
