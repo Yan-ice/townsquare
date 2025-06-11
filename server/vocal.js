@@ -86,8 +86,6 @@ function intoPrivate(io, roomId, userId) {
         const peer = room.users.get(userId);
         if(peer) {
             console.log('Client into Private:', peer.userId);
-            console.log(peer);
-            console.log(peer.consumers);
             peer.consumers.forEach(consumer => {
               consumer.pause();  // 关闭self的Consumer
             });

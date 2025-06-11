@@ -122,6 +122,7 @@ export default new Vuex.Store({
       nightOrder: false,
       reference: false,
       reminder: false,
+      privateChat: false,
       role: false,
       roles: false,
       voteHistory: false,
@@ -179,7 +180,7 @@ export default new Vuex.Store({
     toggleGrimoire: toggle("isPublic"),
     toggleImageOptIn: toggle("isImageOptIn"),
     toggleModal({ modals }, name) {
-      if (name) {
+      if (name && name != "") {
         modals[name] = !modals[name];
       }
       for (let modal in modals) {
@@ -187,6 +188,7 @@ export default new Vuex.Store({
         modals[modal] = false;
       }
     },
+
     update_claim(state) {
       for(let a = 0; a < state.players.length; a++){
           if (state.players[a].id == state.loginbackend.playerId) {

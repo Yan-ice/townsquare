@@ -201,8 +201,10 @@ class LiveSession {
         case 'private_chat':
           if(params) {
             mediasoupRoom.startPrivateChat(params);
+            this._store.commit("session/setPrivateChatConnected", true);
           }else{
             mediasoupRoom.stopPrivateChat();
+            this._store.commit("session/setPrivateChatConnected", false);
           }
           
       }
@@ -1030,6 +1032,12 @@ class LiveSession {
       const packet = new CommandPacket("sessionset");
       packet.addCommand("private_chat", targetId);
       this._sendPacket(packet);
+      if(targetId) {
+        this._store.commit("toggleModal", "privateChat");
+      }else{
+        this._store.commit("toggleModal", "");
+      }
+      
   }
 }
 

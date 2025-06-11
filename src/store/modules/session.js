@@ -28,6 +28,8 @@ const state = () => ({
   isVoteHistoryAllowed: true,
   isRolesDistributed: false,
   send_packet: null,
+  private_chat_target: '',
+  private_chat_connected: false,
 });
 
 const getters = {};
@@ -103,12 +105,14 @@ const mutations = {
     state.lockedVote = lock !== undefined ? lock : state.lockedVote + 1;
   },
   privateChatRequest(state, payload) { //listened by socket
-      console.log(state.username + "->"+payload.targetId+" send msg");
+    state.private_chat_target = payload.username;
   },
   privateChatLeave(state) { //listened by socket
-      console.log(state.username + "leave private chat");
+    state.private_chat_target = '';
   },
-
+  setPrivateChatConnected(state, connected) { //listened by socket
+      state.private_chat_connected = connected;
+  },
 };
 
 export default {

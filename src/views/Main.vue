@@ -8,6 +8,7 @@
       <ReferenceModal />
       <NightOrderModal />
       <VoteHistoryModal />
+      <PrivateChatModal />
       <GameStateModal />
       <Gradients />
       <TownInfo />
@@ -28,6 +29,7 @@
   import Gradients from "@/components/Gradients";
   import NightOrderModal from "@/components/modals/NightOrderModal";
   import FabledModal from "@/components/modals/FabledModal";
+  import PrivateChatModal from "@/components/modals/PrivateChatModal";
   import VoteHistoryModal from "@/components/modals/VoteHistoryModal";
   import GameStateModal from "@/components/modals/GameStateModal";
   import TownSquare2 from "@/components/TownSquare2"
@@ -36,6 +38,7 @@
     components: {
       TownSquare2,
       GameStateModal,
+      PrivateChatModal,
       VoteHistoryModal,
       FabledModal,
       NightOrderModal,
