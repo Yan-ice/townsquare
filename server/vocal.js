@@ -226,7 +226,7 @@ io.on("connection", (socket) => {
       // 通知其他人有新 producer（可选）
       for (let [otherId, otherPeer] of room.users.entries()) {
         if (otherId !== socket.data.userId) {
-          io.to(otherPeer.id).emit("newProducer", { producerId: producer.id, socketId: socket.id });
+          io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
         }
       }
 

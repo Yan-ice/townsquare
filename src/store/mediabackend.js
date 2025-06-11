@@ -76,8 +76,8 @@ class MediasoupRoom {
 
     this.device = new mediasoupClient.Device();
 
-    this.socket.on("newProducer", ({ producerId }) => {
-      this.consume(producerId);
+    this.socket.on("newUser", ({ userId }) => {
+      this.consume(userId);
     });
     this.socket.on("connect_error", () => {
       alert("无法连接至语音服务器：状态异常。");
@@ -130,7 +130,7 @@ class MediasoupRoom {
       });
     });
 
-    const { existingProducers } = await this.promise_request("startTalk", {
+    const { existingUsers } = await this.promise_request("startTalk", {
       roomId,
       rtpCapabilities: this.device.rtpCapabilities,
     });
@@ -141,16 +141,16 @@ class MediasoupRoom {
     this.startVolumeMonitor(this.stream);
 
     // 消费其他producer
-    for (const userId of existingProducers) {
+    for (const userId of existingUsers) {
       this.consume(userId);
     }
 
     this.joined = true;
   }
 
-  async consume(userId) {
+  async consume(targetuserId) {
     this.socket.emit("consume", {
-      userId,
+      targetuserId,
       rtpCapabilities: this.device.rtpCapabilities
     }, async (consumerParameters) => {
       if (consumerParameters.error) {
