@@ -173,6 +173,7 @@ io.on("connection", (socket) => {
 
     const peer = {
       id: socket.id,
+      userid: userId,
       transports: { send: sendTransport, recv: recvTransport },
       producer: null,
       consumers: [],
@@ -292,9 +293,7 @@ io.on("connection", (socket) => {
 
     // 给客户端返回所有初始化信息
     callback({
-      existingProducers: Array.from(room.users.values())
-                    .map(peer => peer.producer)
-                    .filter(Boolean).map(producer => producer.id),
+      existingUsers: Array.from(room.users.keys()),
     });
   });
 

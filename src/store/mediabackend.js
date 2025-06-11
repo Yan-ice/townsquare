@@ -141,16 +141,16 @@ class MediasoupRoom {
     this.startVolumeMonitor(this.stream);
 
     // 消费其他producer
-    for (const producerId of existingProducers) {
-      this.consume(producerId);
+    for (const userId of existingProducers) {
+      this.consume(userId);
     }
 
     this.joined = true;
   }
 
-  async consume(producerId) {
+  async consume(userId) {
     this.socket.emit("consume", {
-      producerId,
+      userId,
       rtpCapabilities: this.device.rtpCapabilities
     }, async (consumerParameters) => {
       if (consumerParameters.error) {

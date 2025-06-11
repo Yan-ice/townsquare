@@ -22,8 +22,8 @@
     ></video>
     <div class="backdrop"></div>
 
-    <LoginWin v-if="playerId" />
-    <SelectRoomWin v-else-if="sessionId" />
+    <LoginWin v-if="!playerId" />
+    <SelectRoomWin v-else-if="!sessionId" />
     <MainWindow v-else />
 
     <transition name="blur">
