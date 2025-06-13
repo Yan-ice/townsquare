@@ -85,7 +85,7 @@ function intoPrivate(io, roomId, userId) {
     if(room) {
         const peer = room.users.get(userId);
         if(peer) {
-            console.log('Client into Private:', peer.userId);
+            console.log('Client into Private:', userId);
             peer.consumers.forEach(consumer => {
               consumer.pause();  // 关闭self的Consumer
             });
@@ -93,7 +93,7 @@ function intoPrivate(io, roomId, userId) {
             room.users.forEach(otherPeer => {
               if (otherPeer.id !== peer.id) {
                 otherPeer.consumers.forEach(consumer => {
-                    if (consumer.target === peer.userId) {
+                    if (consumer.target === userId) {
                         consumer.pause(); // 关闭关联的Consumer
                     }
                 });
@@ -261,20 +261,19 @@ io.on("connection", (socket) => {
       });
     });
 
-    socket.on("into_private", async ({ target_user }, callback) => {
-      console.log(socket.data.userId, "into private");
-
+    socket.on("into_private", async ({ target_user_id }, callback) => {
       intoPrivate(io, socket.data.roomId, socket.data.userId);
 
-      if (target_user) {
+      if (target_user_id) {
+        console.log(socket.data.userId+" enable connection to "+target_user_id);
         peer.consumers.forEach((consumer)=>
           {
-            if(consumer.target == userId) {
+            if(consumer.target == target_user_id) {
               consumer.resume();
             }
           }
         );
-        room.users.get(target_user).consumers.forEach((consumer)=>
+        room.users.get(target_user_id).consumers.forEach((consumer)=>
           {
             if(consumer.target == socket.data.userId) {
               consumer.resume();
