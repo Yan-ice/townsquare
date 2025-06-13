@@ -174,9 +174,9 @@ class MediasoupRoom {
     });
   }
 
-  async startPrivateChat(target_usr_id) {
+  async startPrivateChat(target_user_id) {
     this.socket.emit("into_private", {
-      target_usr_id
+      target_user_id
     }, async () =>{
       //Not implemented yet.
     });
