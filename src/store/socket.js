@@ -385,7 +385,10 @@ class LiveSession {
           );
         }
         break;
-      case "showmessage":
+      case "tellmes":
+        this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
+        break;
+        case "showmessage":
         alert(params);
         break;
     }
@@ -821,20 +824,27 @@ class LiveSession {
   
   tell(receiver, message) {
     const mes = new CommandPacket("direct");
-    mes.receiver = receiver;
+    
     let sender = this._store.state.loginbackend.username;
     if(!this._isSpectator){
-      sender = sender+"(说书人)";
+      sender = '说书人';
+    }
+    let receiverId = '';
+    if (receiver == '说书人'){
+      receiverId = 'host';
     }else{
       const pls = this._store.state.players.players;
-      for(let a = 0;a<pls.length;a+=3){
-        if(this._store.state.loginbackend.playerId === pls[a].id) {
-          sender = sender+"("+(a/3 + 1)+"号)";
+      for(let a = 0;a<pls.length;a++){
+        if(receiver === pls[a].name) {
+            receiverId = pls[a].id;
         }
       }
     }
 
-    mes.addCommand("showmessage", sender+" 对你说：\n"+message);
+    mes.sender = sender;
+    mes.receiver = receiverId;
+
+    mes.addCommand("tellmes", message);
     this._sendPacket(mes);
   }
   
@@ -1098,7 +1108,7 @@ export default (store) => {
       case "loginbackend/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host
         break
-      case "loginbackend/tell":
+      case "loginbackend/tellMes":
         session.tell(payload.receiver, payload.message);
         break;
       case "session/voteSync":

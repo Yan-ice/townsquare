@@ -123,6 +123,7 @@ export default new Vuex.Store({
       reference: false,
       reminder: false,
       privateChat: false,
+      message: false,
       role: false,
       roles: false,
       voteHistory: false,

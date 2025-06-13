@@ -7,6 +7,7 @@ const state = () => ({
     commandToServer: null,
     backendServer: null,
     vocalServer: null,
+    messageLog: ''
 });
 
 // mutations helper functions
@@ -20,9 +21,14 @@ const mutations = {
     setSessionId: set("sessionId"),
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
-    tell(state, payload) { //listened by socket
-      console.log(state.username + "->"+payload.receiver+" send msg");
-      alert("消息已发送:"+payload.message);
+    tellMes(state, payload) { //listened by socket
+      state.messageLog = state.messageLog + "\n[你 -> "+payload.receiver+"] "+payload.message;
+      console.log(state.messageLog);
+    },
+    receiveMes(state, payload){
+      alert("["+payload.sender+ " -> 你]\n"+payload.message);
+      state.messageLog = state.messageLog + "\n["+payload.sender+ " -> 你] "+payload.message;
+      console.log(state.messageLog);
     },
 
     resetServerURL(state) {

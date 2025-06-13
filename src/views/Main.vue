@@ -8,6 +8,7 @@
       <ReferenceModal />
       <NightOrderModal />
       <VoteHistoryModal />
+      <MessageModal />
       <PrivateChatModal />
       <GameStateModal />
       <Gradients />
@@ -33,6 +34,7 @@
   import VoteHistoryModal from "@/components/modals/VoteHistoryModal";
   import GameStateModal from "@/components/modals/GameStateModal";
   import TownSquare2 from "@/components/TownSquare2"
+  import MessageModal from "../components/modals/MessageModal";
 
   export default {
     components: {
@@ -43,6 +45,7 @@
       FabledModal,
       NightOrderModal,
       ReferenceModal,
+      MessageModal,
       Intro,
       TownInfo,
       Menu,

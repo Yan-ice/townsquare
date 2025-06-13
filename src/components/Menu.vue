@@ -142,6 +142,11 @@
             >
               私聊说书人<em>[T]</em>
             </li>
+            <li
+              @click="toggleModal('message')"
+            >
+              聊天记录<em>[C]</em>
+            </li>
 
             <li
               v-if="session.voteHistory.length || !session.isSpectator"
@@ -242,7 +247,7 @@ export default {
     tellST() {
       const messag = prompt("输入给说书人发的私信消息：");
       if (messag) {
-        this.$store.commit("loginbackend/tell", {receiver: 'host', message: messag});
+        this.$store.commit("loginbackend/tellMes", {receiver: '说书人', message: messag});
       }
     },
     hostSession() {

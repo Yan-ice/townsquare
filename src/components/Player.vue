@@ -263,11 +263,12 @@ export default {
   methods: {
     tellPlayer() {
       const messag = prompt("输入给 "+this.player.name+" 发的私信消息：");
-      console.log(messag);
-      this.$store.commit("loginbackend/tell",{receiver: this.player.id, message: messag});
+      if (messag) {
+        this.$store.commit("loginbackend/tellMes",{receiver: this.player.name, message: messag});
+      }
+      
     },
     privateChat() {
-      this.$store.commit("loginbackend/tell",{receiver: this.player.id, message: "我向你发送了私聊请求。(相互发起私聊请求即可开启私聊。)"});
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
     },
     changePronouns() {
