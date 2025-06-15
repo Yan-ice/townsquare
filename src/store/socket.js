@@ -158,10 +158,10 @@ class LiveSession {
               this._store.commit("loginbackend/setPlayerId", params['token']);
               break;
             case "failed":
-              alert("Username or password incorrect.");
+              alert("用户名或密码错误。如果你正在注册，重新登录即可。");
+              this._store.commit("loginbackend/logout");
               break;
             case "session_restore":
-              alert("You come back to previous session.");
               this._store.dispatch("loginbackend/joinSession", {sessionId: params});
               //this._store.commit("loginbackend/setSessionId", param);
               break;
@@ -176,8 +176,6 @@ class LiveSession {
             this._isSpectator = false;
             this._store.commit("session/setSpectator", false);
             this.sendGamestate();
-            alert("You are the host.");
-            break;
           }else{
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
@@ -186,16 +184,12 @@ class LiveSession {
                 "getGamestate",
                 this._store.state.loginbackend.playerId,
               );
-            alert("You are the player.");
-
             const autocom = new CommandPacket("sessionset");
             autocom.addCommand("autoclaim");
             this._sendPacket(autocom)
-
-            break;
           }
+          break;
         case 'reset':
-          console.log("This is a new game.");
           this._store.commit("players/clear");
           break;
         case 'private_chat':
@@ -372,9 +366,6 @@ class LiveSession {
       case "bye":
         this._handleBye(params);
         break;
-      case "pronouns":
-        this._updatePlayerPronouns(params);
-        break;
       case "speaking":
         {
           this._store.dispatch("players/speak", 
@@ -388,7 +379,7 @@ class LiveSession {
       case "tellmes":
         this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
         break;
-        case "showmessage":
+      case "showmessage":
         alert(params);
         break;
     }
@@ -704,40 +695,6 @@ class LiveSession {
     }
   }
 
-  /**
-   * Publish a player pronouns update
-   * @param player
-   * @param value
-   * @param isFromSockets
-   */
-  sendPlayerPronouns({ player, value, isFromSockets }) {
-    //send pronoun only for the seated player or storyteller
-    //Do not re-send pronoun data for an update that was recieved from the sockets layer
-    if (
-      isFromSockets ||
-      (this._isSpectator && this._store.state.loginbackend.playerId !== player.id)
-    )
-      return;
-    const index = this._store.state.players.players.indexOf(player);
-    this._send("pronouns", [index, value]);
-  }
-
-  /**
-   * Update a pronouns based on incoming data.
-   * @param index
-   * @param value
-   * @private
-   */
-  _updatePlayerPronouns([index, value]) {
-    const player = this._store.state.players.players[index];
-
-    this._store.commit("players/update", {
-      player,
-      property: "pronouns",
-      value,
-      isFromSockets: true,
-    });
-  }
 
   /**
    * Handle a ping message by another player / storyteller
@@ -1033,7 +990,12 @@ class LiveSession {
     if (this._isSpectator) return;
     const playersls = this._store.state.players.players;
     const packet = new CommandPacket("sessionset");
-    packet.addCommand("kick", playersls[idx].id);
+    if(idx > 100){
+      packet.addCommand("kick", idx);
+    }else{
+      packet.addCommand("kick", playersls[idx].id);
+    }
+    
     this._sendPacket(packet);
   }
 
@@ -1060,7 +1022,7 @@ export default (store) => {
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
       case "loginbackend/loginWithData":
-        session.login(payload.username, payload.password);
+        session.login(payload.username, payload.pwd);
         break;
       case "loginbackend/loginWithToken":
         session.login('', payload.playerId);
@@ -1133,11 +1095,7 @@ export default (store) => {
         session.sendGamestate("", true);
         break;
       case "players/update":
-        if (payload.property === "pronouns") {
-          session.sendPlayerPronouns(payload);
-        } else {
-          session.sendPlayer(payload);
-        }
+        session.sendPlayer(payload);
         break;
     }
   });

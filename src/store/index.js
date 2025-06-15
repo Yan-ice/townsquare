@@ -1,15 +1,14 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import persistence from "./persistence";
 import socket from "./socket";
+import loginbackend from "./loginbackend";
+import persistence from "./persistence";
 import players from "./modules/players";
 import session from "./modules/session";
 import editionJSON from "../editions.json";
 import rolesJSON from "../roles.json";
 import fabledJSON from "../fabled.json";
 import jinxesJSON from "../hatred.json";
-
-import loginbackend from "./loginbackend";
 
 Vue.use(Vuex);
 
@@ -107,7 +106,7 @@ export default new Vuex.Store({
     grimoire: {
       isNight: false,
       isNightOrder: true,
-      isPublic: true,
+      isPublic: false,
       isMenuOpen: false,
       isStatic: false,
       isMuted: false,
@@ -178,7 +177,6 @@ export default new Vuex.Store({
     toggleNightOrder: toggle("isNightOrder"),
     toggleStatic: toggle("isStatic"),
     toggleNight: toggle("isNight"),
-    toggleGrimoire: toggle("isPublic"),
     toggleImageOptIn: toggle("isImageOptIn"),
     toggleModal({ modals }, name) {
       if (name && name != "") {
@@ -285,5 +283,5 @@ export default new Vuex.Store({
       state.modals.edition = false;
     },
   },
-  plugins: [persistence, socket],
+  plugins: [socket, persistence],
 });

@@ -4,7 +4,9 @@
     v-if="modals.roles && nonTravelers >= 5"
     @close="toggleModal('roles')"
   >
-    <h3>Select the characters for {{ nonTravelers }} players:</h3>
+    <h3>为 {{ nonTravelers }} 个玩家选择角色：</h3>
+
+    <div class="scroll-wrapper">
     <ul class="tokens" v-for="(teamRoles, team) in roleSelection" :key="team">
       <li class="count" :class="[team]">
         {{ teamRoles.reduce((a, { selected }) => a + selected, 0) }} /
@@ -28,17 +30,18 @@
         </div>
       </li>
     </ul>
+    </div>
+
     <div class="warning" v-if="hasSelectedSetupRoles">
       <font-awesome-icon icon="exclamation-triangle" />
       <span>
-        Warning: there are characters selected that modify the game setup! The
-        randomizer does not account for these characters.
+        注意：部分角色影响初始配版！随机分配并没有考虑这些。
       </span>
     </div>
     <label class="multiple" :class="{ checked: allowMultiple }">
       <font-awesome-icon :icon="allowMultiple ? 'check-square' : 'square'" />
       <input type="checkbox" name="allow-multiple" v-model="allowMultiple" />
-      Allow duplicate characters
+      允许重复角色
     </label>
     <div class="button-group">
       <div
@@ -49,11 +52,11 @@
         }"
       >
         <font-awesome-icon icon="people-arrows" />
-        Assign {{ selectedRoles }} characters randomly
+        随机分配这些角色
       </div>
       <div class="button" @click="selectRandomRoles">
         <font-awesome-icon icon="random" />
-        Shuffle characters
+        随机选择角色
       </div>
     </div>
   </Modal>
@@ -165,12 +168,29 @@ export default {
 <style lang="scss" scoped>
 @import "../../vars.scss";
 
+.scroll-wrapper {
+  max-height: 300px; /* 或你想要的高度 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px; /* 避免滚动条遮住内容 */
+  max-height: 70vh;
+  border: 1px solid #ccc; /* 可选：美观边框 */
+  border-radius: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
 ul.tokens {
   padding-left: 5%;
   li {
     border-radius: 50%;
-    width: 5vw;
-    margin: 5px;
+    width: 8vw;
+    margin: 3px;
     opacity: 0.5;
     transition: all 250ms;
     &.selected {

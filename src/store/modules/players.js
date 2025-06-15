@@ -147,7 +147,7 @@ const mutations = {
 
   add(state) {
     state.players.push({
-      name: "---",
+      name: '',
       id: "",
       role: {},
       reminders: [],
@@ -157,8 +157,17 @@ const mutations = {
     });
   },
   kick(state, idx) {
-    const player = state.players[idx];
-    player.name = '---';
+    if(idx < 100) {
+      const player = state.players[idx];
+      player.name = '';
+    }else{
+      state.players.forEach((player) => {
+        if(player.id == idx) {
+          player.name = '';
+        }
+      })
+    }
+    
     //nothing here, only for subscribe
   },
   speak(state, { idx, value }) {

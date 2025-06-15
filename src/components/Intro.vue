@@ -2,20 +2,19 @@
   <div class="intro">
     <img src="static/apple-icon.png" alt="" class="logo" />
     <div>
-      Welcome to the (unofficial)
-      <b>Virtual Town Square and Grimoire</b> for Blood on the Clocktower!
-      Please add more players through the
+      
+      欢迎使用 染·钟楼谜团 线上(非官方)语音魔典！<br>
+      这是一个新房间，你是该房间的说书人。<br>
+      你可以通过
       <span class="button" @click="toggleMenu">
-        <font-awesome-icon icon="cog" /> Menu
+        <font-awesome-icon icon="cog" /> 菜单
       </span>
-      on the top right or by pressing <b>[A]</b>. You can also join a game
-      session by pressing <b>[J]</b>.<br />
+      进行添加座位、选择剧本等。<br><br>
+
+      如果您提供了麦克风权限，您将与玩家语音聊天。<br>你可以随时在菜单中开启/关闭麦克风。
       <div class="footer">
-        This project is free and open source and can be found on
-        <a href="https://github.com/bra1n/townsquare" target="_blank">GitHub</a
-        >. It is not affiliated with The Pandemonium Institute. "Blood on the
-        Clocktower" is a trademark of Steven Medway and The Pandemonium
-        Institute.
+        这是一个开源项目，源码可以在
+        <a href="https://github.com/yan-ice/townsquare" target="_blank">GitHub</a> 中获取。它与The Pandemonium Institute没有任何关联。“染·钟楼谜团”是Steven Medway和The Pandemonium的商标, 在国内由"集石"代理。
       </div>
     </div>
     <a

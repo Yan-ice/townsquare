@@ -148,13 +148,15 @@
 
           <template v-if="player.id && player.id !== loginbackend.playerId">
             <li @click="tellPlayer()" :class="{ disabled: session.lockedVote }">
-                <font-awesome-icon icon="times-circle" />
+                <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
-                <font-awesome-icon icon="times-circle" />
+            <template v-if="session.isSpectator">
+              <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
+                <font-awesome-icon icon="volume-up" />
                 发起私聊
-            </li>
+              </li>
+            </template>
           </template>
           
           <!-- <li

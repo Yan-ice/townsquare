@@ -1,9 +1,13 @@
+
+import mediasoupRoom from '@/store/mediabackend';
+
 const state = () => ({
     sessionId: '',
     playerId: '',
     username: '',
     pwd: '2333',
     isSpeaking: false,
+    isMute: false,
     commandToServer: null,
     backendServer: null,
     vocalServer: null,
@@ -29,6 +33,10 @@ const mutations = {
       alert("["+payload.sender+ " -> 你]\n"+payload.message);
       state.messageLog = state.messageLog + "\n["+payload.sender+ " -> 你] "+payload.message;
       console.log(state.messageLog);
+    },
+    setMute(state, mute) { //listened by socket
+      state.isMute = mute;
+      mediasoupRoom.setMute(mute);
     },
 
     resetServerURL(state) {
@@ -59,8 +67,6 @@ const mutations = {
     },
 };
 
-import mediasoupRoom from '@/store/mediabackend';
-
 const actions = {
 
   async logout({ state, commit }) {
@@ -89,7 +95,6 @@ const actions = {
       await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
     } catch (e) {
       console.error("joinRoom failed:", e);
-      alert("错误：无法连接至语音服务器。");
     }
   },
 

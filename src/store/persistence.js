@@ -1,15 +1,8 @@
 module.exports = (store) => {
-  const updatePagetitle = (isPublic) =>
-    (document.title = `Blood on the Clocktower ${
-      isPublic ? "Town Square" : "Grimoire"
-    }`);
 
   // initialize data
   if (localStorage.getItem("background")) {
     store.commit("setBackground", localStorage.background);
-  }
-  if (localStorage.getItem("muted")) {
-    store.commit("toggleMuted", true);
   }
   if (localStorage.getItem("static")) {
     store.commit("toggleStatic", true);
@@ -19,10 +12,6 @@ module.exports = (store) => {
   }
   if (localStorage.getItem("zoom")) {
     store.commit("setZoom", parseFloat(localStorage.getItem("zoom")));
-  }
-  if (localStorage.getItem("isGrimoire")) {
-    store.commit("toggleGrimoire", true);
-    updatePagetitle(false);
   }
   if (localStorage.roles !== undefined) {
     store.commit("setCustomRoles", JSON.parse(localStorage.roles));
@@ -60,6 +49,20 @@ module.exports = (store) => {
     );
   }
 
+  /** Quick Login with existing data. */
+  if (localStorage.serverURL) {
+    console.log("server URL: ", localStorage.serverURL);
+    store.commit("loginbackend/setServerURL", localStorage.serverURL);
+  }
+  if (localStorage.username) {
+    console.log("Logining...",localStorage.username, localStorage.password);
+    store.commit("loginbackend/loginWithData", {
+      username: localStorage.username,
+      pwd: localStorage.password
+    });
+  }else{
+    console.log("No data.");
+  }
   /**** Session related data *****/
   // if (localStorage.getItem("playerId")) {
   //   store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));
@@ -73,14 +76,6 @@ module.exports = (store) => {
   // listen to mutations
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
-      case "toggleGrimoire":
-        if (!state.grimoire.isPublic) {
-          localStorage.setItem("isGrimoire", 1);
-        } else {
-          localStorage.removeItem("isGrimoire");
-        }
-        updatePagetitle(state.grimoire.isPublic);
-        break;
       case "setBackground":
         if (payload) {
           localStorage.setItem("background", payload);
@@ -183,6 +178,22 @@ module.exports = (store) => {
         } else {
           localStorage.removeItem("playerId");
         }
+        break;
+      case "loginbackend/setServerURL":
+        if (payload) {
+          localStorage.setItem("serverURL", payload);
+        }
+        break;
+      case "loginbackend/loginWithData":
+        if (payload) {
+          console.log("inf updated.",payload.username, payload.pwd);
+          localStorage.setItem("username", payload.username);
+          localStorage.setItem("password", payload.pwd);
+        }
+        break;
+      case "loginbackend/logout":
+        localStorage.removeItem("username");
+        localStorage.removeItem("password");
         break;
     }
   });

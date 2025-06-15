@@ -32,8 +32,8 @@
       :class="{ closed: !isBluffsOpen }"
     >
       <h3>
-        <span v-if="session.isSpectator">Other characters</span>
-        <span v-else>Demon bluffs</span>
+        <span v-if="session.isSpectator">恶魔伪装</span>
+        <span v-else>恶魔伪装</span>
         <font-awesome-icon icon="times-circle" @click.stop="toggleBluffs" />
         <font-awesome-icon icon="plus-circle" @click.stop="toggleBluffs" />
       </h3>
@@ -50,7 +50,7 @@
 
     <div class="fabled" :class="{ closed: !isFabledOpen }" v-if="fabled.length">
       <h3>
-        <span>Fabled</span>
+        <span>传奇角色</span>
         <font-awesome-icon icon="times-circle" @click.stop="toggleFabled" />
         <font-awesome-icon icon="plus-circle" @click.stop="toggleFabled" />
       </h3>

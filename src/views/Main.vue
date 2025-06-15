@@ -1,6 +1,6 @@
 <template>
     <div style="width: 100vw; height: 100vh;">
-      <TownSquare2 />
+      <TownSquare />
       <Menu ref="menu"></Menu>
       <EditionModal />
       <FabledModal />
@@ -12,7 +12,6 @@
       <PrivateChatModal />
       <GameStateModal />
       <Gradients />
-      <TownInfo />
     </div>
       
   </template>
@@ -33,12 +32,12 @@
   import PrivateChatModal from "@/components/modals/PrivateChatModal";
   import VoteHistoryModal from "@/components/modals/VoteHistoryModal";
   import GameStateModal from "@/components/modals/GameStateModal";
-  import TownSquare2 from "@/components/TownSquare2"
+  import TownSquare from "@/components/TownSquare"
   import MessageModal from "../components/modals/MessageModal";
 
   export default {
     components: {
-      TownSquare2,
+      TownSquare,
       GameStateModal,
       PrivateChatModal,
       VoteHistoryModal,
@@ -68,9 +67,6 @@
       keyup({ key, ctrlKey, metaKey }) {
         if (ctrlKey || metaKey) return;
         switch (key.toLocaleLowerCase()) {
-          case "g":
-            this.$store.commit("toggleGrimoire");
-            break;
           case "a":
             this.$refs.menu.addPlayer();
             break;

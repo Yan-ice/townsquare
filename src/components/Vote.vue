@@ -6,22 +6,22 @@
     </div>
     <div class="overlay">
       <audio src="../assets/sounds/countdown.mp3" preload="auto"></audio>
-      <em class="blue">{{ nominator.name }}</em> nominated
+      <em class="blue">{{ nominator.name }}</em> 提名
       <em>{{ nominee.name }}</em
       >!
       <br />
       <em class="blue">
-        {{ voters.length }} vote{{ voters.length !== 1 ? "s" : "" }}
+        {{ voters.length }} 人
       </em>
-      in favor
+      想上票
       <em v-if="nominee.role.team !== 'traveler'">
-        (majority is {{ Math.ceil(alive / 2) }})
+        (需 {{ Math.ceil(alive / 2) }} 票)
       </em>
       <em v-else>(majority is {{ Math.ceil(players.length / 2) }})</em>
 
       <template v-if="!session.isSpectator">
         <div v-if="!session.isVoteInProgress && session.lockedVote < 1">
-          Time per player:
+          投票速度:
           <font-awesome-icon
             @mousedown.prevent="setVotingSpeed(-500)"
             icon="minus-circle"
@@ -38,10 +38,10 @@
             v-if="!session.isVoteInProgress"
             @click="countdown"
           >
-            Countdown
+            倒计时
           </div>
           <div class="button" v-if="!session.isVoteInProgress" @click="start">
-            {{ session.lockedVote ? "Restart" : "Start" }}
+            {{ session.lockedVote ? "重新开始" : "直接开始" }}
           </div>
           <template v-else>
             <div
@@ -51,9 +51,9 @@
             >
               {{ voteTimer ? "Pause" : "Resume" }}
             </div>
-            <div class="button" @click="stop">Reset</div>
+            <div class="button" @click="stop">重置</div>
           </template>
-          <div class="button demon" @click="finish">Close</div>
+          <div class="button demon" @click="finish">关闭</div>
         </div>
         <div class="button-group mark" v-if="nominee.role.team !== 'traveler'">
           <div
@@ -63,9 +63,9 @@
             }"
             @click="setMarked"
           >
-            Mark for execution
+            标记待处决
           </div>
-          <div class="button" @click="removeMarked">Clear mark</div>
+          <div class="button" @click="removeMarked">清除待处决</div>
         </div>
       </template>
       <template v-else-if="canVote">
@@ -78,18 +78,18 @@
             @click="vote(false)"
             :class="{ disabled: !currentVote }"
           >
-            Hand DOWN
+            放下手
           </div>
           <div
             class="button demon"
             @click="vote(true)"
             :class="{ disabled: currentVote }"
           >
-            Hand UP
+            举手投票
           </div>
         </div>
       </template>
-      <div v-else-if="!player">Please claim a seat to vote.</div>
+      <div v-else-if="!player">请在座位上才能投票。</div>
     </div>
     <transition name="blur">
       <div

@@ -4,7 +4,11 @@
 
     <form @submit.prevent="handleSubmit" class="login-form">
       <input v-model="room" type="text" placeholder="请输入房间号" required />
-      <button type="submit">确认</button>
+      <button type="submit">加入房间</button>
+      <label class="observer-checkbox blackp">
+        <input v-model="isObserver" type="checkbox" />
+      以旁观游戏身份加入
+      </label>
     </form>
 
     <button class="logout-button" @click="logout">退出登录</button>
@@ -23,13 +27,20 @@ export default {
 
   data() {
     return {
-      room: ''
+      room: '',
+      isObserver: false
     };
   },
 
   methods: {
     handleSubmit() {
-      this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
+      if(this.isObserver) {
+        this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
+        alert("此功能仍在开发中。");
+      }else{
+        this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
+      }
+      
       //this.$store.commit('loginbackend/setSessionId', this.room);
     },
 
@@ -56,8 +67,12 @@ export default {
 .title {
   font-size: 1.5rem;
   margin-bottom: 2rem;
+  color: black;
 }
-
+.blackp {
+  font-size: 0.9rem;
+  color: black;
+}
 .login-form {
   display: flex;
   flex-direction: column;

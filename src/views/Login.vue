@@ -2,10 +2,11 @@
     <div class="login-container">
       <h2 class="title">用户登录</h2>
       <form @submit.prevent="handleSubmit" class="login-form">
-        <input v-model="username" type="text" placeholder="用户名" required />
-        <input v-model="password" type="password" placeholder="密码" required />
-        <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required />
-        <button :disabled="$store.state.loginbackend.username!=''" type="submit">确认</button>
+        <input v-model="username" type="text" placeholder="昵称" required />
+        <!-- <input v-model="password" type="password" placeholder="密码" required /> -->
+        <!-- <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required /> -->
+        <input v-model="serverurl" type="text" placeholder="区服" required />
+        <button  type="submit">确认</button>
       </form>
     </div>
   </template>
@@ -15,7 +16,7 @@
     data() {
       return {
         username: '',
-        password: '',
+        password: 'a',
         serverurl: '',
       }
     },
@@ -28,7 +29,7 @@
         // 传递对象给 mutation
         this.$store.commit('loginbackend/loginWithData', {
           username: this.username,
-          password: this.password
+          pwd: this.password
         });
 
         // 这里你可以调用接口或做其他操作
@@ -51,6 +52,7 @@
   .title {
     text-align: center;
     margin-bottom: 1.5rem;
+    color: black;
   }
   
   .login-form {

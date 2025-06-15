@@ -27,10 +27,11 @@
     <MainWindow v-else />
 
     <transition name="blur">
-        <Intro v-if="!players.length"></Intro>
-        <TownInfo v-if="players.length && !session.nomination"></TownInfo>
-        <Vote v-if="session.nomination"></Vote>
+        <Intro v-if="sessionId && !players.length"></Intro>
+        <TownInfo v-if="sessionId && players.length && !session.nomination"></TownInfo>
+        <Vote v-if="sessionId && session.nomination"></Vote>
     </transition>
+
     <span id="version">v{{ version }}</span>
   </div>
 </template>
@@ -45,8 +46,9 @@ import { version } from "../package.json";
 import LoginWin from "@/views/Login";
 import MainWindow from "@/views/Main";
 import SelectRoomWin from "@/views/SelectRoom";
+import TownInfo from "./components/TownInfo.vue";
 import Vote from "@/components/Vote";
-
+import Intro from "./components/Intro.vue";
 export default {
   components: {
     LoginWin,
@@ -57,8 +59,8 @@ export default {
     // NightOrderModal,
     Vote,
     // ReferenceModal,
-    // Intro,
-    // TownInfo,
+    Intro,
+    TownInfo,
     // TownSquare,
     // Menu,
     // EditionModal,
@@ -81,9 +83,6 @@ export default {
     keyup({ key, ctrlKey, metaKey }) {
       if (!ctrlKey || metaKey) return;
       switch (key.toLocaleLowerCase()) {
-        case "g":
-          this.$store.commit("toggleGrimoire");
-          break;
         case "a":
           this.$refs.menu.addPlayer();
           break;

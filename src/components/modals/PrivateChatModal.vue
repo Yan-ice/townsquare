@@ -7,12 +7,19 @@
    -->
   <br>
   <h3>{{ !this.$store.state.session.private_chat_connected ? '同时让对方向你发起私聊，即可建立私聊连接(相互发起私聊请求开启私聊)。' : '如果你关闭这个窗口，你将结束私聊并回到公聊。' }}</h3>
-    
+  
+
   <div class="button-group">
-      <div class="button demon" @click="endPrivChat">
-        <font-awesome-icon icon="cog" /> 关闭
-      </div>
+    <div v-if="loginbackend.isMute" class="button demon" @click="toggleMute(false)">
+        <font-awesome-icon icon="volume-up" /> 开启麦克风
     </div>
+    <div v-if="!loginbackend.isMute" class="button demon" @click="toggleMute(true)">
+        <font-awesome-icon icon="volume-mute" /> 关闭麦克风
+    </div>
+    <div class="button demon" @click="endPrivChat">
+        <font-awesome-icon icon="cog" /> 结束私聊
+    </div>
+  </div>
   </Modal>
 </template>
 
@@ -22,11 +29,15 @@ import Modal from "./Modal";
 export default {
   components: { Modal },
   computed: {
-    ...mapState(["modals", "fabled", "grimoire"]),
+    ...mapState(["modals", "fabled", "grimoire", "loginbackend"]),
   },
   methods: {
     endPrivChat() {
       this.$store.commit("session/privateChatLeave");
+      // this.$store.commit("toggleModal", "");
+    },
+    toggleMute(mute) {
+      this.$store.commit("loginbackend/setMute",mute);
       // this.$store.commit("toggleModal", "");
     },
     ...mapMutations(["toggleModal"]),

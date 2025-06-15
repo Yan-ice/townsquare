@@ -11,7 +11,7 @@
         })`,
       }"
     ></li>
-    <li v-if="players.length - teams.traveler < 5">Please add more players!</li>
+    <li v-if="players.length - teams.traveler < 5">请添加更多玩家！</li>
     <li>
       <span class="meta" v-if="!edition.isOfficial">
         {{ edition.name }}

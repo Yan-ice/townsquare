@@ -1,34 +1,38 @@
 <template>
   <Modal v-if="modals.role && availableRoles.length" @close="close">
     <h3>
-      Choose a new character for
+      为
       {{
         playerIndex >= 0 && players.length
           ? players[playerIndex].name
-          : "bluffing"
-      }}
+          : "恶魔的伪装"
+      }} 选择一个角色
     </h3>
-    <ul class="tokens" v-if="tab === 'editionRoles' || !otherTravelers.size">
-      <li
-        v-for="role in availableRoles"
-        :class="[role.team]"
-        :key="role.id"
-        @click="setRole(role)"
-      >
-        <Token :role="role" />
-      </li>
-    </ul>
-    <ul class="tokens" v-if="tab === 'otherTravelers' && otherTravelers.size">
-      <li
-        v-for="role in otherTravelers.values()"
-        :class="[role.team]"
-        :key="role.id"
-        @click="setRole(role)"
-      >
-        <Token :role="role" />
-      </li>
-    </ul>
-    <div
+    <div class="scroll-wrapper">
+      <ul class="tokens" v-if="tab === 'editionRoles' || !otherTravelers.size">
+        <li
+          v-for="role in availableRoles"
+          :class="[role.team]"
+          :key="role.id"
+          @click="setRole(role)"
+        >
+          <Token :role="role" />
+        </li>
+      </ul>
+      <ul class="tokens" v-if="tab === 'otherTravelers' && otherTravelers.size">
+        <li
+          v-for="role in otherTravelers.values()"
+          :class="[role.team]"
+          :key="role.id"
+          @click="setRole(role)"
+        >
+          <Token :role="role" />
+        </li>
+      </ul>
+    </div>
+
+
+    <!-- <div
       class="button-group"
       v-if="playerIndex >= 0 && otherTravelers.size && !session.isSpectator"
     >
@@ -44,7 +48,8 @@
         @click="tab = 'otherTravelers'"
         >Other Travelers</span
       >
-    </div>
+    </div> -->
+
   </Modal>
 </template>
 
@@ -115,9 +120,26 @@ export default {
 <style scoped lang="scss">
 @import "../../vars.scss";
 
+.scroll-wrapper {
+  max-height: 300px; /* 或你想要的高度 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px; /* 避免滚动条遮住内容 */
+  max-height: 70vh;
+  border: 1px solid #ccc; /* 可选：美观边框 */
+  border-radius: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
 ul.tokens li {
   border-radius: 50%;
-  width: 6vw;
+  width: 9vw;
   margin: 1%;
   transition: transform 500ms ease;
 

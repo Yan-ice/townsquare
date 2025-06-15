@@ -63,13 +63,26 @@ class MediasoupRoom {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } else {
-      alert("浏览器不支持麦克风, 或未通过安全环境");
+      alert("浏览器不支持麦克风, 或未通过安全环境。");
       return;
     }
-    const track = this.stream.getAudioTracks()[0];
 
-    this.roomId = roomId;
-    this.userId = userId;
+    const tracks = this.stream.getAudioTracks();
+    if(tracks.length == 0) {
+      alert("未找到麦克风设备, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
+      return;
+    }
+
+    const track = tracks[0];
+
+    track.addEventListener('ended', () => {
+        alert('麦克风设备断开, 已自动关闭麦克风。你可以在菜单尝试重新打开它。');
+        this.leaveRoom();
+    });
+
+    if(roomId) this.roomId = roomId;
+    if(userId) this.userId = userId;
+
     this.serverURL = store.state.loginbackend.vocalServer;
 
     this.socket = io(this.serverURL, { timeout: 10000, reconnection: false });
@@ -79,17 +92,19 @@ class MediasoupRoom {
     this.socket.on("newUser", ({ userId }) => {
       this.consume(userId);
     });
+
     this.socket.on("connect_error", () => {
-      alert("无法连接至语音服务器：状态异常。");
+      alert("无法连接至语音服务器, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
       this.socket = null;
       this.device = null;
       this.joined = false;
+      this.roomId = '';
+      this.userId = '';
       this.sendTransport = null;
       this.recvTransport = null;
     });
 
-    this.socket.on("disconnect", (reason) => {
-      console.warn("连接断开", reason);
+    this.socket.on("disconnect", () => {
       this.socket = null;
       this.device = null;
       this.joined = false;
@@ -217,18 +232,13 @@ class MediasoupRoom {
     }
 
     this.joined = false;
-    this.roomId = null;
-    this.userId = null;
   }
 
-  mute() {
-    if (!this.stream) return;
-    this.stream.getAudioTracks().forEach(track => track.enabled = false);
-  }
+  setMute(mute) {
+    if (mute && !this.joined && this.roomId) this.joinRoom();
 
-  unmute() {
     if (!this.stream) return;
-    this.stream.getAudioTracks().forEach(track => track.enabled = true);
+    this.stream.getAudioTracks().forEach(track => track.enabled = !mute);
   }
 
   startVolumeMonitor(stream) {
@@ -244,7 +254,8 @@ class MediasoupRoom {
     const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
 
     const updateVolume = () => {
-      this.analyser.getByteFrequencyData(dataArray);
+      if(this.analyser) {
+        this.analyser.getByteFrequencyData(dataArray);
       let values = 0;
       for (let i = 0; i < dataArray.length; i++) {
         values += dataArray[i];
@@ -256,6 +267,7 @@ class MediasoupRoom {
         this.volumeCallback(this.volume >= this.volumeThreshold);
       }
       this.volumeMonitorId = requestAnimationFrame(updateVolume);
+      }
     };
 
     updateVolume();

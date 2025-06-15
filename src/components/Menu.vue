@@ -44,11 +44,6 @@
         <template v-if="tab === 'grimoire'">
           <!-- Grimoire -->
           <li class="headline">魔典选项</li>
-          <li @click="toggleGrimoire" v-if="players.length">
-            <template v-if="!grimoire.isPublic">隐藏魔典</template>
-            <template v-if="grimoire.isPublic">显示魔典</template>
-            <em>[G]</em>
-          </li>
           <li @click="toggleNight" v-if="!session.isSpectator">
             <template v-if="!grimoire.isNight">切换到夜晚</template>
             <template v-if="grimoire.isNight">切换到白天</template>
@@ -62,6 +57,14 @@
             夜晚顺序表
             <em>[N]</em>
           </li>
+
+          <li
+              v-if="session.voteHistory.length || !session.isSpectator"
+              @click="toggleModal('voteHistory')"
+          >
+              投票记录<em>[V]</em>
+          </li>
+
           <li @click="toggleNightOrder" v-if="players.length">
             显示夜晚顺序
             <em>
@@ -132,15 +135,26 @@
               Delay to {{ session.isSpectator ? "host" : "players" }}
               <em>{{ session.ping }}ms</em>
             </li> -->
-            <li v-if="!session.isSpectator" @click="distributeRoles">
-              派发角色
-              <em><font-awesome-icon icon="theater-masks" /></em>
+
+            <li
+              v-if="!loginbackend.isMute"
+              @click="toggleMute(true)"
+            >
+              关闭麦克风<em>[`]</em>
             </li>
+            <li
+              v-if="loginbackend.isMute"
+              @click="toggleMute(false)"
+            >
+              开启麦克风<em>[`]</em>
+            </li>
+
+
             <li
               v-if="session.isSpectator"
               @click="tellST()"
             >
-              私聊说书人<em>[T]</em>
+              私信说书人<em>[T]</em>
             </li>
             <li
               @click="toggleModal('message')"
@@ -148,12 +162,6 @@
               聊天记录<em>[C]</em>
             </li>
 
-            <li
-              v-if="session.voteHistory.length || !session.isSpectator"
-              @click="toggleModal('voteHistory')"
-            >
-              投票记录<em>[V]</em>
-            </li>
             <li @click="leaveSession">
               离开房间
               <em>{{ loginbackend.sessionId }}</em>
@@ -165,6 +173,12 @@
           <!-- Users -->
           <li class="headline">玩家选项</li>
           <li @click="addPlayer" v-if="players.length < 20">添加座位<em>[A]</em></li>
+
+          <li v-if="!session.isSpectator" @click="distributeRoles">
+              派发角色
+              <em><font-awesome-icon icon="theater-masks" /></em>
+          </li>
+
           <!-- <li @click="randomizeSeatings" v-if="players.length > 2">
             Randomize
             <em><font-awesome-icon icon="dice" /></em>
@@ -203,10 +217,10 @@
           <!-- Help -->
           <li class="headline">帮助</li>
           
-          <li @click="toggleModal('gameState')">
+          <!-- <li @click="toggleModal('gameState')">
             JSON
             <em><font-awesome-icon icon="file-code" /></em>
-          </li>
+          </li> -->
           <li>
             <a href="https://github.com/yan-ice/townsquare" target="_blank">
               源码
@@ -250,25 +264,6 @@ export default {
         this.$store.commit("loginbackend/tellMes", {receiver: '说书人', message: messag});
       }
     },
-    hostSession() {
-      if (this.loginbackend.sessionId) return;
-      const sessionId = prompt(
-        "Enter a channel number / name for your session",
-        Math.round(Math.random() * 10000),
-      );
-      if (sessionId) {
-        // removed.
-        this.$store.commit("session/clearVoteHistory");
-        this.$store.commit("session/setSpectator", false);
-        //this.$store.commit("loginbackend/setSessionId", sessionId);
-        //this.copySessionUrl();
-      }
-    },
-    copySessionUrl() {
-      const url = window.location.href.split("#")[0];
-      const link = url + "#" + this.loginbackend.sessionId;
-      navigator.clipboard.writeText(link);
-    },
     distributeRoles() {
       if (this.session.isSpectator) return;
       const popup =
@@ -302,7 +297,6 @@ export default {
         // removed
         this.$store.commit("session/clearVoteHistory");
         this.$store.commit("session/setSpectator", true);
-        this.$store.commit("toggleGrimoire", true);
         this.$store.commit("loginbackend/setSessionId", sessionId);
 
       }
@@ -318,24 +312,8 @@ export default {
       if (this.players.length >= 20) return;
       this.$store.commit("players/add", "---");
     },
-    randomizeSeatings() {
-      if (this.session.isSpectator) return;
-      if (confirm("Are you sure you want to randomize seatings?")) {
-        this.$store.dispatch("players/randomize");
-      }
-    },
-    clearPlayers() {
-      if (this.session.isSpectator) return;
-      if (confirm("Are you sure you want to remove all players?")) {
-        // abort vote if in progress
-        if (this.session.nomination) {
-          this.$store.commit("session/nomination");
-        }
-        this.$store.commit("players/clear");
-      }
-    },
     clearRoles() {
-      if (confirm("Are you sure you want to remove all player roles?")) {
+      if (confirm("确认清空所有角色标记与token吗？")) {
         this.$store.dispatch("players/clearRoles");
       }
     },
@@ -345,15 +323,17 @@ export default {
         this.$store.commit("session/setMarkedPlayer", -1);
       }
     },
+    toggleMute(mute) {
+      this.$store.commit("loginbackend/setMute", mute);
+    },
     ...mapMutations([
-      "toggleGrimoire",
       "toggleMenu",
       "toggleImageOptIn",
       "toggleMuted",
       "toggleNightOrder",
       "toggleStatic",
       "setZoom",
-      "toggleModal",
+      "toggleModal"
     ]),
   },
 };

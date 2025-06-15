@@ -10,5 +10,5 @@ server/index.js  修改证书路径，修改允许域名。
 
 vocal_server/vocal.js  修改origin地址。
 
-npm run build
+npm run build NODE_ENV="production"
 scp -r dist/ ubuntu@111.229.112.80:~

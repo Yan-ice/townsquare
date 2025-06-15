@@ -24,7 +24,7 @@
             backgroundImage: `url(${require('../../assets/editions/custom.png')})`,
           }"
         >
-          Custom Script / Characters
+          自定义剧本 / 角色
         </li>
       </ul>
     </div>

@@ -3,7 +3,8 @@
     v-if="modals.reminder && availableReminders.length && players[playerIndex]"
     @close="toggleModal('reminder')"
   >
-    <h3>Choose a reminder token:</h3>
+    <h3>选择一个标记:</h3>
+    <div class="scroll-wrapper">
     <ul class="reminders">
       <li
         v-for="reminder in availableReminders"
@@ -29,6 +30,8 @@
         <span class="text">{{ reminder.name }}</span>
       </li>
     </ul>
+    </div>
+    
   </Modal>
 </template>
 
@@ -118,6 +121,24 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+.scroll-wrapper {
+  max-height: 300px; /* 或你想要的高度 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px; /* 避免滚动条遮住内容 */
+  max-height: 70vh;
+  border: 1px solid #ccc; /* 可选：美观边框 */
+  border-radius: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
 ul.reminders .reminder {
   background: url("../../assets/reminder.png") center center;
   background-size: 100%;
