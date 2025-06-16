@@ -50,19 +50,20 @@ module.exports = (store) => {
   }
 
   /** Quick Login with existing data. */
-  if (localStorage.serverURL) {
-    console.log("server URL: ", localStorage.serverURL);
-    store.commit("loginbackend/setServerURL", localStorage.serverURL);
-  }
-  if (localStorage.username) {
-    console.log("Logining...",localStorage.username, localStorage.password);
-    store.commit("loginbackend/loginWithData", {
-      username: localStorage.username,
-      pwd: localStorage.password
-    });
-  }else{
-    console.log("No data.");
-  }
+  // if (localStorage.serverURL) {
+  //   console.log("server URL: ", localStorage.serverURL);
+  //   store.commit("loginbackend/setServerURL", localStorage.serverURL);
+  // }
+  // if (localStorage.username) {
+  //   console.log("Logining...",localStorage.username, localStorage.password);
+  //   store.commit("loginbackend/loginWithData", {
+  //     username: localStorage.username,
+  //     pwd: localStorage.password
+  //   });
+  // }else{
+  //   console.log("No data.");
+  // }
+
   /**** Session related data *****/
   // if (localStorage.getItem("playerId")) {
   //   store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));

@@ -23,33 +23,69 @@
       <div class="shroud" @click="toggleStatus()"></div>
       <div class="life" @click="toggleStatus()"></div>
       
+      <div class="subtoken-wrapper"
+        v-if="!grimoire.isMaskGrimoire">
+        <div
+          class="night-order first"
+          v-if="nightOrder.get(player).first1 && grimoire.isNightOrder"
+        >
+          <em>{{ nightOrder.get(player).first1 }}.</em>
+          <span v-if="player.role.firstNightReminder">{{
+            player.role.firstNightReminder
+          }}</span>
+        </div>
+        <div
+          class="night-order other"
+          v-if="nightOrder.get(player).other1 && grimoire.isNightOrder"
+        >
+          <em>{{ nightOrder.get(player).other1 }}.</em>
+          <span v-if="player.role.otherNightReminder">{{
+            player.role.otherNightReminder
+          }}</span>
+        </div>
 
-      <div
-        class="night-order first"
-        v-if="nightOrder.get(player).first && grimoire.isNightOrder"
-      >
-        <em>{{ nightOrder.get(player).first }}.</em>
-        <span v-if="player.role.firstNightReminder">{{
-          player.role.firstNightReminder
-        }}</span>
-      </div>
-      <div
-        class="night-order other"
-        v-if="nightOrder.get(player).other && grimoire.isNightOrder"
-      >
-        <em>{{ nightOrder.get(player).other }}.</em>
-        <span v-if="player.role.otherNightReminder">{{
-          player.role.otherNightReminder
-        }}</span>
+        <Token
+          :role="player.role"
+          @set-role="$emit('trigger', ['openRoleModal'])"
+        />
       </div>
 
-      <Token
-        :role="player.role"
-        @set-role="$emit('trigger', ['openRoleModal'])"
-      />
+
+      <!-- For the sub token. -->
+      <div class="subtoken-wrapper"
+        v-if="grimoire.isMaskGrimoire">
+        <div
+          class="night-order first"
+          v-if="nightOrder.get(player).first2 && grimoire.isNightOrder"
+        >
+          <em>{{ nightOrder.get(player).first2 }}.</em>
+          <span v-if="player.role2.firstNightReminder">{{
+            player.role2.firstNightReminder
+          }}</span>
+        </div>
+        <div
+          class="night-order other"
+          v-if="nightOrder.get(player).other2 && grimoire.isNightOrder"
+        >
+          <em>{{ nightOrder.get(player).other2 }}.</em>
+          <span v-if="player.role2.otherNightReminder">{{
+            player.role2.otherNightReminder
+          }}</span>
+        </div>
+        <Token
+          :role="player.role2"
+          @set-role="$emit('trigger', ['openRoleModal'])"
+        />
+      </div>
+
+      <!-- For the sub token. -->
 
       <!-- Overlay icons -->
       <div class="overlay">
+
+        <div class="mask-icon"
+          v-if="grimoire.isMaskGrimoire"></div>
+
         <font-awesome-icon
           icon="hand-paper"
           class="vote"
@@ -982,4 +1018,28 @@ li.move:not(.from) .player .overlay svg.move {
   opacity: 0;
   pointer-events: none;
 }
+
+.subtoken-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  transition: transform 200ms ease-in-out;
+  transform: perspective(400px) rotateY(0deg);
+  backface-visibility: hidden;
+}
+
+.mask-icon {
+  position: absolute;         /* 绝对定位 */
+  top: 0;
+  left: 0;
+  width: 100%;                /* 宽度占满父元素 */
+  height: 100%;               /* 如果需要全覆盖，建议加上高度 */
+  background: url("../assets/mask.png") center center no-repeat;
+  background-size: 80% auto;  /* 等比缩放，图片完整显示 */
+  opacity: 0.3;               /* 半透明 */
+  transition: transform 200ms ease-in-out;
+  pointer-events: none;
+}
+
 </style>

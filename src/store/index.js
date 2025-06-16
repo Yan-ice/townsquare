@@ -105,6 +105,7 @@ export default new Vuex.Store({
   state: {
     grimoire: {
       isNight: false,
+      isMaskGrimoire: false,
       isNightOrder: true,
       isPublic: false,
       isMenuOpen: false,
@@ -112,7 +113,7 @@ export default new Vuex.Store({
       isMuted: false,
       isImageOptIn: true,
       zoom: 0,
-      background: "",
+      background: ""
     },
     modals: {
       edition: false,
@@ -173,6 +174,7 @@ export default new Vuex.Store({
     setZoom: set("zoom"),
     setBackground: set("background"),
     toggleMuted: toggle("isMuted"),
+    toggleMaskGrimoire: toggle("isMaskGrimoire"),
     toggleMenu: toggle("isMenuOpen"),
     toggleNightOrder: toggle("isNightOrder"),
     toggleStatic: toggle("isStatic"),

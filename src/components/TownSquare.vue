@@ -312,6 +312,7 @@ export default {
   @for $i from 1 through $item-count {
     &:nth-child(#{$i}) {
       transform: rotate($rot * 1deg);
+
       @if $i - 1 <= math.div($item-count, 2) {
         // first half of players
         z-index: $item-count - $i + 1;

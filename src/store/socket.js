@@ -652,7 +652,7 @@ class LiveSession {
         delete this._gamestate[index].roleId;
         this._send("player", { index, property, value: "" });
       }
-    } else {
+    } else if (property !== "role2"){
       this._send("player", { index, property, value });
     }
   }
@@ -689,7 +689,17 @@ class LiveSession {
           value: role,
         });
       }
-    } else {
+    } else if (property === "role2") {
+      const role2 =
+          this._store.state.roles.get(value) ||
+          this._store.getters.rolesJSONbyId.get(value) ||
+          {};
+      this._store.commit("players/update", {
+          player,
+          property: "role2",
+          value: role2,
+        });
+    }else {
       // just update the player otherwise
       this._store.commit("players/update", { player, property, value });
     }
@@ -840,18 +850,21 @@ class LiveSession {
    */
   distributeRoles() {
     if (this._isSpectator) return;
-    const message = {};
     this._store.state.players.players.forEach((player, index) => {
-      if (player.id && player.role) {
-        message[player.id] = [
-          "player",
-          { index, property: "role", value: player.role.id },
-        ];
+      if (player.id) {
+        const cmd = new CommandPacket("direct");
+        cmd.receiver = player.id;
+        cmd.addCommand("player", {index, property: "role", value: player.role.id});
+        cmd.addCommand("player", {index, property: "role2", value: player.role2.id});
+        
+        // Yan_ice: TODO
+        // message[player.id] = [
+        //   "player",
+        //   { index, property: "role", value: player.role.id },
+        // ];
+        this._sendPacket(cmd);
       }
     });
-    if (Object.keys(message).length) {
-      this._send("direct", message);
-    }
   }
 
   /**

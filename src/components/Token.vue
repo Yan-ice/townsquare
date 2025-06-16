@@ -51,11 +51,9 @@
 
 <script>
 import { mapState } from "vuex";
-//import VoiceRing from './VoiceRing.vue';
 
 export default {
   name: "Token",
-  //components: { VoiceRing },
   props: {
     role: {
       type: Object,
