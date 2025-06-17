@@ -99,11 +99,20 @@ export default {
         if (this.session.isSpectator && role.team === "traveler") return;
         // assign to player
         const player = this.$store.state.players.players[this.playerIndex];
-        this.$store.commit("players/update", {
+        if(this.$store.state.grimoire.isMaskGrimoire) {
+          this.$store.commit("players/update", {
+          player,
+          property: "role2",
+          value: role,
+        });
+        }else{
+          this.$store.commit("players/update", {
           player,
           property: "role",
           value: role,
         });
+        }
+        
       }
       this.tab = "editionRoles";
       this.$store.commit("toggleModal", "role");

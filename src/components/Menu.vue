@@ -44,11 +44,19 @@
         <template v-if="tab === 'grimoire'">
           <!-- Grimoire -->
           <li class="headline">魔典选项</li>
+
+          <li @click="toggleMask">
+            <template v-if="!grimoire.isMaskGrimoire">切换到假面</template>
+            <template v-if="grimoire.isMaskGrimoire">切换到真身</template>
+            <em>[?]</em>
+          </li>
+
           <li @click="toggleNight" v-if="!session.isSpectator">
             <template v-if="!grimoire.isNight">切换到夜晚</template>
             <template v-if="grimoire.isNight">切换到白天</template>
             <em>[S]</em>
           </li>
+
           <li @click="toggleModal('reference')">
             角色能力表
             <em>[R]</em>
@@ -323,6 +331,9 @@ export default {
         this.$store.commit("session/setMarkedPlayer", -1);
       }
     },
+    toggleMask() {
+      this.$store.commit("toggleMaskGrimoire");
+    },
     toggleMute(mute) {
       this.$store.commit("loginbackend/setMute", mute);
     },
@@ -330,6 +341,7 @@ export default {
       "toggleMenu",
       "toggleImageOptIn",
       "toggleMuted",
+      "toggleMaskGrimoire",
       "toggleNightOrder",
       "toggleStatic",
       "setZoom",

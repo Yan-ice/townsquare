@@ -63,6 +63,7 @@ module.exports = (store) => {
   }else{
     console.log("No data.");
   }
+
   /**** Session related data *****/
   // if (localStorage.getItem("playerId")) {
   //   store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));

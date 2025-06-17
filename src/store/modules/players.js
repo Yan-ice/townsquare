@@ -4,6 +4,7 @@ const NEWPLAYER = {
   name: "",
   id: "",
   role: {},
+  role2: {},
   reminders: [],
   isVoteless: false,
   talkingTimer: null,
@@ -35,13 +36,21 @@ const getters = {
   nightOrder({ players, fabled }) {
     const firstNight = [0];
     const otherNight = [0];
-    players.forEach(({ role }) => {
+    players.forEach(({ role, role2 }) => {
       if (role.firstNight && !firstNight.includes(role.firstNight)) {
         firstNight.push(role.firstNight);
       }
       if (role.otherNight && !otherNight.includes(role.otherNight)) {
         otherNight.push(role.otherNight);
       }
+
+      if (role2.firstNight && !firstNight.includes(role2.firstNight)) {
+        firstNight.push(role2.firstNight);
+      }
+      if (role2.otherNight && !otherNight.includes(role2.otherNight)) {
+        otherNight.push(role2.otherNight);
+      }
+      //Yan_ice: role2 added
     });
     fabled.forEach((role) => {
       if (role.firstNight && !firstNight.includes(role.firstNight)) {
@@ -55,9 +64,11 @@ const getters = {
     otherNight.sort((a, b) => a - b);
     const nightOrder = new Map();
     players.forEach((player) => {
-      const first = Math.max(firstNight.indexOf(player.role.firstNight), 0);
-      const other = Math.max(otherNight.indexOf(player.role.otherNight), 0);
-      nightOrder.set(player, { first, other });
+      const first1 = Math.max(firstNight.indexOf(player.role.firstNight), 0);
+      const other1 = Math.max(otherNight.indexOf(player.role.otherNight), 0);
+      const first2 = Math.max(firstNight.indexOf(player.role2.firstNight), 0);
+      const other2 = Math.max(otherNight.indexOf(player.role2.otherNight), 0);
+      nightOrder.set(player, { first1, other1, first2, other2 });
     });
     fabled.forEach((role) => {
       const first = Math.max(firstNight.indexOf(role.firstNight), 0);
@@ -134,6 +145,7 @@ const mutations = {
    */
   update(state, { player, property, value }) {
     const index = state.players.indexOf(player);
+    console.log("updating: ", index, property, value);
     if (index >= 0) {
       state.players[index][property] = value;
     }
@@ -150,6 +162,7 @@ const mutations = {
       name: '',
       id: "",
       role: {},
+      role2: {},
       reminders: [],
       isVoteless: false,
       isDead: false,
