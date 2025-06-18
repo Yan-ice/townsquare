@@ -13,7 +13,7 @@
             )})`,
           }"
           :key="edition.id"
-          @click="setEdition(edition)"
+          @click="handleURL(edition.url)"
         >
           {{ edition.name }}
         </li>
@@ -24,7 +24,7 @@
             backgroundImage: `url(${require('../../assets/editions/custom.png')})`,
           }"
         >
-          自定义剧本 / 角色
+          自定义剧本
         </li>
       </ul>
     </div>
@@ -204,11 +204,11 @@ ul.editions .edition {
   font-family: PiratesBay, sans-serif;
   letter-spacing: 1px;
   text-align: center;
-  padding-top: 15%;
+  padding-top: 25%;
   background-position: center center;
   background-size: 100% auto;
   background-repeat: no-repeat;
-  width: 30%;
+  width: 55%;
   margin: 5px;
   font-size: 120%;
   text-shadow:

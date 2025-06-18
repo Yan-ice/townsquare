@@ -111,7 +111,8 @@ const mutations = {
     state.private_chat_target = '';
   },
   setPrivateChatConnected(state, connected) { //listened by socket
-      state.private_chat_connected = connected;
+    
+    state.private_chat_connected = connected;
   },
 };
 

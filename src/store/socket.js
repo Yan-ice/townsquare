@@ -376,6 +376,16 @@ class LiveSession {
           );
         }
         break;
+      case "privatechat":
+        {
+          this._store.dispatch("players/privatechat", 
+            {
+              idx: params[0],
+              value: params[1]
+            }
+          );
+        }
+        break;
       case "tellmes":
         this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
         break;
@@ -934,11 +944,19 @@ class LiveSession {
   }
 
   setSpeaking(isspeaking) { // todo: send speaking to host
-
     const players = this._store.state.players.players;
     for(let a = 0;a<players.length;a++){
       if(players[a].id == this._store.state.loginbackend.playerId) {
         this._sendDirect("host", "speaking", [a, isspeaking]);
+      }
+    }
+  }
+
+  setPrivateChat(isPrivateChat) { // todo: send privchat to host
+    const players = this._store.state.players.players;
+    for(let a = 0;a<players.length;a++){
+      if(players[a].id == this._store.state.loginbackend.playerId) {
+        this._sendDirect("host", "privatechat", [a, isPrivateChat]);
       }
     }
   }
@@ -1072,6 +1090,7 @@ export default (store) => {
       case "session/setVoteHistoryAllowed":
       case "session/setMarkedPlayer":
       case "players/setTalking":
+      case "players/setPrivateChat":
       case "players/swap":
       case "players/move":
       case "session/clearVoteHistory":
@@ -1082,6 +1101,9 @@ export default (store) => {
         break;
       case "loginbackend/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host
+        break;
+      case "session/setPrivateChatConnected":
+        session.setPrivateChat(payload); //from player to host
         break
       case "loginbackend/tellMes":
         session.tell(payload.receiver, payload.message);

@@ -9,6 +9,7 @@ const NEWPLAYER = {
   isVoteless: false,
   talkingTimer: null,
   isTalkingFlag: false,
+  privateChat: false,
   isDead: false,
   pronouns: "",
 };
@@ -123,6 +124,9 @@ const actions = {
         player.talkingTimer = null;
       }, 1500);
     }
+  },
+  privatechat({ commit }, { idx, value }) {
+    commit('setPrivateChat', { idx, flag: value });
   }
 };
 
@@ -157,6 +161,12 @@ const mutations = {
     Vue.set(player, 'isTalkingFlag', flag);
   },
 
+  setPrivateChat(state, { idx, flag }) {
+    const player = state.players[idx];
+    // 用 Vue.set 保证响应式
+    Vue.set(player, 'privateChat', flag);
+  },
+
   add(state) {
     state.players.push({
       name: '',
@@ -167,6 +177,7 @@ const mutations = {
       isVoteless: false,
       isDead: false,
       pronouns: "",
+      privateChat: false
     });
   },
   kick(state, idx) {

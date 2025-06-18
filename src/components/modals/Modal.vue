@@ -16,6 +16,7 @@
             :icon="['fas', isMaximized ? 'window-minimize' : 'window-maximize']"
           />
           <font-awesome-icon
+            v-if="closable"
             @click="close"
             class="top-right-button"
             icon="times-circle"
@@ -31,6 +32,12 @@
 
 <script>
 export default {
+  props: {
+    closable: {
+      type: Boolean,
+      default: true
+    }
+  },
   data: function () {
     return {
       isMaximized: false,
@@ -38,7 +45,9 @@ export default {
   },
   methods: {
     close() {
-      this.$emit("close");
+      if (this.closable) {
+        this.$emit("close");
+      }
     },
   },
 };

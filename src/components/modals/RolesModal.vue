@@ -93,7 +93,7 @@ export default {
         roles.some((role) => role.selected && role.setup),
       );
     },
-    ...mapState(["roles", "modals"]),
+    ...mapState(["roles", "modals", "grimoire"]),
     ...mapState("players", ["players"]),
     ...mapGetters({ nonTravelers: "players/nonTravelers" }),
   },
@@ -142,7 +142,7 @@ export default {
             const value = roles.pop();
             this.$store.commit("players/update", {
               player,
-              property: "role",
+              property: this.$store.state.grimoire.isMaskGrimoire ? "role2" : "role",
               value,
             });
           }

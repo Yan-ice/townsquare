@@ -1,12 +1,11 @@
 <template>
-  <Modal v-if="modals.privateChat" @close="endPrivChat">
+  <Modal :closable=false v-if="modals.privateChat" @close="endPrivChat">
   <h3>你正在尝试与 {{ this.$store.state.session.private_chat_target }} 私聊。</h3>
   <br>
   <h1>状态：{{ this.$store.state.session.private_chat_connected ? '私聊进行中' : '对方未接受' }}</h1>
   <!-- <h1>[{{ this.$store.state.session.private_chat_connected ? '已建立私聊频道' : '仍在公聊频道中' }}]</h1>
    -->
-  <br>
-  <h3>{{ !this.$store.state.session.private_chat_connected ? '同时让对方向你发起私聊，即可建立私聊连接(相互发起私聊请求开启私聊)。' : '如果你关闭这个窗口，你将结束私聊并回到公聊。' }}</h3>
+  <p>{{ !this.$store.state.session.private_chat_connected ? '同时让对方向你发起私聊，即可建立私聊连接。' : '如果你关闭这个窗口，你将结束私聊并回到公聊。' }}</p>
   
 
   <div class="button-group">
@@ -33,8 +32,8 @@ export default {
   },
   methods: {
     endPrivChat() {
+      this.$store.commit("toggleModal", "");
       this.$store.commit("session/privateChatLeave");
-      // this.$store.commit("toggleModal", "");
     },
     toggleMute(mute) {
       this.$store.commit("loginbackend/setMute",mute);

@@ -86,6 +86,11 @@
         <div class="mask-icon"
           v-if="grimoire.isMaskGrimoire"></div>
 
+        <div class="mask-icon"
+          v-if="grimoire.isMaskGrimoire">
+          
+        </div>
+        
         <font-awesome-icon
           icon="hand-paper"
           class="vote"
@@ -121,11 +126,15 @@
       <!-- Claimed seat icon -->
       <font-awesome-icon
         icon="chair"
-        v-if="player.id && loginbackend.sessionId"
+        v-if="player.id && loginbackend.sessionId && !player.privateChat"
         class="seat"
         :class="{ highlight: session.isRolesDistributed }"
       />
-      
+      <font-awesome-icon
+        icon="comment-dots"
+        v-if="player.privateChat"
+        class="seat"
+      />
 
       <!-- Ghost vote icon -->
       <font-awesome-icon
@@ -142,15 +151,12 @@
       </div>
 
       <div
+        v-if="player.id"
         class="name"
         @click="isMenuOpen = !isMenuOpen"
         :class="{ active: isMenuOpen }"
       >
-        <span>{{ player.name }}</span>
-        <font-awesome-icon icon="venus-mars" v-if="player.pronouns" />
-        <div class="pronouns" v-if="player.pronouns">
-          <span>{{ player.pronouns }}</span>
-        </div>
+        {{this.index+1}}<span>{{ player.name }}</span>
       </div>
 
       <transition name="fold">
@@ -308,15 +314,6 @@ export default {
     },
     privateChat() {
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
-    },
-    changePronouns() {
-      if (this.session.isSpectator && this.player.id !== this.loginbackend.playerId)
-        return;
-      const pronouns = prompt("Player pronouns", this.player.pronouns);
-      //Only update pronouns if not null (prompt was not cancelled)
-      if (pronouns !== null) {
-        this.updatePlayer("pronouns", pronouns, true);
-      }
     },
     toggleStatus() {
       if (this.grimoire.isPublic) {
