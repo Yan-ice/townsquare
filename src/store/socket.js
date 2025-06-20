@@ -158,7 +158,7 @@ class LiveSession {
               this._store.commit("loginbackend/setPlayerId", params['token']);
               break;
             case "failed":
-              alert("用户名或密码错误。如果你正在注册，重新登录即可。");
+              alert("登录失败：激活码无效, 或已被使用。");
               this._store.commit("loginbackend/logout");
               break;
             case "session_restore":
@@ -218,6 +218,7 @@ class LiveSession {
       case 'logout':
         alert(params);
         this.disconnect();
+        this._store.dispatch("loginbackend/logout");
         break;
       case 'prepare_seat': // prepare a seat for user
         {

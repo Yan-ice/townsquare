@@ -166,8 +166,10 @@ wss.on("connection", function connection(ws, req) {
 function set_online(client, token) {
   //previous socket online
   if(online_players[token]) {
-    if (online_players[token]['socket'] === WebSocket.OPEN) {
-      const a = new CommandPacket("require", session);
+    console.log("Login but exist");
+    if (online_players[token]['socket']) {
+      console.log("Login in another place");
+      const a = new CommandPacket("require");
       a.addCommand("logout", "你在其它地方登录了,强制断开连接。");
       online_players[token]['socket'].send(a.serialize());  
       online_players[token]['socket'].close(1000, "Login in other site.");
@@ -439,7 +441,6 @@ const interval = setInterval(function ping() {
     ws.pingStart = new Date().getTime();
     ws.ping(noop);
   });
-  console.log(channels);
   // clean up empty channels
   if (channels.length > 0) {
     for (let channel in channels) {
@@ -447,7 +448,6 @@ const interval = setInterval(function ping() {
         !channels[channel].length ||
         !channels[channel].some(
           (player) => {
-            console.log(player);
             return player['socket'] &&
             (player['socket'].readyState === WebSocket.OPEN ||
               player['socket'].readyState === WebSocket.CONNECTING)

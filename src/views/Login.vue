@@ -3,9 +3,9 @@
       <h2 class="title">用户登录</h2>
       <form @submit.prevent="handleSubmit" class="login-form">
         <input v-model="username" type="text" placeholder="昵称" required />
-        <!-- <input v-model="password" type="password" placeholder="密码" required /> -->
+        <input v-model="password" type="password" placeholder="密码" required />
         <!-- <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required /> -->
-        <input v-model="serverurl" type="text" placeholder="区服" required />
+        <!-- <input v-model="serverurl" type="text" placeholder="区服" required /> -->
         <button  type="submit">确认</button>
       </form>
     </div>
@@ -16,16 +16,17 @@
     data() {
       return {
         username: '',
-        password: 'a',
+        password: '',
         serverurl: '',
       }
     },
 
     methods: {
       handleSubmit() {
-        this.$store.commit('loginbackend/setServerURL', this.serverurl);
+        this.$store.commit('loginbackend/setServerURL', 'yanices.site');
 
         this.$store.commit('loginbackend/setPlayerId', '');
+        
         // 传递对象给 mutation
         this.$store.commit('loginbackend/loginWithData', {
           username: this.username,
