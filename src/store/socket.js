@@ -158,7 +158,7 @@ class LiveSession {
               this._store.commit("loginbackend/setPlayerId", params['token']);
               break;
             case "failed":
-              alert("登录失败：激活码无效, 或已被使用。");
+              alert("登录失败：激活码无效, 或已被其他昵称使用。");
               this._store.commit("loginbackend/logout");
               break;
             case "session_restore":

@@ -15,7 +15,7 @@ function db_init() {
 const fs = require('fs');
 const path = require('path');
 
-const filePath = path.join(__dirname, 'activation_codes.txt');
+const filePath = './activation_codes.txt';
 
 /**
  * 检查激活码是否存在，如果存在则删除并返回 true，否则返回 false
