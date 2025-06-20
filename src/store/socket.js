@@ -217,7 +217,7 @@ class LiveSession {
         break;
       case 'logout':
         alert(params);
-        this.disconnect();
+        
         this._store.dispatch("loginbackend/logout");
         break;
       case 'prepare_seat': // prepare a seat for user
@@ -1053,6 +1053,9 @@ export default (store) => {
   // listen to mutations
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
+      case "loginbackend/logout":
+        session.disconnect();
+        break;
       case "loginbackend/loginWithData":
         session.login(payload.username, payload.pwd);
         break;

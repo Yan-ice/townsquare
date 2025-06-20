@@ -76,7 +76,7 @@ wss.on("connection", function connection(ws, req) {
       }
 
       packet = CommandPacket.deserialize(data);
-      console.log(packet);
+      //console.log(packet);
       packet.sender_socket = ws;
 
       //try fill sender if not exist
@@ -166,9 +166,7 @@ wss.on("connection", function connection(ws, req) {
 function set_online(client, token) {
   //previous socket online
   if(online_players[token]) {
-    console.log("Login but exist");
     if (online_players[token]['socket']) {
-      console.log("Login in another place");
       const a = new CommandPacket("require");
       a.addCommand("logout", "你在其它地方登录了,强制断开连接。");
       online_players[token]['socket'].send(a.serialize());  
@@ -183,7 +181,6 @@ function set_online(client, token) {
       'socket': client,
       'username': data['username'],
     }
-    console.log("login success.");
     const a = new CommandPacket("login");
     a.addCommand("success",data);
 
@@ -260,7 +257,6 @@ function set_joingame(client, session, player) {
         a.addCommand("reset", "");
         client.send(a.serialize());  
 
-        console.log(session, "You host the game.");
         return;
       }
 
@@ -273,8 +269,6 @@ function set_joingame(client, session, player) {
         const a = new CommandPacket("sessionset", session);
         a.addCommand("state", "host");
         client.send(a.serialize());  
-
-        console.log(session, "You back to host (already in).");
         return;
       }
 
@@ -285,7 +279,6 @@ function set_joingame(client, session, player) {
               const a = new CommandPacket("sessionset");
               a.addCommand("state", "play");
               client.send(a.serialize());  
-              console.log(session, "You back to game (already in).");
               return true;
         }
         return false;
@@ -293,7 +286,6 @@ function set_joingame(client, session, player) {
         const a = new CommandPacket("sessionset");
         a.addCommand("state", "play");
         client.send(a.serialize());  
-        console.log(session, "You join the game.");
         room.players.push(player);
       }     
 }
@@ -308,18 +300,16 @@ function require_host(session, command, param) {
 function analyse_room_command(packet, cmd, param) {
   const sender_player = online_players[packet.sender];
   if(!sender_player) {
-      console.log("You must login first.");
+      console.log("[ERROR] Login first.");
       return;
   }
   const room = channels[packet.session];
   switch (cmd) {
     case 'join':
-      console.log("join request found");
       set_joingame(packet.sender_socket, packet.session, sender_player);
       break;
 
     case "leave":
-      console.log("leave request found");
       set_leavegame(packet.sender_socket, packet.session, sender_player);
       break;
     case "kick":
