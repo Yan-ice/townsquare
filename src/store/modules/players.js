@@ -149,7 +149,20 @@ const mutations = {
   in socket.js.
    */
   update(state, { player, property, value }) {
-    const index = state.players.indexOf(player);
+    let index = -1;
+    if(Number.isInteger(Number(player))) {
+      if(Number(player) > 1000) {
+        for(let a = 0;a<state.players.length;a++) {
+          if(state.players[a].id === player) {
+            index = a;
+          }
+        }
+      }else{
+        index = Number(player);
+      }
+    }else{
+      index = state.players.indexOf(player);
+    }
     console.log("updating: ", index, property, value);
     if (index >= 0) {
       state.players[index][property] = value;

@@ -34,6 +34,7 @@ function heartbeat() {
   this.latency = Math.round((new Date().getTime() - this.pingStart) / 2);
   this.counter = 0;
   this.isAlive = true;
+  console.log(this.id, "still alive");
 }
 
 // currently online player
@@ -446,8 +447,8 @@ const interval = setInterval(
   if (channels.length > 0) {
     for (let channel in channels) {
       if (
-        !channels[channel].length ||
-        !channels[channel].some(
+        !channels[channel].players.length ||
+        !channels[channel].players.some(
           (player) => {
             return player['socket'] &&
             (player['socket'].readyState === WebSocket.OPEN ||
@@ -460,12 +461,12 @@ const interval = setInterval(
     }
 
     for (let channel in channels) {
-      for (player in channels[channel]) {
+      for (player in channels[channel].players) {
         if (player['socket'].readyState === WebSocket.CLOSED) {
           player['socket'].readyState = 18;
           const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
-          channels[packet.session].host['socket'].send(packet.serialize());
+          channels[channel].host['socket'].send(packet.serialize());
         }
       }
     }
