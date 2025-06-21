@@ -123,6 +123,10 @@
       <template v-if="!player.id || !loginbackend.sessionId">
         <!-- nothing. -->
       </template>
+      <template v-else-if="player.id == loginbackend.playerId">
+        <!-- yourself. -->
+        <font-awesome-icon icon="user" class="seat" />
+      </template>
       <template v-else-if="!player.isOnline">
         <font-awesome-icon icon="minus-circle" class="seat" />
       </template>

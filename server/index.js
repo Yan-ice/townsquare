@@ -34,7 +34,6 @@ function heartbeat() {
   this.latency = Math.round((new Date().getTime() - this.pingStart) / 2);
   this.counter = 0;
   this.isAlive = true;
-  console.log(this.id, "still alive");
 }
 
 // currently online player
@@ -437,6 +436,7 @@ const interval = setInterval(
   // // ping each client
   wss.clients.forEach(function each(ws) {
     if (ws.isAlive === false) {
+      console.log("unalive client found.")
       return ws.terminate();
     }
     ws.isAlive = false;
@@ -445,7 +445,7 @@ const interval = setInterval(
   });
   // clean up empty channels
   if (channels.length > 0) {
-    for (let channel in channels) {
+    for (const channel in channels) {
       if (
         !channels[channel].players.length ||
         !channels[channel].players.some(
@@ -460,9 +460,9 @@ const interval = setInterval(
       }
     }
 
-    for (let channel in channels) {
-      for (player in channels[channel].players) {
-        if (player['socket'].readyState === WebSocket.CLOSED) {
+    for (const channel in channels) {
+      for (const player in channels[channel].players) {
+        if (player['socket'].readyState == WebSocket.CLOSED) {
           player['socket'].readyState = 18;
           const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
