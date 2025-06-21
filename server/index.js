@@ -161,6 +161,7 @@ wss.on("connection", function connection(ws, req) {
   ws.on("pong", heartbeat);
 
   ws.on('close', () => {
+    mark_connection_lost(ws);
     ws.isAlive = false;
   });
   // handle message
@@ -440,7 +441,8 @@ const interval = setInterval(
   // // ping each client
   wss.clients.forEach(function each(ws) {
     if (ws.isAlive === false) {
-      console.log("unalive client found.")
+      console.log("unalive client found.");
+      mark_connection_lost(ws);
       return ws.terminate();
     }
     ws.isAlive = false;
@@ -464,20 +466,23 @@ const interval = setInterval(
       }
     }
 
-    for (const channel in channels) {
+    
+  }
+  
+}, PING_INTERVAL);
+
+function mark_connection_lost(ws) {
+  console.log("client disconnected.");
+  for (const channel in channels) {
       for (const player in channels[channel].players) {
-        if (player['socket'].readyState == WebSocket.CLOSED) {
-          player['socket'].readyState = 18;
+        if (player['socket'] == ws) {
           const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
           channels[channel].host['socket'].send(packet.serialize());
         }
       }
     }
-  }
-  
-}, PING_INTERVAL);
-
+}
 // handle server shutdown
 wss.on("close", function close() {
   clearInterval(interval);
