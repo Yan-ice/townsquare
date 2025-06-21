@@ -10,6 +10,7 @@ const NEWPLAYER = {
   talkingTimer: null,
   isTalkingFlag: false,
   privateChat: false,
+  isOnline: false,
   isDead: false,
   pronouns: "",
 };

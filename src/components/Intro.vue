@@ -2,7 +2,6 @@
   <div class="intro">
     <img src="static/apple-icon.png" alt="" class="logo" />
     <div>
-      
       欢迎使用 染·钟楼谜团 线上(非官方)语音魔典！<br>
       这是一个新房间，你是该房间的说书人。<br>
       你可以通过

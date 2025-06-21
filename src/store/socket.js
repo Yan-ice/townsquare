@@ -859,14 +859,19 @@ class LiveSession {
    * Distribute player roles to all seated players in a direct message.
    * This will be split server side so that each player only receives their own (sub)message.
    */
-  distributeRoles() {
+  distributeRoles(shuffle) {
     if (this._isSpectator) return;
     this._store.state.players.players.forEach((player, index) => {
       if (player.id) {
         const cmd = new CommandPacket("direct");
         cmd.receiver = player.id;
-        cmd.addCommand("player", {index, property: "role", value: player.role.id});
-        cmd.addCommand("player", {index, property: "role2", value: player.role2.id});
+        if(shuffle && (Math.random() > 0.5)) {
+          cmd.addCommand("player", {index, property: "role2", value: player.role.id});
+          cmd.addCommand("player", {index, property: "role", value: player.role2.id});
+        }else{
+          cmd.addCommand("player", {index, property: "role", value: player.role.id});
+          cmd.addCommand("player", {index, property: "role2", value: player.role2.id});
+        }
         
         // Yan_ice: TODO
         // message[player.id] = [
@@ -1082,9 +1087,7 @@ export default (store) => {
         session.requestSync(type, payload);
         break;
       case "session/distributeRoles":
-        if (payload) {
-          session.distributeRoles();
-        }
+        session.distributeRoles(payload);
         break;
       case "session/nomination":
       case "session/setNomination":

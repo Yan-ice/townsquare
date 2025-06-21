@@ -9,7 +9,7 @@
         <button  type="submit">确认</button>
       </form>
     </div>
-  </template>
+</template>
   
   <script>
   export default {

@@ -9,10 +9,10 @@
   
 
   <div class="button-group">
-    <div v-if="loginbackend.isMute" class="button demon" @click="toggleMute(false)">
+    <div v-if="loginbackend.isMute" class="button demon" @click="toggleMute">
         <font-awesome-icon icon="volume-up" /> 开启麦克风
     </div>
-    <div v-if="!loginbackend.isMute" class="button demon" @click="toggleMute(true)">
+    <div v-if="!loginbackend.isMute" class="button demon" @click="toggleMute">
         <font-awesome-icon icon="volume-mute" /> 关闭麦克风
     </div>
     <div class="button demon" @click="endPrivChat">
@@ -35,8 +35,8 @@ export default {
       this.$store.commit("toggleModal", "");
       this.$store.commit("session/privateChatLeave");
     },
-    toggleMute(mute) {
-      this.$store.commit("loginbackend/setMute",mute);
+    toggleMute() {
+      this.$store.commit("loginbackend/toggleMute");
       // this.$store.commit("toggleModal", "");
     },
     ...mapMutations(["toggleModal"]),

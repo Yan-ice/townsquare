@@ -59,6 +59,14 @@ class MediasoupRoom {
       return;
     }
 
+    if(!roomId || !userId){
+      alert("错误：客户端信息不同步! 建议刷新网页。");
+      return;
+    }
+
+    this.roomId = roomId;
+    this.userId = userId;
+
     // 获取音频流并produce
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -79,9 +87,6 @@ class MediasoupRoom {
         alert('麦克风设备断开, 已自动关闭麦克风。你可以在菜单尝试重新打开它。');
         this.leaveRoom();
     });
-
-    if(roomId) this.roomId = roomId;
-    if(userId) this.userId = userId;
 
     this.serverURL = store.state.loginbackend.vocalServer;
 

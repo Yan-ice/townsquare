@@ -151,7 +151,7 @@ io.on("connection", (socket) => {
 
   socket.on("initializeTalk", async ({roomId, userId}, callback) => {
     console.log('Client initialize:', socket.id, roomId, userId);
-
+    
     closeConnection(io, roomId, userId);
 
     if (!rooms.has(roomId)) {

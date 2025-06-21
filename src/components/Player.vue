@@ -124,17 +124,39 @@
       </div>
 
       <!-- Claimed seat icon -->
+       
+      <template v-if="!player.id || !loginbackend.sessionId">
+        <!-- nothing. -->
+      </template>
+      <template v-else-if="!player.isOnline">
+        <font-awesome-icon icon="minus-circle" class="seat" />
+      </template>
+      <template v-else-if="player.privateChat">
+        <font-awesome-icon icon="comment-dots" class="seat" />
+      </template>
+      <template v-else>
+        <font-awesome-icon icon="chair" class="seat" :class="{ highlight: false }" />
+      </template>
+      <!-- <font-awesome-icon
+        icon="minus-circle"
+        v-if="!player.isOnline"
+        class="seat"
+      />
       <font-awesome-icon
         icon="chair"
         v-if="player.id && loginbackend.sessionId && !player.privateChat"
         class="seat"
-        :class="{ highlight: session.isRolesDistributed }"
-      />
+        :class="{ highlight: false }"
+      /> -->
+
+      <!-- TODO: this high light can be used in another way. -->
+      
       <font-awesome-icon
         icon="comment-dots"
         v-if="player.privateChat"
         class="seat"
       />
+      
 
       <!-- Ghost vote icon -->
       <font-awesome-icon

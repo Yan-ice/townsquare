@@ -34,9 +34,9 @@ const mutations = {
       state.messageLog = state.messageLog + "\n["+payload.sender+ " -> 你] "+payload.message;
       console.log(state.messageLog);
     },
-    setMute(state, mute) { //listened by socket
-      state.isMute = mute;
-      mediasoupRoom.setMute(mute);
+    toggleMute(state) {
+      state.isMute = !state.isMute;
+      mediasoupRoom.setMute(state.isMute);
     },
 
     resetServerURL(state) {
