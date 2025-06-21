@@ -85,11 +85,6 @@
 
         <div class="mask-icon"
           v-if="grimoire.isMaskGrimoire"></div>
-
-        <div class="mask-icon"
-          v-if="grimoire.isMaskGrimoire">
-          
-        </div>
         
         <font-awesome-icon
           icon="hand-paper"

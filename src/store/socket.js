@@ -145,7 +145,10 @@ class LiveSession {
         packet.forEachCommand(this._handleRequire.bind(this));
         return;
       case 'sync':
-        packet.forEachCommand(this._handleSync.bind(this));
+        packet.forEachCommand(this._handleSync.bind(this)); //HOST sync commits to all PLAYER through this.
+        return;
+      case 'request':
+        packet.forEachCommand(this._handleRequest.bind(this)); //Anyone can request HOST to commit something through this.
         return;
       default:
         packet.forEachCommand(this._handleMessage.bind(this));
@@ -281,6 +284,25 @@ class LiveSession {
         }
       }
   }
+
+  /**
+   * ST are required to do something.
+   * @returns 
+   */
+  _handleRequest(packet, type, payload) {
+    if (this._isSpectator) return;
+    this._store.commit(type, payload);
+  }
+  
+  /**
+   * Player sync the action from HOST.
+   * @param payload
+   */
+  _handleSync(packet, type, payload) {
+    if (!this._isSpectator) return;
+    this._store.commit(type, payload);
+  }
+
   /**
    * Yan_ice: mark.
    * Handle an incoming socket message.
@@ -1011,15 +1033,6 @@ class LiveSession {
   }
 
   /**
-   * Player sync the action
-   * @param payload
-   */
-  _handleSync(packet, type, payload) {
-    if (!this._isSpectator) return;
-    this._store.commit(type, payload);
-  }
-
-  /**
    * Kick a player. ST only
    * @param payload
    */
@@ -1083,9 +1096,6 @@ export default (store) => {
       case "players/kick":
         session.kickPlayer(payload);
         break;
-      case "players/remove":
-        session.requestSync(type, payload);
-        break;
       case "session/distributeRoles":
         session.distributeRoles(payload);
         break;
@@ -1100,6 +1110,7 @@ export default (store) => {
       case "players/setPrivateChat":
       case "players/swap":
       case "players/move":
+      case "players/remove":
       case "session/clearVoteHistory":
         session.requestSync(type, payload);
         break;

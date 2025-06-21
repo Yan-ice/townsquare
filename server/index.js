@@ -10,7 +10,7 @@ register.setDefaultLabels({
   app: "clocktower-online"
 });
 
-const PING_INTERVAL = 10000; // 10 seconds
+const PING_INTERVAL = 15000; // 10 seconds
 
 const options = {};
 
@@ -280,8 +280,8 @@ function set_joingame(client, session, player) {
               a.addCommand("state", "play");
               client.send(a.serialize());  
 
-              const packet = new CommandPacket("sync");
-              packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: true});
+              const packet = new CommandPacket("request");
+              packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: true});
               room.host['socket'].send(packet.serialize());
               //note online state.
               return true;
@@ -293,8 +293,8 @@ function set_joingame(client, session, player) {
         client.send(a.serialize());  
         room.players.push(player);
 
-        const packet = new CommandPacket("sync");
-        packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: true});
+        const packet = new CommandPacket("request");
+        packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: true});
         room.host['socket'].send(packet.serialize());
         //note online state.
       }     
@@ -434,14 +434,14 @@ function analyse_login_command(packet, cmd, param) {
 const interval = setInterval(
   function ping() {
   // // ping each client
-  // wss.clients.forEach(function each(ws) {
-  //   if (ws.isAlive === false) {
-  //     return ws.terminate();
-  //   }
-  //   ws.isAlive = false;
-  //   ws.pingStart = new Date().getTime();
-  //   ws.ping(noop);
-  // });
+  wss.clients.forEach(function each(ws) {
+    if (ws.isAlive === false) {
+      return ws.terminate();
+    }
+    ws.isAlive = false;
+    ws.pingStart = new Date().getTime();
+    ws.ping(noop);
+  });
   // clean up empty channels
   if (channels.length > 0) {
     for (let channel in channels) {
@@ -463,7 +463,7 @@ const interval = setInterval(
       for (player in channels[channel]) {
         if (player['socket'].readyState === WebSocket.CLOSED) {
           player['socket'].readyState = 18;
-          const packet = new CommandPacket("sync");
+          const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
           channels[packet.session].host['socket'].send(packet.serialize());
         }
