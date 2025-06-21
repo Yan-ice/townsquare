@@ -159,6 +159,10 @@ wss.on("connection", function connection(ws, req) {
   // start ping pong
   ws.ping(noop);
   ws.on("pong", heartbeat);
+
+  ws.on('close', () => {
+    ws.isAlive = false;
+  });
   // handle message
   }
 );
