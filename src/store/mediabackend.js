@@ -240,7 +240,7 @@ class MediasoupRoom {
   }
 
   setMute(mute) {
-    if (mute && !this.joined && this.roomId) this.joinRoom();
+    if (!mute && !this.joined && this.roomId) this.joinRoom();
 
     if (!this.stream) return;
     this.stream.getAudioTracks().forEach(track => track.enabled = !mute);

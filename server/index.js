@@ -10,7 +10,7 @@ register.setDefaultLabels({
   app: "clocktower-online"
 });
 
-const PING_INTERVAL = 15000; // 10 seconds
+const PING_INTERVAL = 20000; // 20 seconds
 
 const options = {};
 
@@ -476,6 +476,7 @@ function mark_connection_lost(ws) {
   for (const channel in channels) {
       for (const player in channels[channel].players) {
         if (player['socket'] == ws) {
+          
           const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
           channels[channel].host['socket'].send(packet.serialize());

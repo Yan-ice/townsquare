@@ -61,15 +61,6 @@
             <em>[S]</em>
           </li>
 
-          <li @click="toggleModal('reference')">
-            角色能力表
-            <em>[R]</em>
-          </li>
-          <li @click="toggleModal('nightOrder')">
-            夜晚顺序表
-            <em>[N]</em>
-          </li>
-
           <li
               v-if="session.voteHistory.length || !session.isSpectator"
               @click="toggleModal('voteHistory')"
@@ -161,19 +152,6 @@
               开启麦克风<em>[`]</em>
             </li>
 
-
-            <li
-              v-if="session.isSpectator"
-              @click="tellST()"
-            >
-              私信说书人<em>[T]</em>
-            </li>
-            <li
-              @click="toggleModal('message')"
-            >
-              聊天记录<em>[C]</em>
-            </li>
-
             <li @click="leaveSession">
               离开房间
               <em>{{ loginbackend.sessionId }}</em>
@@ -206,10 +184,18 @@
 
         <template v-if="tab === 'characters'">
           <!-- Characters -->
-          <li class="headline">角色选项</li>
+          <li class="headline">剧本选项</li>
           <li v-if="!session.isSpectator" @click="toggleModal('edition')">
             选择剧本
             <em>[E]</em>
+          </li>
+          <li @click="toggleModal('reference')">
+            角色能力表
+            <em>[R]</em>
+          </li>
+          <li @click="toggleModal('nightOrder')">
+            夜晚顺序表
+            <em>[N]</em>
           </li>
           <li
             @click="toggleModal('roles')"
@@ -276,7 +262,7 @@ export default {
     tellST() {
       const messag = prompt("输入给说书人发的私信消息：");
       if (messag) {
-        this.$store.commit("loginbackend/tellMes", {receiver: '说书人', message: messag});
+        this.$store.commit("loginbackend/tellMes", {receiver: '100', message: messag});
       }
     },
     distributeRoles() {

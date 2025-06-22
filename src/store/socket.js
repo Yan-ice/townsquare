@@ -178,6 +178,8 @@ class LiveSession {
           if(params == 'host') {
             this._isSpectator = false;
             this._store.commit("session/setSpectator", false);
+            this._store.commit("players/update", {player: 100, property: 'id', value: this._store.state.loginbackend.playerId});
+            this._store.commit("players/update", {player: 100, property: 'name', value: this._store.state.loginbackend.username});
             this.sendGamestate();
           }else{
             this._isSpectator = true;
@@ -189,7 +191,11 @@ class LiveSession {
               );
             const autocom = new CommandPacket("sessionset");
             autocom.addCommand("autoclaim");
-            this._sendPacket(autocom)
+            this._sendPacket(autocom);
+
+            const needlog = new CommandPacket("boardcast");
+            needlog.addCommand("retrieveMessageLog");
+            this._sendPacket(needlog);
           }
           break;
         case 'reset':
@@ -410,7 +416,11 @@ class LiveSession {
         }
         break;
       case "tellmes":
-        this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
+        this._store.dispatch("players/receiveMes", {sender: packet.sender, message: params});
+        //this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
+        break;
+      case "retrieveMessageLog":
+        this._store.dispatch("players/syncMesTo", packet.sender);
         break;
       case "showmessage":
         alert(params);
@@ -499,6 +509,7 @@ class LiveSession {
       const { fabled } = this._store.state.players;
       this.sendEdition(playerId);
       this._sendDirect(playerId, "gs", {
+        storyteller: this._store.state.players.storyteller,
         gamestate: this._gamestate,
         isNight: grimoire.isNight,
         isVoteHistoryAllowed: session.isVoteHistoryAllowed,
@@ -521,6 +532,7 @@ class LiveSession {
   _updateGamestate(data) {
     if (!this._isSpectator) return;
     const {
+      storyteller,
       gamestate,
       isLightweight,
       isNight,
@@ -534,6 +546,10 @@ class LiveSession {
       fabled,
     } = data;
     const players = this._store.state.players.players;
+    if (storyteller) {
+      this._store.commit("players/update", { player: 100, property: "name", value: storyteller.name});
+      this._store.commit("players/update", { player: 100, property: "id", value: storyteller.id});
+    }
     // adjust number of players
     if (players.length < gamestate.length) {
       for (let x = players.length; x < gamestate.length; x++) {
@@ -685,7 +701,7 @@ class LiveSession {
         delete this._gamestate[index].roleId;
         this._send("player", { index, property, value: "" });
       }
-    } else if (property !== "role2"){
+    } else if (property !== "role2" && property !== "hasUnreadMessage"){
       this._send("player", { index, property, value });
     }
   }
@@ -825,24 +841,8 @@ class LiveSession {
   tell(receiver, message) {
     const mes = new CommandPacket("direct");
     
-    let sender = this._store.state.loginbackend.username;
-    if(!this._isSpectator){
-      sender = '说书人';
-    }
-    let receiverId = '';
-    if (receiver == '说书人'){
-      receiverId = 'host';
-    }else{
-      const pls = this._store.state.players.players;
-      for(let a = 0;a<pls.length;a++){
-        if(receiver === pls[a].name) {
-            receiverId = pls[a].id;
-        }
-      }
-    }
-
-    mes.sender = sender;
-    mes.receiver = receiverId;
+    mes.sender = this._store.state.loginbackend.playerId;
+    mes.receiver = receiver;
 
     mes.addCommand("tellmes", message);
     this._sendPacket(mes);

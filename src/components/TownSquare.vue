@@ -25,6 +25,16 @@
 
     </ul>
 
+    <div class="storyteller circle">
+        <!-- Yan_ice: The story telller. -->
+        <Player
+          :key="100"
+          :player="storyteller"
+          @trigger="handleTrigger(100, $event)"
+        ></Player>
+        <!-- The story telller END. -->
+    </div>
+
     <div
       class="bluffs"
       v-if="players.length"
@@ -48,7 +58,7 @@
       </ul>
     </div>
 
-    <div class="fabled" :class="{ closed: !isFabledOpen }" v-if="fabled.length">
+    <div class="fabled" :class="{ closed: !isFabledOpen }" v-if="fabled.length" >
       <h3>
         <span>传奇角色</span>
         <font-awesome-icon icon="times-circle" @click.stop="toggleFabled" />
@@ -105,7 +115,7 @@ export default {
   computed: {
     ...mapGetters({ nightOrder: "players/nightOrder" }),
     ...mapState(["grimoire", "roles", "session", "loginbackend"]),
-    ...mapState("players", ["players", "bluffs", "fabled"]),
+    ...mapState("players", ["players", "storyteller", "bluffs", "fabled"]),
   },
   data() {
     return {
@@ -400,16 +410,40 @@ export default {
 }
 
 /***** Demon bluffs / Fabled *******/
+#townsquare > .storyteller {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 14vh;
+  height: 14vh;
+    :hover {
+      z-index: 25 !important;
+    }
+
+    > .player {
+      margin-left: -50%;
+      width: 100%;
+      pointer-events: all;
+    }
+    > .reminder {
+      margin-left: -25%;
+      width: 50%;
+      pointer-events: all;
+    }
+}
+
 #townsquare > .bluffs,
 #townsquare > .fabled {
   position: absolute;
   &.bluffs {
+    left: 10px;
     bottom: 10px;
   }
   &.fabled {
-    top: 10px;
+    right: 10px;
+    bottom: 10px;
   }
-  left: 10px;
+
   background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   border: 3px solid black;

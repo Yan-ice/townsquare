@@ -273,13 +273,13 @@ io.on("connection", (socket) => {
             }
           }
         );
-        room.users.get(target_user_id).consumers.forEach((consumer)=>
-          {
-            if(consumer.target == socket.data.userId) {
-              consumer.resume();
-            }
-          }
-        );
+        // room.users.get(target_user_id).consumers.forEach((consumer)=>
+        //   {
+        //     if(consumer.target == socket.data.userId) {
+        //       consumer.resume();
+        //     }
+        //   }
+        // );
       }
       
     });
