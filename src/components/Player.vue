@@ -148,8 +148,7 @@
       </template>
 
       <template v-else-if="player.privateChat">
-        <font-awesome-icon icon="question" class="seat" 
-          @click="listenPrivateChat_ST(player)"/>
+        <font-awesome-icon icon="question" class="seat" />
       </template>
 
       <template v-else>
