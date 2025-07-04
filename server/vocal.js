@@ -76,7 +76,7 @@ function closeConnection(io, roomId, userId) {
               }
             }
             );
-            peer.socket.close();
+            peer.socket.disconnect();
             console.log('Client disconnected:', peer.id);
             
             
