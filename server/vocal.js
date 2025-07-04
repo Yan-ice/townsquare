@@ -225,8 +225,8 @@ io.on("connection", (socket) => {
       prepare_peer.producer = producer;
       console.log('Client has new producer:', socket.data.userId, producer.id);
 
-      room.users.set(userId, prepare_peer);
-      room.prepares.delete(userId);
+      room.users.set(socket.data.userId, prepare_peer);
+      room.prepares.delete(socket.data.userId);
 
       // 通知其他人有新 producer（可选）
       for (let [otherId, otherPeer] of room.users.entries()) {
