@@ -55,7 +55,7 @@ function closeConnection(io, roomId, userId) {
     if(room) {
         const peer = room.users.get(userId);
         if(peer) {
-            console.log('Client disconnected:', peer.id);
+            
             // io.to(peer.id).emit("closedByRemote");
             if(peer.producer) peer.producer.close();
             for (const consumer of peer.consumers) consumer.close();
@@ -76,8 +76,10 @@ function closeConnection(io, roomId, userId) {
               }
             }
             );
-
-            room.users.delete(userId);
+            peer.socket.close();
+            console.log('Client disconnected:', peer.id);
+            
+            
         }
     }
 }
@@ -154,11 +156,12 @@ io.on("connection", (socket) => {
   socket.on("initializeTalk", async ({roomId, userId}, callback) => {
     console.log('Client initialize:', socket.id, roomId, userId);
     
-    closeConnection(io, roomId, userId);
 
     if (!rooms.has(roomId)) {
       const router = await worker.createRouter({ mediaCodecs: [ CODECS ] });
       rooms.set(roomId, { router, users: new Map(), prepares: new Map()});
+    }else{
+      closeConnection(io, roomId, userId);
     }
 
     socket.data.userId = userId;
@@ -180,6 +183,7 @@ io.on("connection", (socket) => {
       producer: null,
       consumers: [],
       inprivate: false,
+      socket: socket
     };
 
     room.prepares.set(userId, peer);
