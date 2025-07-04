@@ -158,7 +158,7 @@ io.on("connection", (socket) => {
 
     if (!rooms.has(roomId)) {
       const router = await worker.createRouter({ mediaCodecs: [ CODECS ] });
-      rooms.set(roomId, { router, users: new Map()});
+      rooms.set(roomId, { router, users: new Map(), prepares: new Map()});
     }
 
     socket.data.userId = userId;
