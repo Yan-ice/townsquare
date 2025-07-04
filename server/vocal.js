@@ -219,7 +219,7 @@ io.on("connection", (socket) => {
 
     // 当客户端调用 sendTransport.produce 时，服务端创建 Producer
     socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
-      const transport = peer.transports.send;
+      const transport = prepare_peer.transports.send;
       const producer = await transport.produce({ kind, rtpParameters });
 
       prepare_peer.producer = producer;
