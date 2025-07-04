@@ -23,8 +23,14 @@
       <div class="shroud" @click="toggleStatus()"></div>
       <div class="life" @click="toggleStatus()"></div>
       
+      <div class="subtoken-wrapper" v-if="player.isST">
+        <Token
+          :role="player.role"
+        />
+      </div>
+
       <div class="subtoken-wrapper"
-        v-if="!grimoire.isMaskGrimoire">
+        v-else-if="!grimoire.isMaskGrimoire">
         <div
           class="night-order first"
           v-if="nightOrder.get(player).first1 && grimoire.isNightOrder"
@@ -50,10 +56,9 @@
         />
       </div>
 
-
       <!-- For the sub token. -->
       <div class="subtoken-wrapper"
-        v-if="grimoire.isMaskGrimoire">
+        v-else>
         <div
           class="night-order first"
           v-if="nightOrder.get(player).first2 && grimoire.isNightOrder"
@@ -81,15 +86,10 @@
       <!-- For the sub token. -->
 
       <!-- Overlay icons -->
-      <div class="overlay">
+      <div class="overlay" v-if="!player.isST">
 
         <div class="mask-icon"
           v-if="grimoire.isMaskGrimoire"></div>
-
-        <div class="mask-icon"
-          v-if="grimoire.isMaskGrimoire">
-          
-        </div>
         
         <font-awesome-icon
           icon="hand-paper"
@@ -121,20 +121,40 @@
           @click="nominatePlayer(player)"
           title="Nominate this player"
         />
+        <div class="marked">
+          <font-awesome-icon icon="skull" />
+        </div>
       </div>
 
       <!-- Claimed seat icon -->
-      <font-awesome-icon
-        icon="chair"
-        v-if="player.id && loginbackend.sessionId && !player.privateChat"
-        class="seat"
-        :class="{ highlight: session.isRolesDistributed }"
-      />
-      <font-awesome-icon
-        icon="comment-dots"
-        v-if="player.privateChat"
-        class="seat"
-      />
+       
+      <template v-if="!player.id || !loginbackend.sessionId">
+        <!-- nothing. -->
+      </template>
+
+      <template v-else-if="player.id == loginbackend.playerId">
+        <!-- yourself. -->
+        <font-awesome-icon icon="user" class="seat" />
+      </template>
+
+      <template v-else-if="player.hasUnreadMessage">
+        <!-- message not read. -->
+        <font-awesome-icon icon="comment-dots" class="seat" 
+          @click="readMessage()"/>
+      </template>
+
+      <template v-else-if="!player.isOnline">
+        <font-awesome-icon icon="minus-circle" class="seat" />
+      </template>
+
+      <template v-else-if="player.privateChat">
+        <font-awesome-icon icon="question" class="seat" />
+      </template>
+
+      <template v-else>
+        <font-awesome-icon icon="chair" class="seat" :class="{ highlight: false }" />
+      </template>
+
 
       <!-- Ghost vote icon -->
       <font-awesome-icon
@@ -146,17 +166,15 @@
       />
 
       <!-- On block icon -->
-      <div class="marked">
-        <font-awesome-icon icon="skull" />
-      </div>
+
 
       <div
-        v-if="player.id"
+        v-if="player.id || !session.isSpectator"
         class="name"
         @click="isMenuOpen = !isMenuOpen"
         :class="{ active: isMenuOpen }"
       >
-        {{this.index+1}}<span>{{ player.name }}</span>
+        {{this.index == 100 ? 'ST' : this.index+1}}<span>{{ player.name }}</span>
       </div>
 
       <transition name="fold">
@@ -165,11 +183,11 @@
             <!-- <li @click="changeName">
               <font-awesome-icon icon="user-edit" />Rename
             </li> -->
-            <li @click="swapPlayer()" :class="{ disabled: session.lockedVote }">
+            <li @click="swapPlayer()" :class="{ disabled: session.lockedVote }" v-if="!player.isST">
               <font-awesome-icon icon="exchange-alt" />
               交换座位
             </li>
-            <li @click="removePlayer()" :class="{ disabled: session.lockedVote }">
+            <li @click="removePlayer()" :class="{ disabled: session.lockedVote }" v-if="!player.isST">
               <font-awesome-icon icon="times-circle" />
               移除座位
             </li>
@@ -180,7 +198,7 @@
               <font-awesome-icon icon="chair" />
               Empty seat
             </li> -->
-            <template v-if="!session.nomination">
+            <template v-if="!session.nomination && !player.isST">
               <li @click="nominatePlayer()">
                 <font-awesome-icon icon="hand-point-right" />
                 提名玩家
@@ -193,7 +211,7 @@
                 <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <template v-if="session.isSpectator">
+            <template v-if="session.isSpectator && !player.isST">
               <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="volume-up" />
                 发起私聊
@@ -218,7 +236,7 @@
     
     </div>
 
-    <template v-if="player.reminders">
+    <template v-if="player.reminders && !player.isST">
       <div
         class="reminder"
         :key="reminder.role + ' ' + reminder.name"
@@ -243,7 +261,8 @@
         <span class="text">{{ reminder.name }}</span>
       </div>
     </template>
-    <div class="reminder add" @click="$emit('trigger', ['openReminderModal'])">
+
+    <div class="reminder add" @click="$emit('trigger', ['openReminderModal'])" v-if="!player.isST">
       <span class="icon"></span>
     </div>
     <div class="reminderHoverTarget"></div>
@@ -273,9 +292,9 @@ export default {
   computed: {
     ...mapState("players", ["players"]),
     ...mapState(["grimoire", "session", "loginbackend"]),
-    ...mapGetters({ nightOrder: "players/nightOrder" }),
+    ...mapGetters({ nightOrder: "players/nightOrder", playerToIndex: "players/playerToIndex" }),
     index: function () {
-      return this.players.indexOf(this.player);
+      return this.playerToIndex(this.player);
     },
     voteLocked: function () {
       const session = this.session;
@@ -306,13 +325,23 @@ export default {
   },
   methods: {
     tellPlayer() {
-      const messag = prompt("输入给 "+this.player.name+" 发的私信消息：");
-      if (messag) {
-        this.$store.commit("loginbackend/tellMes",{receiver: this.player.name, message: messag});
-      }
+      this.$store.commit("loginbackend/setCurrentChatIndex", this.index);
+      this.$store.commit("toggleModal", "message");
+      // const messag = prompt("输入给 "+this.player.name+" 发的私信消息：");
+      // if (messag) {
+      //   this.$store.commit("loginbackend/tellMes",{receiver: this.player.id, message: messag});
+      // }
       
     },
+    readMessage() {
+      this.$store.commit("loginbackend/setCurrentChatIndex", this.index);
+      this.$store.commit("toggleModal", "message");
+    },
     privateChat() {
+      this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
+    },
+    listenPrivateChat_ST() {
+      if (this.session.isSpectator) return;
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
     },
     toggleStatus() {
@@ -552,10 +581,6 @@ export default {
 }
 
 /***** Role token ******/
-.player.huge .token{
-  position: absolute;
-  width: 100%;
-}
 
 .player .token {
   position: absolute;

@@ -27,9 +27,9 @@
     <MainWindow v-else />
 
     <transition name="blur">
-        <Intro v-if="sessionId && !players.length"></Intro>
-        <TownInfo v-if="sessionId && players.length && !session.nomination"></TownInfo>
-        <Vote v-if="sessionId && session.nomination"></Vote>
+        <Intro v-if="sessionId && playerId && !players.length"></Intro>
+        <TownInfo v-if="sessionId && playerId && players.length && !session.nomination"></TownInfo>
+        <Vote v-if="sessionId && playerId &&session.nomination"></Vote>
     </transition>
 
     <span id="version">v{{ version }}</span>

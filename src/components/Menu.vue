@@ -11,21 +11,25 @@
       <font-awesome-icon icon="book-dead" />
       {{ session.voteHistory.length }}
     </span>
+
+    <!-- the open microphone button -->
     <span
       class="session"
       :class="{
-        spectator: session.isSpectator,
+        spectator: !loginbackend.isMute,
         reconnecting: session.isReconnecting,
       }"
       v-if="loginbackend.sessionId"
-      @click="leaveSession"
-      :title="`${session.playerCount} other players in this session${
-        session.ping ? ' (' + session.ping + 'ms latency)' : ''
-      }`"
+      @click="toggleMute"
+      :title="`${loginbackend.isMute ? 'muted' : 'sound'}`"
     >
-      <font-awesome-icon icon="broadcast-tower" />
-      {{ session.playerCount }}
+
+    <font-awesome-icon v-if = "loginbackend.isMute" icon="microphone-slash" />
+    <font-awesome-icon v-else icon="microphone" />
+    {{ loginbackend.isMute ? '麦克风:已关闭' : '麦克风:开启中' }}(点击切换)
+
     </span>
+
     <div class="menu" :class="{ open: grimoire.isMenuOpen }">
       <font-awesome-icon icon="cog" @click="toggleMenu" />
       <ul>
@@ -55,15 +59,6 @@
             <template v-if="!grimoire.isNight">切换到夜晚</template>
             <template v-if="grimoire.isNight">切换到白天</template>
             <em>[S]</em>
-          </li>
-
-          <li @click="toggleModal('reference')">
-            角色能力表
-            <em>[R]</em>
-          </li>
-          <li @click="toggleModal('nightOrder')">
-            夜晚顺序表
-            <em>[N]</em>
           </li>
 
           <li
@@ -146,28 +141,15 @@
 
             <li
               v-if="!loginbackend.isMute"
-              @click="toggleMute(true)"
+              @click="toggleMute"
             >
               关闭麦克风<em>[`]</em>
             </li>
             <li
               v-if="loginbackend.isMute"
-              @click="toggleMute(false)"
+              @click="toggleMute"
             >
               开启麦克风<em>[`]</em>
-            </li>
-
-
-            <li
-              v-if="session.isSpectator"
-              @click="tellST()"
-            >
-              私信说书人<em>[T]</em>
-            </li>
-            <li
-              @click="toggleModal('message')"
-            >
-              聊天记录<em>[C]</em>
             </li>
 
             <li @click="leaveSession">
@@ -186,7 +168,10 @@
               派发角色
               <em><font-awesome-icon icon="theater-masks" /></em>
           </li>
-
+          <li v-if="!session.isSpectator" @click="distributeRolesShuffle">
+              派发角色(混淆)
+              <em><font-awesome-icon icon="theater-masks" /></em>
+          </li>
           <!-- <li @click="randomizeSeatings" v-if="players.length > 2">
             Randomize
             <em><font-awesome-icon icon="dice" /></em>
@@ -199,10 +184,18 @@
 
         <template v-if="tab === 'characters'">
           <!-- Characters -->
-          <li class="headline">角色选项</li>
+          <li class="headline">剧本选项</li>
           <li v-if="!session.isSpectator" @click="toggleModal('edition')">
             选择剧本
             <em>[E]</em>
+          </li>
+          <li @click="toggleModal('reference')">
+            角色能力表
+            <em>[R]</em>
+          </li>
+          <li @click="toggleModal('nightOrder')">
+            夜晚顺序表
+            <em>[N]</em>
           </li>
           <li
             @click="toggleModal('roles')"
@@ -269,22 +262,22 @@ export default {
     tellST() {
       const messag = prompt("输入给说书人发的私信消息：");
       if (messag) {
-        this.$store.commit("loginbackend/tellMes", {receiver: '说书人', message: messag});
+        this.$store.commit("loginbackend/tellMes", {receiver: '100', message: messag});
       }
     },
     distributeRoles() {
       if (this.session.isSpectator) return;
-      const popup =
-        "你确认要给所有入座玩家派发角色吗？";
-      if (confirm(popup)) {
-        this.$store.commit("session/distributeRoles", true);
-        setTimeout(
-          (() => {
-            this.$store.commit("session/distributeRoles", false);
-          }).bind(this),
-          2000,
-        );
+      if(!confirm("确认给入座玩家 正常派发 真身与假面角色吗？")){
+          return;
       }
+      this.$store.commit("session/distributeRoles", false);
+    },
+    distributeRolesShuffle() {
+      if (this.session.isSpectator) return;
+      if(!confirm("确认给所有入座玩家派发 混淆的 真身与假面角色吗？")){
+          return;
+        }
+      this.$store.commit("session/distributeRoles", true);
     },
     imageOptIn() {
       const popup =
@@ -334,8 +327,8 @@ export default {
     toggleMask() {
       this.$store.commit("toggleMaskGrimoire");
     },
-    toggleMute(mute) {
-      this.$store.commit("loginbackend/setMute", mute);
+    toggleMute() {
+      this.$store.commit("loginbackend/toggleMute");
     },
     ...mapMutations([
       "toggleMenu",

@@ -10,23 +10,85 @@ const NEWPLAYER = {
   talkingTimer: null,
   isTalkingFlag: false,
   privateChat: false,
+  isOnline: true,
   isDead: false,
   pronouns: "",
+  hasUnreadMessage: false,
+  messageLogWithHim: ''
 };
 
 const state = () => ({
+  storyteller: {
+    name: "",
+    id: "",
+    role: {"id": "_storyteller",
+      "name": "说书人",
+      "3": "说书人天下第一!"
+    }, 
+    role2: {"id": "_storyteller",
+      "name": "说书人",
+      "3": "说书人天下第一!"
+    }, 
+    talkingTimer: null,
+    isTalkingFlag: false,
+    privateChat: false,
+    isOnline: true,
+    hasUnreadMessage: false,
+    messageLogWithHim: '',
+    isST: true
+  },
   players: [],
   fabled: [],
   bluffs: [],
 });
 
+function findIndex(state, player) {
+    let index = -1;
+    if(Number.isInteger(Number(player))) {
+      if(Number(player) > 1000) {
+        for(let a = 0;a<state.players.length;a++) {
+          if(state.players[a].id === player) {
+            index = a;
+          }
+        }
+        //story teller has fixed index 100.
+        if(state.storyteller.id != '' && state.storyteller.id === player) {
+          index = 100;
+        }
+      }else{
+        index = Number(player);
+      }
+    }else{
+      index = state.players.indexOf(player);
+      if(state.storyteller.id != '' && player.id === state.storyteller.id) {
+        index = 100;
+      }
+    }
+    return index;
+}
+
+
+
 const getters = {
   alive({ players }) {
     return players.filter((player) => !player.isDead).length;
   },
-  index({ player }) {
-    return this.players.indexOf(player);
+  playerToIndex: (state) => (player) => {
+    if(state.storyteller.id != '' && player.id == state.storyteller.id) {
+      return 100;
+    }
+    return state.players.indexOf(player);
   },
+  indexToPlayer: (state) => (index) => {
+    if(index == -1) {
+      return NEWPLAYER;
+    }
+    if(index == 100) {
+      return state.storyteller;
+    }
+    return state.players[index];
+  },
+
   nonTravelers({ players }) {
     const nonTravelers = players.filter(
       (player) => player.role.team !== "traveler",
@@ -127,6 +189,31 @@ const actions = {
   },
   privatechat({ commit }, { idx, value }) {
     commit('setPrivateChat', { idx, flag: value });
+  },
+
+  receiveMes({ commit }, payload){
+    commit('updateMes', {
+      sender: payload.sender,
+      tellerName: '', //'' means tellname is the name of sender.
+      message: payload.message
+    });
+  },
+  syncMesTo({ state, commit }, sender) { //no record, want to fetch from other people.
+    const index = findIndex(state, sender);
+    if(index == -1) {
+      console.log("who wants sync??");
+      return;
+    }
+    const player =
+      index === 100 ? state.storyteller : state.players[index];
+
+    const mes = player.messageLogWithHim ? player.messageLogWithHim : "[游戏开始]\n"
+    commit("loginbackend/tellMes", {
+      receiver: sender,
+      message: "___restore___" + mes,
+      rawFormat: true,
+    }, { root: true }); // root: true 是关键，跨模块 commit
+    
   }
 };
 
@@ -139,6 +226,44 @@ const mutations = {
   set(state, players = []) {
     state.players = players;
   },
+
+  updateMes(state, {sender, tellerName, message}) {
+    const index = findIndex(state, sender);
+    if(index == -1) {
+      return;
+    }
+    let player = state.storyteller;
+    if(index != 100) {
+      player = state.players[index];
+    }
+    if(tellerName == '') {
+      tellerName = player.name;
+    }
+    if (message.startsWith("___restore___")) {
+      message = message.replace("___restore___", "");
+      Vue.set(player, 'messageLogWithHim', player.messageLogWithHim + message);
+    } else {
+      Vue.set(player, 'messageLogWithHim', player.messageLogWithHim + "\n["+tellerName+ "] "+message);
+      Vue.set(player, 'hasUnreadMessage', true);
+    }
+    
+  },
+
+  checkMes(state, {sender}) {
+    const index = findIndex(state, sender);
+    if(index == -1) {
+      return;
+    }
+    
+    if(index != 100) {
+      const player = state.players[index];
+      Vue.set(player, 'hasUnreadMessage', false);
+    }else{
+      const player = state.storyteller;
+      Vue.set(player, 'hasUnreadMessage', false);
+    }
+    
+  },
   /**
   The update mutation also has a property for isFromSockets
   this property can be addded to payload object for any mutations
@@ -146,11 +271,21 @@ const mutations = {
   able to be set from multiple different session on websockets.
   An example of this is in the sendPlayerPronouns and _updatePlayerPronouns
   in socket.js.
+
+  STORY TELLER HAS INDEX 100.
+
    */
   update(state, { player, property, value }) {
-    const index = state.players.indexOf(player);
+
+    const index = findIndex(state, player);
+    if(index == -1) {
+      return;
+    }
+
     console.log("updating: ", index, property, value);
-    if (index >= 0) {
+    if (index == 100) {
+      state.storyteller[property] = value;
+    }else if (index >= 0) {
       state.players[index][property] = value;
     }
   },
@@ -180,6 +315,7 @@ const mutations = {
       privateChat: false
     });
   },
+
   kick(state, idx) {
     if(idx < 100) {
       const player = state.players[idx];

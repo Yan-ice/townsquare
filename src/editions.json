@@ -1,12 +1,21 @@
 [
   {
     "id": "tb",
-    "name": "致命华尔兹v3.2",
+    "name": "致命华尔兹",
     "author": "不是鱼子酱",
     "description": "假面的盛宴悄然启幕。欲望轻语，诡计低唱，身份皆成迷雾。暗潮于夜色潜行，剧毒与幻觉轻吻指尖。香槟未尽，歌舞仍欢，堕落悄然蔓延。",
     "level": "Intermediate",
     "roles": [],
     "isOfficial": false,
     "url": "https://yanices.site/editions/%E8%87%B4%E5%91%BD%E5%8D%8E%E5%B0%94%E5%85%B9.json"
+  },{
+    "id": "scrg",
+    "name": "双重人格",
+    "author": "神奇的雪淞儿",
+    "description": "x",
+    "level": "Intermediate",
+    "roles": [],
+    "isOfficial": false,
+    "url": "https://yanices.site/editions/%E5%8F%8C%E9%87%8D%E4%BA%BA%E6%A0%BC.json"
   }
 ]

@@ -7,11 +7,12 @@ const state = () => ({
     username: '',
     pwd: '2333',
     isSpeaking: false,
-    isMute: false,
+    isMute: true,
     commandToServer: null,
     backendServer: null,
     vocalServer: null,
-    messageLog: ''
+    messageLog: '',
+    currentChatIndex: -1
 });
 
 // mutations helper functions
@@ -25,18 +26,16 @@ const mutations = {
     setSessionId: set("sessionId"),
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
+    setCurrentChatIndex(state, val) {
+      state.currentChatIndex = val;
+    },
     tellMes(state, payload) { //listened by socket
       state.messageLog = state.messageLog + "\n[你 -> "+payload.receiver+"] "+payload.message;
       console.log(state.messageLog);
     },
-    receiveMes(state, payload){
-      alert("["+payload.sender+ " -> 你]\n"+payload.message);
-      state.messageLog = state.messageLog + "\n["+payload.sender+ " -> 你] "+payload.message;
-      console.log(state.messageLog);
-    },
-    setMute(state, mute) { //listened by socket
-      state.isMute = mute;
-      mediasoupRoom.setMute(mute);
+    toggleMute(state) {
+      state.isMute = !state.isMute;
+      mediasoupRoom.setMute(state.isMute);
     },
 
     resetServerURL(state) {
@@ -93,6 +92,7 @@ const actions = {
 
     try {
       await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
+      mediasoupRoom.setMute(state.isMute);
     } catch (e) {
       console.error("joinRoom failed:", e);
     }

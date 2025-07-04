@@ -15,6 +15,7 @@ const faIcons = [
   "CheckSquare",
   "CloudMoon",
   "Cog",
+  "Ban",
   "Copy",
   "Clipboard",
   "Dice",
@@ -54,6 +55,8 @@ const faIcons = [
   "WindowMaximize",
   "WindowMinimize",
   "CommentDots",
+  "Microphone",
+  "MicrophoneSlash"
 ];
 const fabIcons = ["Github", "Discord"];
 library.add(
