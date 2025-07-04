@@ -41,7 +41,9 @@ const CODECS = {
             channels: 2,
           };
 
-const rooms = new Map(); // roomId => { router, users: Map{userId, peers} }
+const rooms = new Map(); 
+// roomId => 
+// { router, users: Map{userId, peers}, prepares: Map{userId, peers}}
 
 let worker;
 
@@ -180,7 +182,7 @@ io.on("connection", (socket) => {
       inprivate: false,
     };
 
-    room.users.set(userId, peer);
+    room.prepares.set(userId, peer);
 
     // 当客户端建立 sendTransport 时自动 connect
     socket.on("transport-connect", async ({ transportId, dtlsParameters }) => {
@@ -212,16 +214,19 @@ io.on("connection", (socket) => {
     console.log('Client startTalk:', socket.data.roomId, socket.data.userId);
 
     const room = rooms.get(socket.data.roomId);
-    const peer = room.users.get(socket.data.userId);
-    peer.rtpCapabilities = rtpCapabilities;
+    const prepare_peer = room.prepares.get(socket.data.userId);
+    prepare_peer.rtpCapabilities = rtpCapabilities;
 
     // 当客户端调用 sendTransport.produce 时，服务端创建 Producer
     socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
       const transport = peer.transports.send;
       const producer = await transport.produce({ kind, rtpParameters });
 
-      peer.producer = producer;
+      prepare_peer.producer = producer;
       console.log('Client has new producer:', socket.data.userId, producer.id);
+
+      room.users.set(userId, prepare_peer);
+      room.prepares.delete(userId);
 
       // 通知其他人有新 producer（可选）
       for (let [otherId, otherPeer] of room.users.entries()) {
