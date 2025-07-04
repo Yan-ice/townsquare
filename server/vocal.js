@@ -76,10 +76,9 @@ function closeConnection(io, roomId, userId) {
               }
             }
             );
+            room.users.delete(userId);
             peer.socket.disconnect();
             console.log('Client disconnected:', peer.id);
-            
-            
         }
     }
 }
