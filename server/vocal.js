@@ -144,10 +144,11 @@ function findProducerId(roomId, userId) {
   const room = rooms.get(roomId);
   if(room) {
     const peer = room.users.get(userId);
-    if(peer) {
+    if(peer && peer.producer) {
       return peer.producer.id;
     }
   }
+  return 0
 }
 
 io.on("connection", (socket) => {
@@ -241,7 +242,7 @@ io.on("connection", (socket) => {
       callback({ id: producer.id });
     });
 
-    // 客户端发送 consume 请求时，立即创建 consumer
+    // 客户端发送 consume 请求时，立即创建 consumer[]
     socket.on("consume", async ({ targetuserId }, callback) => {
       console.log(socket.data.userId, "start consume", targetuserId);
 
