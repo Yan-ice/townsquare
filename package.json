@@ -1,3 +1,5 @@
+
+
 {
   "name": "townsquare",
   "version": "2.16.2",
@@ -14,26 +16,25 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-brands-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
-    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@fortawesome/vue-fontawesome": "^0.1.10",
     "@vue/cli-service": "^5.0.8",
+    "prom-client": "^13.0.0",
+    "sass": "^1.30.0",
+    "sass-loader": "^8.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mediasoup": "^3.16.0",
     "mediasoup-client": "^3.11.0",
-    "prom-client": "^13.0.0",
-    "sass": "^1.30.0",
-    "sass-loader": "^8.0.2",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sqlite3": "^5.1.7",
-    "vue": "^3.5.17",
+    "vue": "^2.6.12",
     "vue-template-compiler": "^2.7.15",
-    "vuex": "^4.1.0",
-    "webpack-merge": "^6.0.1",
+    "vuex": "^3.6.0",
     "ws": "^7.4.6"
   },
   "devDependencies": {
-    "@vue/cli-plugin-eslint": "^3.12.1",
+    "@vue/cli-plugin-eslint": "^5.0.8",
     "@vue/eslint-config-prettier": "^8.0.0",
     "eslint": "^8.53.0",
     "eslint-plugin-prettier": "^5.0.1",
@@ -49,6 +50,6 @@
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com//bra1n/townsquare.git"
+    "url": "https://github.com//yan-ice/townsquare.git"
   }
 }

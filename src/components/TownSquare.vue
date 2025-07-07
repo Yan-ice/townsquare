@@ -413,7 +413,7 @@ export default {
 #townsquare > .storyteller {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 25px;
   width: 14vh;
   height: 14vh;
     :hover {

@@ -245,7 +245,11 @@ io.on("connection", (socket) => {
     // 客户端发送 consume 请求时，立即创建 consumer[]
     socket.on("consume", async ({ targetuserId }, callback) => {
       console.log(socket.data.userId, "start consume", targetuserId);
-
+      const peer = room.users.get(socket.data.userId);
+      if(!peer) {
+        console.log("error: ",socket.data.userId,"not prepared.");
+        return;
+      }
       const producerId = findProducerId(socket.data.roomId, targetuserId);
 
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
@@ -271,6 +275,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("into_private", async ({ target_user_id }, callback) => {
+      const peer = room.users.get(socket.data.userId);
+      if(!peer) {
+        console.log("error: ",socket.data.userId,"not prepared.");
+        return;
+      }
+      
       intoPrivate(io, socket.data.roomId, socket.data.userId);
 
       if (target_user_id) {
@@ -295,7 +305,11 @@ io.on("connection", (socket) => {
 
     socket.on("leave_private", async ({}, callback) => {
       console.log(socket.data.userId, "leave private");
-
+      const peer = room.users.get(socket.data.userId);
+      if(!peer) {
+        console.log("error: ",socket.data.userId,"not prepared.");
+        return;
+      }
       leavePrivate(io, socket.data.roomId, socket.data.userId);
     });
 

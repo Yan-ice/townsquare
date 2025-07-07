@@ -26,19 +26,14 @@
     <SelectRoomWin v-else-if="!sessionId" />
     <MainWindow v-else />
 
+    <!-- 修改后的 transition 只包含一个子元素 -->
     <transition name="blur">
-        <Intro v-if="sessionId && playerId && !players.length"></Intro>
-        <TownInfo v-if="sessionId && playerId && players.length && !session.nomination"></TownInfo>
-        <Vote v-if="sessionId && playerId &&session.nomination"></Vote>
+      <component :is="currentComponent" v-if="currentComponent" />
     </transition>
 
     <span id="version">v{{ version }}</span>
   </div>
 </template>
-
-<script setup>
-
-</script>
 
 <script>
 import { mapState } from "vuex";
@@ -49,30 +44,29 @@ import SelectRoomWin from "@/views/SelectRoom";
 import TownInfo from "./components/TownInfo.vue";
 import Vote from "@/components/Vote";
 import Intro from "./components/Intro.vue";
+
 export default {
   components: {
     LoginWin,
     SelectRoomWin,
     MainWindow,
-    // VoteHistoryModal,
-    // FabledModal,
-    // NightOrderModal,
     Vote,
-    // ReferenceModal,
     Intro,
     TownInfo,
-    // TownSquare,
-    // Menu,
-    // EditionModal,
-    // RolesModal,
-    // Gradients,
-    // SoundDetector,
   },
   computed: {
     ...mapState(["grimoire", "session"]),
     ...mapState("players", ["players"]),
-    ...mapState("loginbackend",["playerId"]),
-    ...mapState("loginbackend",["sessionId"]),
+    ...mapState("loginbackend", ["playerId", "sessionId"]),
+
+    currentComponent() {
+      if (this.sessionId && this.playerId) {
+        if (!this.players.length) return "Intro";
+        if (!this.session.nomination) return "TownInfo";
+        return "Vote";
+      }
+      return null;
+    },
   },
   data() {
     return {
