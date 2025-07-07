@@ -1,7 +1,7 @@
 <template>
   <Modal
     class="vote-history"
-    v-if="modals.voteHistory && (session.voteHistory || !session.isSpectator)"
+    v-if="modals.voteHistory && (session.voteHistory)"
     @close="toggleModal('voteHistory')"
   >
     <font-awesome-icon
@@ -12,7 +12,7 @@
       v-if="session.isSpectator"
     />
 
-    <h3>Vote history</h3>
+    <h3>投票记录</h3>
 
     <template v-if="!session.isSpectator">
       <div class="options">
@@ -23,26 +23,26 @@
               session.isVoteHistoryAllowed ? 'check-square' : 'square',
             ]"
           />
-          Accessible to players
+          是否所有玩家可见
         </div>
         <div class="option" @click="clearVoteHistory">
           <font-awesome-icon icon="trash-alt" />
-          Clear for everyone
+          清空投票记录
         </div>
       </div>
     </template>
     <table>
       <thead>
         <tr>
-          <td>Time</td>
-          <td>Nominator</td>
-          <td>Nominee</td>
-          <td>Type</td>
-          <td>Votes</td>
-          <td>Majority</td>
+          <td>时间</td>
+          <td>提名者</td>
+          <td>被提名者</td>
+          <td>类型</td>
+          <td>票数</td>
+          <td>大多数</td>
           <td>
             <font-awesome-icon icon="user-friends" />
-            Voters
+            投票者
           </td>
         </tr>
       </thead>

@@ -62,7 +62,7 @@
           </li>
 
           <li
-              v-if="session.voteHistory.length || !session.isSpectator"
+              v-if="session.voteHistory.length"
               @click="toggleModal('voteHistory')"
           >
               投票记录<em>[V]</em>
@@ -204,13 +204,13 @@
             分配角色
             <em>[C]</em>
           </li>
-          <!-- <li v-if="!session.isSpectator" @click="toggleModal('fabled')">
-            Add Fabled
-            <em><font-awesome-icon icon="dragon" /></em>
-          </li> -->
           <li @click="clearRoles" v-if="players.length">
             清空角色
             <em><font-awesome-icon icon="trash-alt" /></em>
+          </li>
+          <li v-if="!session.isSpectator" @click="toggleModal('fabled')">
+            添加传奇角色
+            <em><font-awesome-icon icon="dragon" /></em>
           </li>
         </template>
 

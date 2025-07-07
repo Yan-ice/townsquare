@@ -442,6 +442,16 @@ export default {
   &.fabled {
     right: 10px;
     bottom: 10px;
+    .ability {
+          right: 120%;
+          left: auto;
+          &:before {
+            border-right-color: transparent;
+            border-left-color: black;
+            right: auto;
+            left: 100%;
+          }
+    }
   }
 
   background: rgba(0, 0, 0, 0.5);
