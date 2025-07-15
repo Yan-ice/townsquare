@@ -206,7 +206,7 @@
             </template>
           </template>
 
-          <template v-if="player.id && player.id !== loginbackend.playerId">
+          <template v-if="!session.isWatcher && player.id && player.id !== loginbackend.playerId">
             <li @click="tellPlayer()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="book-dead" />
                 发送私信
@@ -218,7 +218,13 @@
               </li>
             </template>
           </template>
-          
+
+          <template v-if="session.isWatcher && player.id">
+            <li @click="watchGrimoire()">
+                <font-awesome-icon icon="question" />
+                观看其视角
+            </li>
+          </template>
           <!-- <li
             @click="claimSeat"
             v-if="session.isSpectator"
@@ -343,6 +349,9 @@ export default {
     listenPrivateChat_ST() {
       if (this.session.isSpectator) return;
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
+    },
+    watchGrimoire() {
+      alert("功能正在开发中～");
     },
     toggleStatus() {
       if (this.grimoire.isPublic) {
