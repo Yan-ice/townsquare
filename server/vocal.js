@@ -37,8 +37,8 @@ const RtcOption = {
 const CODECS = {
             kind: 'audio',
             mimeType: 'audio/opus',
-            clockRate: 24000,
-            channels: 1,
+            clockRate: 48000,
+            channels: 2,
           };
 
 const rooms = new Map(); 
@@ -221,6 +221,17 @@ io.on("connection", (socket) => {
 
     // 当客户端调用 sendTransport.produce 时，服务端创建 Producer
     socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
+
+      // 限制最大码率
+      if (rtpParameters.encodings && rtpParameters.encodings.length > 0) {
+        for (const encoding of rtpParameters.encodings) {
+          encoding.maxBitrate = 32000; // 32kbps
+        }
+      } else {
+        // 如果没有encodings数组，可以手动创建
+        rtpParameters.encodings = [{ maxBitrate: 32000 }];
+      }
+
       const transport = prepare_peer.transports.send;
       const producer = await transport.produce({ kind, rtpParameters });
 

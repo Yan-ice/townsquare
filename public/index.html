@@ -4,10 +4,24 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <!-- ✅ 视口配置：viewport-fit=cover 支持刘海屏全屏 -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- ✅ 启用 PWA 全屏支持 -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <!-- ✅ 设置 PWA 显示方向为横屏（landscape） -->
+  <meta name="screen-orientation" content="landscape"> <!-- 安卓某些浏览器支持 -->
+  <meta name="apple-mobile-web-app-orientation" content="landscape"> <!-- iOS Safari 支持 -->
+
   <title>剧本创作分享平台</title>
+
+  <!-- ✅ Manifest 配置 -->
+  <link rel="manifest" href="static/manifest.json">
+
+  <!-- ✅ 图标等原有配置保持不变 -->
   <link rel="apple-touch-icon" sizes="57x57" href="static/apple-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="static/apple-icon-60x60.png">
   <link rel="apple-touch-icon" sizes="72x72" href="static/apple-icon-72x72.png">
@@ -21,29 +35,32 @@
   <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="96x96" href="static/favicon-96x96.png">
   <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png">
-  <link rel="manifest" href="static/manifest.json">
+
   <meta name="msapplication-TileColor" content="#000000">
   <meta name="msapplication-TileImage" content="/static/ms-icon-144x144.png">
   <meta name="theme-color" content="#ff0000">
+
   <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed&display=swap" rel="stylesheet">
+
   <meta name="description" content="一个开放的剧本平台，欢迎大家阅读与分享~">
   <meta name="keywords" content="botc, storyteller, townsquare, grimoire, free">
   <meta name="robots" content="index, follow">
   <meta name="language" content="English">
   <meta name="author" content="不是鱼子酱">
+
+  <!-- ✅ OpenGraph 分享信息保持不变 -->
   <meta property="og:site_name" content="剧本创作分享平台"/>
-  <meta property="og:image"
-        content="https://bra1n.github.io/townsquare/static/apple-icon.png"/>
+  <meta property="og:image" content="https://bra1n.github.io/townsquare/static/apple-icon.png"/>
   <meta property="og:type" content="website"/>
   <meta property="og:description" content="一个开放的剧本平台，欢迎大家阅读与分享~"/>
   <meta property="og:title" content="剧本创作分享平台"/>
   <meta property="og:url" content="https://github.com/Yan-ice/townsquare/"/>
 </head>
-<body>
-<!-- 引入火山引擎 VERTC Web SDK -->
-<script src='https://meet.jit.si/external_api.js'></script>
 
-<div id="app"></div>
+<body style="margin:0;padding:0;overflow:hidden;background:#000;">
+  <!-- 引入火山引擎 VERTC Web SDK -->
+  <script src='https://meet.jit.si/external_api.js'></script>
 
+  <div id="app"></div>
 </body>
 </html>
