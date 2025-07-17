@@ -224,12 +224,13 @@ io.on("connection", (socket) => {
 
       // 限制最大码率
       if (rtpParameters.encodings && rtpParameters.encodings.length > 0) {
+        console.log(rtpParameters.encodings)
         for (const encoding of rtpParameters.encodings) {
-          encoding.maxBitrate = 32000; // 32kbps
+          encoding.maxBitrate = 24000; // 24kbps
         }
       } else {
         // 如果没有encodings数组，可以手动创建
-        rtpParameters.encodings = [{ maxBitrate: 32000 }];
+        rtpParameters.encodings = [{ maxBitrate: 24000 }];
       }
 
       const transport = prepare_peer.transports.send;

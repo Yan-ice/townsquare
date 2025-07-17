@@ -254,6 +254,7 @@ function set_joingame(client, session, player) {
         channels[session] = {
           host: player,
           players: [],
+          watchers: [],
           seat: [],
           privchat_pair: [],
         }
