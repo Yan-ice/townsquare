@@ -8,22 +8,24 @@
       vote: session.nomination,
     }"
   >
-    <ul class="circle" :class="['size-' + players.length]">
 
-      <Player
-        v-for="(player, index) in players"
-        :key="index"
-        :player="player"
-        :roleth="1"
-        @trigger="handleTrigger(index, $event)"
-        :class="{
-          from: Math.max(swap, move, nominate) === index,
-          swap: swap > -1,
-          move: move > -1,
-          nominate: nominate > -1,
-        }"
-      ></Player> 
+    <ul class="circle" :class="['size-' + players.length + '-' + (grimoire.isMaskGrimoire ? 2 : 1)]">
 
+      <template v-for="(player, index) in players">
+        <Player
+          v-for="roleth in grimoire.isMaskGrimoire ? [1, 2] : [1]"
+          :key="index + '-' + roleth"
+          :player="player"
+          :roleth="roleth"
+          @trigger="handleTrigger(index, $event)"
+          :class="{
+            from: Math.max(swap, move, nominate) === index,
+            swap: swap > -1,
+            move: move > -1,
+            nominate: nominate > -1,
+          }"
+        />
+      </template>
     </ul>
 
     <div class="storyteller circle">
@@ -31,7 +33,8 @@
         <Player
           :key="100"
           :player="storyteller"
-          @trigger="handleTrigger(100, $event)"
+          :roleth="1"
+          @trigger="handleTrigger(100, 0, $event)"
         ></Player>
         <!-- The story telller END. -->
     </div>
@@ -52,7 +55,7 @@
         <li
           v-for="index in bluffSize"
           :key="index"
-          @click="openRoleModal(index * -1)"
+          @click="openRoleModal(index * -1, 1)"
         >
           <Token :role="bluffs[index - 1]"></Token>
         </li>
@@ -94,8 +97,8 @@
       </ul>
     </div>
 
-    <ReminderModal :player-index="selectedPlayer"></ReminderModal>
-    <RoleModal :player-index="selectedPlayer"></RoleModal>
+    <ReminderModal :player-index="selectedPlayer" :player-roleth="selectedRoleth"></ReminderModal>
+    <RoleModal :player-index="selectedPlayer" :player-roleth="selectedRoleth"></RoleModal>
   </div>
 </template>
 
@@ -121,6 +124,7 @@ export default {
   data() {
     return {
       selectedPlayer: 0,
+      selectedRoleth: 1,
       bluffSize: 3,
       swap: -1,
       move: -1,
@@ -153,15 +157,17 @@ export default {
         this.$store.commit("session/claimSeat", playerIndex);
       }
     },
-    openReminderModal(playerIndex) {
+    openReminderModal(playerIndex, playerRoleth) {
       this.selectedPlayer = playerIndex;
+      this.selectedRoleth = playerRoleth;
       this.$store.commit("toggleModal", "reminder");
     },
-    openRoleModal(playerIndex) {
+    openRoleModal(playerIndex, playerRoleth) {
       const player = this.players[playerIndex];
       if (this.session.isSpectator && player && player.role.team === "traveler")
         return;
       this.selectedPlayer = playerIndex;
+      this.selectedRoleth = playerRoleth;
       this.$store.commit("toggleModal", "role");
     },
     removePlayer(playerIndex) {
@@ -315,100 +321,95 @@ export default {
   }
 }
 
-@mixin on-circle($item-count) {
-  $angle: math.div(360, $item-count);
-  $rot: 0;
+@mixin on-circle($item-count, $group-count) {
+  $group-angle: math.div(360deg, $item-count); // 每组在圆上的角度跨度
+  $inner-angle-step: math.min(math.div($group-angle, $group-count+0.35),30); // 组内控件的角度间隔
 
-  // rotation and tooltip placement
-  @for $i from 1 through $item-count {
-    &:nth-child(#{$i}) {
-      transform: rotate($rot * 1deg);
+  $index: 1;
+  @for $group from 0 through ($item-count - 1) {
+    $base-rot: $group * $group-angle;
+    @for $member from 0 through ($group-count - 1) {
+      $total-rot: $base-rot + $member*$inner-angle-step;
 
-      @if $i - 1 <= math.div($item-count, 2) {
-        // first half of players
-        z-index: $item-count - $i + 1;
-        // open menu on the left
-        .player > .menu {
-          left: auto;
-          right: 110%;
-          margin-right: 15px;
-          &:before {
-            border-left-color: black;
-            border-right-color: transparent;
-            right: auto;
-            left: 100%;
-          }
+      &:nth-child(#{$index}) {
+        transform: rotate($total-rot);
+
+        // 保证内容正向
+        > * {
+          transform: rotate(-$total-rot);
         }
-        .fold-enter-active,
-        .fold-leave-active {
-          transform-origin: right center;
+
+        // animation cascade
+        .life,
+        .token,
+        .shroud,
+        .night-order,
+        .seat {
+          animation-delay: ($index - 1) * 50ms;
+          transition-delay: ($index - 1) * 50ms;
         }
-        .fold-enter,
-        .fold-leave-to {
-          transform: perspective(200px) rotateY(-90deg);
-        }
-        // show ability tooltip on the left
-        .ability {
-          right: 120%;
-          left: auto;
-          &:before {
-            border-right-color: transparent;
-            border-left-color: black;
-            right: auto;
-            left: 100%;
-          }
-        }
-        .pronouns {
-          left: 110%;
-          right: auto;
-          &:before {
-            border-left-color: transparent;
-            border-right-color: black;
+
+        // tooltip 和 menu 样式可以沿用原有逻辑，或者按 total-rot 是否小于 180deg 判断左右
+        @if $total-rot % 360 < 180deg {
+          z-index: ($item-count * $group-count) - $index + 1;
+          .player > .menu {
             left: auto;
-            right: 100%;
+            right: 110%;
+            margin-right: 15px;
+            &:before {
+              border-left-color: black;
+              border-right-color: transparent;
+              right: auto;
+              left: 100%;
+            }
           }
+          .ability {
+            right: 120%;
+            left: auto;
+            &:before {
+              border-right-color: transparent;
+              border-left-color: black;
+              right: auto;
+              left: 100%;
+            }
+          }
+          .pronouns {
+            left: 110%;
+            right: auto;
+            &:before {
+              border-left-color: transparent;
+              border-right-color: black;
+              left: auto;
+              right: 100%;
+            }
+          }
+          .fold-enter-active,
+          .fold-leave-active {
+            transform-origin: right center;
+          }
+          .fold-enter,
+          .fold-leave-to {
+            transform: perspective(200px) rotateY(-90deg);
+          }
+        } @else {
+          z-index: $index;
         }
-      } @else {
-        // second half of players
-        z-index: $i - 1;
       }
 
-      > * {
-        transform: rotate($rot * -1deg);
-      }
-
-      // animation cascade
-      .life,
-      .token,
-      .shroud,
-      .night-order,
-      .seat {
-        animation-delay: ($i - 1) * 50ms;
-        transition-delay: ($i - 1) * 50ms;
-      }
-
-      // move reminders closer to the sides of the circle
-      $q: math.div($item-count, 4);
-      $x: $i - 1;
-      @if $x < $q or ($x >= math.div($item-count, 2) and $x < $q * 3) {
-        .player {
-          margin-bottom: -10% + 20% * (1 - math.div($x % $q, $q));
-        }
-      } @else {
-        .player {
-          margin-bottom: -10% + 20% * math.div($x % $q, $q);
-        }
-      }
+      $index: $index + 1;
     }
-    $rot: $rot + $angle;
   }
 }
 
-@for $i from 1 through 30 {
-  .circle.size-#{$i} > li {
-    @include on-circle($item-count: $i);
+
+@for $i from 1 through 15 {
+  @for $g from 1 through 2 {
+    .circle.size-#{$i}-#{$g} > li {
+      @include on-circle($i, $g);
+    }
   }
 }
+
 
 /***** Demon bluffs / Fabled *******/
 #townsquare > .storyteller {

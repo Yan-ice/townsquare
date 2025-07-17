@@ -10,20 +10,12 @@
       </span>
       进行添加座位、选择剧本等。<br><br>
 
-      如果您提供了麦克风权限，您将与玩家语音聊天。<br>你可以随时在菜单中开启/关闭麦克风。
+      如果您提供了麦克风权限，您将与玩家语音聊天。
       <div class="footer">
         这是一个开源项目，源码可以在
         <a href="https://github.com/yan-ice/townsquare" target="_blank">GitHub</a> 中获取。它与The Pandemonium Institute没有任何关联。“染·钟楼谜团”是Steven Medway和The Pandemonium的商标, 在国内由"集石"代理。
       </div>
     </div>
-    <a
-      class="redirect"
-      v-if="language === 'zh-CN'"
-      href="https://clocktower.gstonegames.com"
-    >
-      <img src="../assets/gstone.png" class="gstone" alt="" />
-      你想使用中文版魔典吗？
-    </a>
   </div>
 </template>
 

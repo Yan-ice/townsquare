@@ -1,6 +1,6 @@
 <template>
     <div style="width: 100vw; height: 100vh;">
-      <TownSquare />
+      <TownSquare2 />
       <Menu ref="menu"></Menu>
       <EditionModal />
       <FabledModal />
@@ -32,12 +32,12 @@
   import PrivateChatModal from "@/components/modals/PrivateChatModal";
   import VoteHistoryModal from "@/components/modals/VoteHistoryModal";
   import GameStateModal from "@/components/modals/GameStateModal";
-  import TownSquare from "@/components/TownSquare"
+  import TownSquare2 from "@/components/TownSquare2"
   import MessageModal from "../components/modals/MessageModal";
 
   export default {
     components: {
-      TownSquare,
+      TownSquare2,
       GameStateModal,
       PrivateChatModal,
       VoteHistoryModal,

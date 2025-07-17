@@ -60,7 +60,7 @@ import Token from "../Token";
 
 export default {
   components: { Token, Modal },
-  props: ["playerIndex"],
+  props: ["playerIndex", "playerRoleth"],
   computed: {
     availableRoles() {
       const availableRoles = [];
@@ -99,18 +99,18 @@ export default {
         if (this.session.isSpectator && role.team === "traveler") return;
         // assign to player
         const player = this.$store.state.players.players[this.playerIndex];
-        if(this.$store.state.grimoire.isMaskGrimoire) {
+        if(this.playerRoleth === 2) {
           this.$store.commit("players/update", {
-          player,
-          property: "role2",
-          value: role,
-        });
+            player,
+            property: "role2",
+            value: role,
+          });
         }else{
           this.$store.commit("players/update", {
-          player,
-          property: "role",
-          value: role,
-        });
+            player,
+            property: "role",
+            value: role,
+          });
         }
         
       }

@@ -55,7 +55,7 @@ const mapReminder =
 
 export default {
   components: { Modal },
-  props: ["playerIndex"],
+  props: ["playerIndex", "playerRoleth"],
   computed: {
     availableReminders() {
       let reminders = [];
@@ -93,9 +93,9 @@ export default {
         }
       });
 
-      reminders.push({ role: "good", name: "Good" });
-      reminders.push({ role: "evil", name: "Evil" });
-      reminders.push({ role: "custom", name: "Custom note" });
+      reminders.push({ role: "good", name: "善良" });
+      reminders.push({ role: "evil", name: "邪恶" });
+      reminders.push({ role: "custom", name: "自定义" });
       return reminders;
     },
     ...mapState(["modals", "grimoire"]),
@@ -105,18 +105,36 @@ export default {
     addReminder(reminder) {
       const player = this.$store.state.players.players[this.playerIndex];
       let value;
-      if (reminder.role === "custom") {
-        const name = prompt("Add a custom reminder note");
-        if (!name) return;
-        value = [...player.reminders, { role: "custom", name }];
+      if(this.playerRoleth === 2)  {
+        if (reminder.role === "custom") {
+          const name = prompt("添加自定义reminder");
+          if (!name) return;
+          
+          value = [...player.reminders2, { role: "custom", name }];
+        } else {
+          value = [...player.reminders2, reminder];
+        }
+        this.$store.commit("players/update", {
+          player,
+          property: "reminders2",
+          value,
+        });
       } else {
-        value = [...player.reminders, reminder];
+        if (reminder.role === "custom") {
+          const name = prompt("添加自定义reminder");
+          if (!name) return;
+          
+          value = [...player.reminders, { role: "custom", name }];
+        } else {
+          value = [...player.reminders, reminder];
+        }
+        this.$store.commit("players/update", {
+          player,
+          property: "reminders",
+          value,
+        });
       }
-      this.$store.commit("players/update", {
-        player,
-        property: "reminders",
-        value,
-      });
+      
       this.$store.commit("toggleModal", "reminder");
     },
     ...mapMutations(["toggleModal"]),

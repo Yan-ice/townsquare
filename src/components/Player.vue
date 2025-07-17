@@ -23,63 +23,34 @@
       <div class="shroud" @click="toggleStatus()"></div>
       <div class="life" @click="toggleStatus()"></div>
       
+      <!-- For the story teller on left top. -->
       <div class="subtoken-wrapper" v-if="player.isST">
         <Token
           :role="player.role"
         />
-      </div>
+      </div> 
 
-      <div class="subtoken-wrapper"
-        v-else-if="!grimoire.isMaskGrimoire">
-        <div
-          class="night-order first"
-          v-if="nightOrder.get(player).first1 && grimoire.isNightOrder"
-        >
-          <em>{{ nightOrder.get(player).first1 }}.</em>
-          <span v-if="player.role.firstNightReminder">{{
-            player.role.firstNightReminder
-          }}</span>
+      <!-- For the original token. -->
+      <div class="subtoken-wrapper" v-else>
+        <div class="night-order first"
+            v-if="grimoire.isNightOrder && nightOrderData.firstNight">
+          <em>{{ nightOrderData.firstNight }}.</em>
+          <span v-if="displayRole.firstNightReminder">
+            {{ displayRole.firstNightReminder }}
+          </span>
         </div>
-        <div
-          class="night-order other"
-          v-if="nightOrder.get(player).other1 && grimoire.isNightOrder"
-        >
-          <em>{{ nightOrder.get(player).other1 }}.</em>
-          <span v-if="player.role.otherNightReminder">{{
-            player.role.otherNightReminder
-          }}</span>
+
+        <div class="night-order other"
+            v-if="grimoire.isNightOrder && nightOrderData.otherNight">
+          <em>{{ nightOrderData.otherNight }}.</em>
+          <span v-if="displayRole.otherNightReminder">
+            {{ displayRole.otherNightReminder }}
+          </span>
         </div>
 
         <Token
-          :role="player.role"
-          @set-role="$emit('trigger', ['openRoleModal'])"
-        />
-      </div>
-
-      <!-- For the sub token. -->
-      <div class="subtoken-wrapper"
-        v-else>
-        <div
-          class="night-order first"
-          v-if="nightOrder.get(player).first2 && grimoire.isNightOrder"
-        >
-          <em>{{ nightOrder.get(player).first2 }}.</em>
-          <span v-if="player.role2.firstNightReminder">{{
-            player.role2.firstNightReminder
-          }}</span>
-        </div>
-        <div
-          class="night-order other"
-          v-if="nightOrder.get(player).other2 && grimoire.isNightOrder"
-        >
-          <em>{{ nightOrder.get(player).other2 }}.</em>
-          <span v-if="player.role2.otherNightReminder">{{
-            player.role2.otherNightReminder
-          }}</span>
-        </div>
-        <Token
-          :role="player.role2"
-          @set-role="$emit('trigger', ['openRoleModal'])"
+          :role="displayRole"
+          @set-role="$emit('trigger', ['openRoleModal', roleth])"
         />
       </div>
 
@@ -89,7 +60,8 @@
       <div class="overlay" v-if="!player.isST">
 
         <div class="mask-icon"
-          v-if="grimoire.isMaskGrimoire"></div>
+          v-if="isDisplayMask">
+        </div>
         
         <font-awesome-icon
           icon="hand-paper"
@@ -128,7 +100,7 @@
 
       <!-- Claimed seat icon -->
        
-      <template v-if="!player.id || !loginbackend.sessionId">
+      <template v-if="roleth !== 1 || !player.id || !loginbackend.sessionId">
         <!-- nothing. -->
       </template>
 
@@ -169,13 +141,13 @@
 
 
       <div
-        v-if="player.id || !session.isSpectator"
         class="name"
         @click="isMenuOpen = !isMenuOpen"
-        :class="{ active: isMenuOpen }"
+        :class="{ active: isMenuOpen, invisible: !(roleth === 1) }"
       >
-        {{this.index == 100 ? 'ST' : this.index+1}}<span>{{ player.name }}</span>
+        {{ this.index == 100 ? 'ST' : this.index + 1 }}<span>{{ player.name }}</span>
       </div>
+
 
       <transition name="fold">
         <ul class="menu" v-if="isMenuOpen">
@@ -236,11 +208,11 @@
     
     </div>
 
-    <template v-if="player.reminders && !player.isST">
+    <template v-if="displayReminder && !player.isST">
       <div
         class="reminder"
+        v-for="reminder in displayReminder"
         :key="reminder.role + ' ' + reminder.name"
-        v-for="reminder in player.reminders"
         :class="[reminder.role]"
         @click="removeReminder(reminder)"
       >
@@ -262,7 +234,7 @@
       </div>
     </template>
 
-    <div class="reminder add" @click="$emit('trigger', ['openReminderModal'])" v-if="!player.isST">
+    <div class="reminder add" @click="$emit('trigger', ['openReminderModal', roleth])" v-if="!player.isST">
       <span class="icon"></span>
     </div>
     <div class="reminderHoverTarget"></div>
@@ -275,10 +247,6 @@ import { mapGetters, mapState } from "vuex";
 
 
 
-
-
-
-
 export default {
   components: {
     Token,
@@ -288,6 +256,7 @@ export default {
       type: Object,
       required: true,
     },
+    roleth: Number, // <--- 新增这一行
   },
   computed: {
     ...mapState("players", ["players"]),
@@ -307,15 +276,38 @@ export default {
     zoom: function () {
       const unit = window.innerWidth > window.innerHeight ? "vh" : "vw";
       if (this.players.length < 7) {
-        return { width: 18 + this.grimoire.zoom + unit };
+        return { width: 18 - this.roleth*2 + this.grimoire.zoom + unit };
       } else if (this.players.length <= 10) {
-        return { width: 16 + this.grimoire.zoom + unit };
+        return { width: 16 - this.roleth*2 + this.grimoire.zoom + unit };
       } else if (this.players.length <= 15) {
-        return { width: 14 + this.grimoire.zoom + unit };
+        return { width: 14 - this.roleth*2 + this.grimoire.zoom + unit };
       } else {
-        return { width: 12 + this.grimoire.zoom + unit };
+        return { width: 12 - this.roleth*2 + this.grimoire.zoom + unit };
       }
     },
+    isDisplayMask() {
+     return this.roleth === 2;
+    },
+    displayRole() {
+      if (this.isDisplayMask) {
+        return this.player.role2;
+      }
+      return this.player.role;
+    },
+    displayReminder() {
+      if (this.isDisplayMask) {
+        return this.player.reminders2;
+      }
+      return this.player.reminders;
+    },
+    nightOrderData() {
+      const prefix = this.isDisplayMask ? '2' : '1';
+      const order = this.nightOrder.get(this.player) || {};
+      return {
+        firstNight: order['first' + prefix] || null,
+        otherNight: order['other' + prefix] || null,
+      };
+    }
   },
   data() {
     return {
@@ -373,9 +365,14 @@ export default {
       this.updatePlayer("name", name, true);
     },
     removeReminder(reminder) {
-      const reminders = [...this.player.reminders];
-      reminders.splice(this.player.reminders.indexOf(reminder), 1);
-      this.updatePlayer("reminders", reminders, true);
+      const reminders = [...this.displayReminder];
+      reminders.splice(this.displayReminder.indexOf(reminder), 1);
+      if(this.isDisplayMask) {
+        this.updatePlayer("reminders2", reminders, true);
+      }else{
+        this.updatePlayer("reminders", reminders, true);
+      }
+      
     },
     updatePlayer(property, value, closeMenu = false) {
       if (
@@ -446,6 +443,13 @@ export default {
 }
 
 /***** Player token *****/
+
+.name.invisible {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
 .circle .player {
   margin-bottom: 10px;
 
@@ -792,14 +796,14 @@ li.move:not(.from) .player .overlay svg.move {
   right: 10%;
   display: flex;
   justify-content: center;
-  font-size: 120%;
-  line-height: 120%;
+  font-size: 100%;
+  line-height: 100%;
   cursor: pointer;
   white-space: nowrap;
   width: 120%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   border: 3px solid black;
-  border-radius: 10px;
+  border-radius: 5px;
   top: 5px;
   box-shadow: 0 0 5px black;
   padding: 0 4px;
