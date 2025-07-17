@@ -167,7 +167,19 @@ class MediasoupRoom {
       rtpCapabilities: this.device.rtpCapabilities,
     });
 
-    this.producer = await this.sendTransport.produce({ track });
+    // 限制最大码率
+    this.producer = await this.sendTransport.produce({
+      track,
+      encodings: [
+        {
+          maxBitrate: 24000, // 限制最大码率为 24kbps
+        },
+      ],
+      codecOptions: {
+        opusDtx: true,      // ✅ 启用 DTX（静音时不发送）
+        opusStereo: false,  // 可选：单声道，减少带宽
+      },
+    });
 
     // 消费其他producer
     for (const userId of existingUsers) {
