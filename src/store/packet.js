@@ -40,7 +40,7 @@ class CommandPacket {
       }
       return packet;
     } catch (e) {
-      console.error("反序列化失败:", e);
+      console.log("反序列化失败:", e);
       return null;
     }
   }

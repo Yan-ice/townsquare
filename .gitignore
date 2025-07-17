@@ -2,3 +2,4 @@
 dist
 *.pem
 node_modules
+android

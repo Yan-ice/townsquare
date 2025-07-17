@@ -37,8 +37,8 @@ const RtcOption = {
 const CODECS = {
             kind: 'audio',
             mimeType: 'audio/opus',
-            clockRate: 48000,
-            channels: 2,
+            clockRate: 24000,
+            channels: 1,
           };
 
 const rooms = new Map(); 

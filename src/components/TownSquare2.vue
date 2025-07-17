@@ -402,7 +402,7 @@ export default {
 }
 
 
-@for $i from 1 through 15 {
+@for $i from 1 through 20 {
   @for $g from 1 through 2 {
     .circle.size-#{$i}-#{$g} > li {
       @include on-circle($i, $g);

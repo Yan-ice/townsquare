@@ -68,11 +68,19 @@ class MediasoupRoom {
     this.userId = userId;
 
     // 获取音频流并produce
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    } else {
-      alert("浏览器不支持麦克风, 或未通过安全环境。");
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        console.log("开始请求麦克风权限...");
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("麦克风权限请求成功，获得音频流:", this.stream);
+      } else {
+        alert("不支持麦克风, 或未通过安全环境。");
+        console.error("不支持 navigator.mediaDevices.getUserMedia");
+        return;
+      }
+    } catch (err) {
+      alert("错误：无法开启麦克风！请确认麦克风是否被其他软件占用。");
+      console.error(`获取麦克风权限失败: ${err} - ${err.message}`);
       return;
     }
 

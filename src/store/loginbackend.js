@@ -90,12 +90,8 @@ const actions = {
     }
     commit("setSessionId", payload.sessionId);
 
-    try {
-      await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
-      mediasoupRoom.setMute(state.isMute);
-    } catch (e) {
-      console.error("joinRoom failed:", e);
-    }
+    await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
+    mediasoupRoom.setMute(state.isMute);
   },
 
   async leaveSession({ state, commit }) {

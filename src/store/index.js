@@ -76,7 +76,7 @@ try {
   );
   // });
 } catch (e) {
-  console.error("couldn't load jinxes", e);
+  console.log("couldn't load jinxes", e);
 }
 
 // base definition for custom roles
