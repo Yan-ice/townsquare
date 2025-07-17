@@ -226,12 +226,12 @@ function set_leavegame(client, session, player) {
         
         // note others that someone leave the game.
         channels[session].players = channels[session].players.filter(item => item.token != player.token);
+        channels[session].watchers = channels[session].watchers.filter(item => item.token != player.token);
       
       }
 }
 
 function set_joingame(client, session, player) {
-
       for (let channel in channels) {
           if (channel == session) {
             continue;
@@ -305,6 +305,71 @@ function set_joingame(client, session, player) {
       }     
 }
 
+function set_watchgame(client, session, player) {
+      for (let channel in channels) {
+          if (channel == session) {
+            continue;
+          }
+          if ( channels[channel].host.token == packet.sender ||
+            channels[channel].players.some(
+              (player) => {
+                return player['token'] == packet.sender;
+              }
+            )
+          ){
+            const a = new CommandPacket("require", session);
+            a.addCommand("note", "You aleady in another game.");
+            client.send(a.serialize());  
+            return;
+          }
+      }
+
+      if(!channels[session]) {
+        const a = new CommandPacket("require", session);
+            a.addCommand("note", "Game not exist.");
+            client.send(a.serialize());  
+        return;
+      }
+
+      const room = channels[session];
+
+      if(room.host.token == player.token) {
+        const a = new CommandPacket("require", session);
+            a.addCommand("note", "Storyteller cannot watch game.");
+            client.send(a.serialize());  
+        return;
+      }
+
+      if(!room.players.some((pl)=> {
+        if(pl.token == player.token) {
+              const a = new CommandPacket("require", session);
+              a.addCommand("note", "Player cannot watch game.");
+              client.send(a.serialize());  
+              return true;
+        }
+        return false;
+      })) {
+
+        if(!room.watchers.some((pl)=> {
+          if(pl.token == player.token) {
+                pl.username = player.username;
+                pl.socket = player.socket;
+                const a = new CommandPacket("sessionset");
+                a.addCommand("state", "watch");
+                client.send(a.serialize());  
+                return true;
+          }
+          return false;
+        })) {
+          const a = new CommandPacket("sessionset");
+          a.addCommand("state", "watch");
+          client.send(a.serialize());  
+          room.watchers.push(player);
+        }
+        //note online state.
+      }     
+}
+
 function require_host(session, command, param) {
   const a = new CommandPacket("require");
   a.addCommand(command, param);
@@ -323,7 +388,9 @@ function analyse_room_command(packet, cmd, param) {
     case 'join':
       set_joingame(packet.sender_socket, packet.session, sender_player);
       break;
-
+    case 'watch':
+      set_watchgame(packet.sender_socket, packet.session, sender_player);
+      break;
     case "leave":
       set_leavegame(packet.sender_socket, packet.session, sender_player);
       break;

@@ -70,6 +70,7 @@ class MediasoupRoom {
     // 获取音频流并produce
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     } else {
       alert("浏览器不支持麦克风, 或未通过安全环境。");
       return;
@@ -80,6 +81,9 @@ class MediasoupRoom {
       alert("未找到麦克风设备, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
       return;
     }
+          
+    // 启动音量检测
+    this.startVolumeMonitor(this.stream);
 
     const track = tracks[0];
 
@@ -99,7 +103,7 @@ class MediasoupRoom {
     });
 
     this.socket.on("connect_error", () => {
-      alert("无法连接至语音服务器, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
+      alert("无法连接至语音服务器。");
       this.socket = null;
       this.device = null;
       this.joined = false;
@@ -157,9 +161,6 @@ class MediasoupRoom {
 
     this.producer = await this.sendTransport.produce({ track });
 
-    // 启动音量检测
-    this.startVolumeMonitor(this.stream);
-
     // 消费其他producer
     for (const userId of existingUsers) {
       this.consume(userId);
@@ -211,9 +212,10 @@ class MediasoupRoom {
   }
 
   async leaveRoom() {
-    if (!this.joined) return;
-
+    
     this.stopVolumeMonitor();
+
+    if (!this.joined) return;
 
     if (this.producer) {
       await this.producer.close();

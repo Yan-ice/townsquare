@@ -178,12 +178,14 @@ class LiveSession {
           if(params == 'host') {
             this._isSpectator = false;
             this._store.commit("session/setSpectator", false);
+            this._store.commit("session/setWatcher", false);
             this._store.commit("players/update", {player: 100, property: 'id', value: this._store.state.loginbackend.playerId});
             this._store.commit("players/update", {player: 100, property: 'name', value: this._store.state.loginbackend.username});
             this.sendGamestate();
-          }else{
+          }else if (params == 'play'){
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
+            this._store.commit("session/setWatcher", false);
             this._sendDirect(
                 "host",
                 "getGamestate",
@@ -196,6 +198,15 @@ class LiveSession {
             const needlog = new CommandPacket("boardcast");
             needlog.addCommand("retrieveMessageLog");
             this._sendPacket(needlog);
+          }else if (params == 'watch') {
+            this._isSpectator = true;
+            this._store.commit("session/setSpectator", true);
+            this._store.commit("session/setWatcher", true);
+            this._sendDirect(
+                "host",
+                "getGamestate",
+                this._store.state.loginbackend.playerId,
+            );
           }
           break;
         case 'reset':

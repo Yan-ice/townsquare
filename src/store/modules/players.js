@@ -157,6 +157,7 @@ const actions = {
       players = state.players.map((player) => {
         if (player.role.team !== "traveler") {
           player.role = {};
+          player.role2 = {};
         }
         player.reminders = [];
         return player;
