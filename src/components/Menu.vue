@@ -21,12 +21,13 @@
       }"
       v-if="loginbackend.sessionId"
       @click="toggleMute"
-      :title="`${loginbackend.isMute ? 'muted' : 'sound'}`"
+      :title="`${(loginbackend.isMute || loginbackend.networkPoor) ? 'muted' : 'sound'}`"
     >
 
-    <font-awesome-icon v-if = "loginbackend.isMute" icon="microphone-slash" />
+    <font-awesome-icon v-if = "loginbackend.networkPoor" icon="minus-circle" />
+    <font-awesome-icon v-else-if = "loginbackend.isMute" icon="microphone-slash" />
     <font-awesome-icon v-else icon="microphone" />
-    {{ loginbackend.isMute ? '麦克风:已关闭' : '麦克风:开启中' }}(点击切换)
+    {{ loginbackend.networkPoor ? '警告:当前网络质量较差' : (loginbackend.isMute ? '麦克风:已关闭(点击切换)' : '麦克风:开启中(点击切换)') }}
 
     </span>
 
@@ -265,24 +266,24 @@ export default {
         this.$store.commit("loginbackend/tellMes", {receiver: '100', message: messag});
       }
     },
-    distributeRoles() {
+    async distributeRoles() {
       if (this.session.isSpectator) return;
-      if(!confirm("确认给入座玩家 正常派发 真身与假面角色吗？")){
+      if(!await my_confirm("确认给入座玩家 正常派发 真身与假面角色吗？")){
           return;
       }
       this.$store.commit("session/distributeRoles", false);
     },
-    distributeRolesShuffle() {
+    async distributeRolesShuffle() {
       if (this.session.isSpectator) return;
-      if(!confirm("确认给所有入座玩家派发 混淆的 真身与假面角色吗？")){
+      if(!await my_confirm("确认给所有入座玩家派发 混淆的 真身与假面角色吗？")){
           return;
         }
       this.$store.commit("session/distributeRoles", true);
     },
-    imageOptIn() {
+    async imageOptIn() {
       const popup =
-        "Are you sure you want to allow custom images? A malicious script file author might track your IP address this way.";
-      if (this.grimoire.isImageOptIn || confirm(popup)) {
+        "你确定允许自定义图片吗？";
+      if (this.grimoire.isImageOptIn || await my_confirm(popup)) {
         this.toggleImageOptIn();
       }
     },
@@ -302,8 +303,8 @@ export default {
 
       }
     },
-    leaveSession() {
-      if (confirm("Are you sure you want to leave the active live game?")) {
+    async leaveSession() {
+      if (await my_confirm("你确定想离开当前房间吗")) {
         this.$store.commit("session/setSpectator", false);
         this.$store.dispatch("loginbackend/leaveSession");
       }
@@ -313,8 +314,8 @@ export default {
       if (this.players.length >= 20) return;
       this.$store.commit("players/add", "---");
     },
-    clearRoles() {
-      if (confirm("确认清空所有角色标记与token吗？")) {
+    async clearRoles() {
+      if (await my_confirm("确认清空所有角色标记与token吗？")) {
         this.$store.dispatch("players/clearRoles");
       }
     },

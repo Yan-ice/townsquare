@@ -103,7 +103,7 @@ export default {
         }
         this.toggleModal("gameState");
       } catch (e) {
-        alert("Unable to parse JSON: " + e);
+        my_alert("Unable to parse JSON: " + e);
       }
     },
     ...mapMutations(["toggleModal"]),

@@ -8,6 +8,7 @@ const state = () => ({
     pwd: '2333',
     isSpeaking: false,
     isMute: true,
+    networkPoor: false,
     commandToServer: null,
     backendServer: null,
     vocalServer: null,
@@ -26,6 +27,7 @@ const mutations = {
     setSessionId: set("sessionId"),
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
+    setNetworkPoor: set("networkPoor"),
     setCurrentChatIndex(state, val) {
       state.currentChatIndex = val;
     },
@@ -72,11 +74,11 @@ const actions = {
 
     commit("setPlayerId", '');
     if (state.sessionId) {
-      try {
-        await mediasoupRoom.leaveRoom();
-      } catch (e) {
-        console.warn("leaveRoom error:", e);
-      }
+      //try {
+      //  await mediasoupRoom.leaveRoom();
+      //} catch (e) {
+      //  console.warn("leaveRoom error:", e);
+      //}
     }
 
   },

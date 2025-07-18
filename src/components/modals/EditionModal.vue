@@ -134,15 +134,15 @@ export default {
             const roles = JSON.parse(reader.result);
             this.parseRoles(roles);
           } catch (e) {
-            alert("Error reading custom script: " + e.message);
+            my_alert("读取自定义剧本失败: " + e.message);
           }
           this.$refs.upload.value = "";
         });
         reader.readAsText(file);
       }
     },
-    promptURL() {
-      const url = prompt("Enter URL to a custom-script.json file");
+    async promptURL() {
+      const url = await my_prompt("输入JSON文件的URL");
       if (url) {
         this.handleURL(url);
       }
@@ -154,7 +154,7 @@ export default {
           const script = await res.json();
           this.parseRoles(script);
         } catch (e) {
-          alert("Error loading custom script: " + e.message);
+          my_alert("加载自定义剧本失败: " + e.message);
         }
       }
     },
@@ -164,7 +164,7 @@ export default {
         const roles = JSON.parse(text);
         this.parseRoles(roles);
       } catch (e) {
-        alert("Error reading custom script: " + e.message);
+        my_alert("读取自定义剧本失败: " + e.message);
       }
     },
     parseRoles(roles) {

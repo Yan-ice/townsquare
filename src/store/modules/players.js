@@ -243,7 +243,7 @@ const mutations = {
     }
     if (message.startsWith("___restore___")) {
       message = message.replace("___restore___", "");
-      Vue.set(player, 'messageLogWithHim', player.messageLogWithHim + message);
+      Vue.set(player, 'messageLogWithHim', message);
     } else {
       Vue.set(player, 'messageLogWithHim', player.messageLogWithHim + "\n["+tellerName+ "] "+message);
       Vue.set(player, 'hasUnreadMessage', true);

@@ -16,17 +16,133 @@ class MediasoupRoom {
     this.stream = null;        // 本地音频流
     this.producer = null;      // 发送的producer
 
+    this.isMute = false;
+    this.isNetworkPoor = false;
     // 音量检测相关
     this.audioContext = null;
     this.analyser = null;
     this.microphoneSource = null;
     this.volume = 0;           // 实时音量 0~1
     this.loud_keep = 0;
-    this.volumeThreshold = 0.1;
+    this.volumeThreshold = 0.09;
     this.volumeCallback = this._volumeCallback.bind(this);
     this.volumeMonitorId = null;
   }
 
+  startNetworkMonitor() {
+    this.networkMonitorId = setInterval(async () => {
+      if (!this.producer) return;
+  
+      try {
+        const stats = await this.producer.getStats();
+  
+        let isBadNetwork = false;
+        let analysis = {}; // 用于 log 打印和传递上下文
+  
+        for (const [id, report] of stats.entries()) {
+          // 发送端 RTP 状态
+          if (report.type === "outbound-rtp" && report.kind === "audio") {
+            const {
+              packetsSent = 0,
+              retransmittedPacketsSent = 0,
+              nackCount = 0,
+              targetBitrate = 24000
+            } = report;
+  
+            const lossRate = packetsSent > 0
+              ? retransmittedPacketsSent / packetsSent
+              : 0;
+  
+            analysis = {
+              ...analysis,
+              lossRate,
+              nackCount,
+              targetBitrate
+            };
+  
+            if (lossRate > 0.05 || nackCount > 5 || targetBitrate < 14000) {
+              isBadNetwork = true;
+            }
+          }
+  
+          // 接收端反馈（remote-inbound-rtp）
+          if (report.type === "remote-inbound-rtp" && report.kind === "audio") {
+            const {
+              fractionLost = 0,
+              jitter = 0,
+              totalRoundTripTime = 0,
+              roundTripTimeMeasurements = 0
+            } = report;
+  
+            const rtt = roundTripTimeMeasurements > 0
+              ? totalRoundTripTime / roundTripTimeMeasurements
+              : 0;
+  
+            analysis = {
+              ...analysis,
+              fractionLost,
+              jitter,
+              rtt
+            };
+  
+            if (fractionLost > 0.1 || jitter > 0.04 || rtt > 0.4) {
+              isBadNetwork = true;
+            }
+          }
+        }
+  
+        this._handleNetworkQuality(isBadNetwork, analysis);
+        console.log("网络状态监测:", isBadNetwork, analysis);
+      } catch (err) {
+        console.warn("getStats error:", err);
+      }
+    }, 1000);
+  }
+  
+  
+  stopNetworkMonitor() {
+    if (this.networkMonitorId) {
+      clearInterval(this.networkMonitorId);
+      this.networkMonitorId = null;
+    }
+  }
+  
+  _handleNetworkQuality(isBad, stats) {
+    if (isBad) {
+      if (!this._wasBadNetwork) {
+        console.warn("网络状态差:", stats);
+        store.commit("loginbackend/setNetworkPoor", true); // Vuex 控制 UI 提示
+  
+        // 可选：自动静音
+        this.setNetworkPoor(true);
+  
+        // 可选：动态降码率
+        // if (this.producer) {
+        //   const parameters = this.producer.getParameters();
+        //   parameters.encodings[0].maxBitrate = 12000; // 降为12kbps
+        //   this.producer.setParameters(parameters).catch(console.error);
+        // }
+  
+        this._wasBadNetwork = true;
+      }
+    } else {
+      if (this._wasBadNetwork) {
+        console.log("网络恢复正常");
+        store.commit("loginbackend/setNetworkPoor", false);
+        this.setNetworkPoor(false);
+        
+        // if (this.producer) {
+        //   const parameters = this.producer.getParameters();
+        //   parameters.encodings[0].maxBitrate = 24000; // 恢复码率
+        //   this.producer.setParameters(parameters).catch(console.error);
+        // }
+  
+        this._wasBadNetwork = false;
+      }
+    }
+  }
+
+  
   _volumeCallback(loud) {
     if(store.state.loginbackend.isSpeaking != loud) {
       if(loud) {
@@ -59,8 +175,11 @@ class MediasoupRoom {
       return;
     }
 
+    // my_alert("该版本没有开启麦克风。");
+    // return;
+
     if(!roomId || !userId){
-      alert("错误：客户端信息不同步! 建议刷新网页。");
+      my_alert("错误：客户端信息不同步! 建议刷新网页。");
       return;
     }
 
@@ -74,19 +193,19 @@ class MediasoupRoom {
         this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         console.log("麦克风权限请求成功，获得音频流:", this.stream);
       } else {
-        alert("不支持麦克风, 或未通过安全环境。");
+        my_alert("不支持麦克风, 或未通过安全环境。");
         console.error("不支持 navigator.mediaDevices.getUserMedia");
         return;
       }
     } catch (err) {
-      alert("错误：无法开启麦克风！请确认麦克风是否被其他软件占用。");
+      my_alert("错误：无法开启麦克风！请确认麦克风是否被其他软件占用。");
       console.error(`获取麦克风权限失败: ${err} - ${err.message}`);
       return;
     }
 
     const tracks = this.stream.getAudioTracks();
     if(tracks.length == 0) {
-      alert("未找到麦克风设备, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
+      my_alert("未找到麦克风设备, 已自动关闭麦克风。你可以在菜单尝试重新打开它。");
       return;
     }
           
@@ -96,7 +215,7 @@ class MediasoupRoom {
     const track = tracks[0];
 
     track.addEventListener('ended', () => {
-        alert('麦克风设备断开, 已自动关闭麦克风。你可以在菜单尝试重新打开它。');
+        my_alert('麦克风设备断开, 已自动关闭麦克风。你可以在菜单尝试重新打开它。');
         this.leaveRoom();
     });
 
@@ -111,7 +230,7 @@ class MediasoupRoom {
     });
 
     this.socket.on("connect_error", () => {
-      alert("无法连接至语音服务器。");
+      my_alert("无法连接至语音服务器。");
       this.socket = null;
       this.device = null;
       this.joined = false;
@@ -181,12 +300,16 @@ class MediasoupRoom {
       },
     });
 
+    this.startNetworkMonitor();
+
     // 消费其他producer
     for (const userId of existingUsers) {
       this.consume(userId);
     }
 
     this.joined = true;
+
+    
   }
 
   async consume(targetuserId) {
@@ -235,6 +358,8 @@ class MediasoupRoom {
     
     this.stopVolumeMonitor();
 
+    this.stopNetworkMonitor();
+
     if (!this.joined) return;
 
     if (this.producer) {
@@ -259,13 +384,22 @@ class MediasoupRoom {
     }
 
     this.joined = false;
+
   }
 
   setMute(mute) {
     if (!mute && !this.joined && this.roomId) this.joinRoom();
 
     if (!this.stream) return;
-    this.stream.getAudioTracks().forEach(track => track.enabled = !mute);
+    this.isMute = mute;
+
+    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
+  }
+
+  setNetworkPoor(poor) {
+    this.isNetworkPoor = poor;
+    if (!this.stream) return;
+    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
   }
 
   startVolumeMonitor(stream) {

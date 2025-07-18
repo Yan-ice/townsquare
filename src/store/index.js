@@ -117,6 +117,14 @@ export default new Vuex.Store({
       zoom: 0,
       background: ""
     },
+    dialog: {
+      visible: false,
+      title: "",
+      message: "",
+      type: "alert", // alert / confirm / prompt
+      defaultValue: "",
+      resolve: null,
+    },
     modals: {
       edition: false,
       fabled: false,
@@ -129,6 +137,7 @@ export default new Vuex.Store({
       role: false,
       roles: false,
       voteHistory: false,
+      prompt: false,
     },
     edition: editionJSONbyId.get("custom"),
     roles: getRolesByEdition(),
@@ -191,7 +200,15 @@ export default new Vuex.Store({
         modals[modal] = false;
       }
     },
-
+    setDialog(state, payload) {
+      state.dialog = { ...state.dialog, ...payload };
+      state.modals['prompt'] = true;
+      for (let modal in state.modals) {
+        if (modal === 'prompt') continue;
+        state.modals[modal] = false;
+      }
+      console.log(state.modals);
+    },
     update_claim(state) {
       for(let a = 0; a < state.players.length; a++){
           if (state.players[a].id == state.loginbackend.playerId) {

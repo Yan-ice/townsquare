@@ -164,11 +164,11 @@ export default {
       this.selectedPlayer = playerIndex;
       this.$store.commit("toggleModal", "role");
     },
-    removePlayer(playerIndex) {
+    async removePlayer(playerIndex) {
       if (this.session.isSpectator || this.session.lockedVote) return;
       if (
-        confirm(
-          `Do you really want to remove ${this.players[playerIndex].name}?`,
+        await my_confirm(
+          `你确定要移除 ${this.players[playerIndex].name} 吗？`,
         )
       ) {
         const { nomination } = this.session;

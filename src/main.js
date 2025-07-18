@@ -67,6 +67,45 @@ Vue.component("font-awesome-icon", FontAwesomeIcon);
 Vue.config.productionTip = false;
 Vue.config.devtools = true
 
+
+// 这里是关键，挂载到window是为了方便在任何地方调用，非必须
+window.my_alert = function (message, title = "提示") {
+  return new Promise((resolve) => {
+    store.commit("setDialog", {
+      visible: true,
+      title,
+      message,
+      type: "alert",
+      resolve: () => resolve(),
+    });
+  });
+};
+
+window.my_confirm = function (message, title = "确认") {
+  return new Promise((resolve) => {
+    store.commit("setDialog", {
+      visible: true,
+      title,
+      message,
+      type: "confirm",
+      resolve,
+    });
+  });
+};
+
+window.my_prompt = function (message, title = "输入", defaultValue = "") {
+  return new Promise((resolve) => {
+    store.commit("setDialog", {
+      visible: true,
+      title,
+      message,
+      type: "prompt",
+      defaultValue,
+      resolve,
+    });
+  });
+};
+
 new Vue({
   render: (h) => h(App),
   store,

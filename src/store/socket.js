@@ -38,7 +38,7 @@ class LiveSession {
       const timeoutDuration = 10000;
       let timeoutHandle = setTimeout(() => {
           if (this._socket && this._socket.readyState !== WebSocket.OPEN) {
-            alert("无法连接到服务器。检查你的区服号，或服务器状态异常。");
+            my_alert("无法连接到服务器。检查你的区服号，或服务器状态异常。");
             this._socket.close();
             this._socket = null;
             this._store.commit("loginbackend/resetServerURL");
@@ -73,12 +73,12 @@ class LiveSession {
           this._store.dispatch("loginbackend/logout");
           //this._store.commit("loginbackend/setSessionId", "");
           //this._store.commit("loginbackend/setPlayerId", "");
-          if (err.reason) alert(err.reason);
+          if (err.reason) my_alert(err.reason);
         }
       };
 
       this._socket.onerror = () => {
-        alert("服务器状态异常。");
+        my_alert("服务器状态异常。");
         this._socket = null;
         if (this._pingTimer) {
           clearInterval(this._pingTimer);
@@ -161,7 +161,7 @@ class LiveSession {
               this._store.commit("loginbackend/setPlayerId", params['token']);
               break;
             case "failed":
-              alert("登录失败：激活码无效, 或已被其他昵称使用。");
+              my_alert("登录失败：激活码无效, 或已被其他昵称使用。");
               this._store.commit("loginbackend/logout");
               break;
             case "session_restore":
@@ -232,11 +232,11 @@ class LiveSession {
   _handleRequire(packet, command, params) {
     switch(command){
       case 'leave_session':
-        alert(params);
+        my_alert(params);
         this._store.dispatch("loginbackend/leaveSession");
         break;
       case 'logout':
-        alert(params);
+        my_alert(params);
         
         this._store.dispatch("loginbackend/logout");
         break;
@@ -380,19 +380,6 @@ class LiveSession {
         if (!this._isSpectator) return;
         this._store.commit("toggleNight", params);
         break;
-      case "isVoteHistoryAllowed":
-        if (!this._isSpectator) return;
-        this._store.commit("session/setVoteHistoryAllowed", params);
-        this._store.commit("session/clearVoteHistory");
-        break;
-      case "votingSpeed":
-        if (!this._isSpectator) return;
-        this._store.commit("session/setVotingSpeed", params);
-        break;
-      case "clearVoteHistory":
-        if (!this._isSpectator) return;
-        this._store.commit("session/clearVoteHistory");
-        break;
       case "isVoteInProgress":
         if (!this._isSpectator) return;
         this._store.commit("session/setVoteInProgress", params);
@@ -434,7 +421,7 @@ class LiveSession {
         this._store.dispatch("players/syncMesTo", packet.sender);
         break;
       case "showmessage":
-        alert(params);
+        my_alert(params);
         break;
     }
   }
@@ -449,7 +436,7 @@ class LiveSession {
   connect(sessionID) {
 
     if (!this._store.state.loginbackend.playerId) {
-      alert("error.");
+      my_alert("error.");
       //this.login();
     }else{
       this._pings = {};
@@ -654,7 +641,7 @@ class LiveSession {
             missing.push(id);
           }
         });
-        alert(
+        my_alert(
           `This session contains custom characters that can't be found. ` +
             `Please load them before joining! ` +
             `Missing roles: ${missing.join(", ")}`,
@@ -696,7 +683,9 @@ class LiveSession {
    * @param value
    */
   sendPlayer({ player, property, value }) {
-    if (this._isSpectator || property === "reminders") return;
+    //No reminder, no user.
+    if (this._isSpectator || property === "reminders" ||  property === "reminders2") return;
+
     const index = this._store.state.players.players.indexOf(player);
     if (property === "role") {
       if (value.team && value.team === "traveler") {
@@ -1116,7 +1105,9 @@ export default (store) => {
       case "session/setVotingSpeed":
       case "toggleNight":
       case "session/setVoteHistoryAllowed":
+      case "session/clearVoteHistory":  
       case "session/setMarkedPlayer":
+      case "session/addHistory":
       case "players/setTalking":
       case "players/setPrivateChat":
       case "players/swap":

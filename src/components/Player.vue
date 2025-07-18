@@ -343,7 +343,7 @@ export default {
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
     },
     watchGrimoire() {
-      alert("功能正在开发中～");
+      my_alert("功能正在开发中～");
     },
     toggleStatus() {
       if (this.grimoire.isPublic) {
@@ -368,9 +368,9 @@ export default {
         }
       }
     },
-    changeName() {
+    async changeName() {
       if (this.session.isSpectator) return;
-      const name = prompt("Player name", this.player.name) || this.player.name;
+      const name = await my_prompt("玩家名称", this.player.name) || this.player.name;
       this.updatePlayer("name", name, true);
     },
     removeReminder(reminder) {
@@ -386,8 +386,7 @@ export default {
     updatePlayer(property, value, closeMenu = false) {
       if (
         this.session.isSpectator &&
-        property !== "reminders" &&
-        property !== "pronouns"
+        property !== "reminders" && property !== "reminders2"
       )
         return;
       this.$store.commit("players/update", {

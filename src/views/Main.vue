@@ -11,6 +11,7 @@
       <MessageModal />
       <PrivateChatModal />
       <GameStateModal />
+      <PromptModal />
       <Gradients />
     </div>
       
@@ -34,6 +35,7 @@
   import GameStateModal from "@/components/modals/GameStateModal";
   import TownSquare2 from "@/components/TownSquare2"
   import MessageModal from "../components/modals/MessageModal";
+  import PromptModal from "../components/modals/PromptModal";
 
   export default {
     components: {
@@ -50,6 +52,7 @@
       Menu,
       EditionModal,
       RolesModal,
+      PromptModal,
       Gradients,
     },
     computed: {

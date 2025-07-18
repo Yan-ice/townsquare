@@ -62,13 +62,10 @@ export default {
       const { players, bluffs } = this.$store.state.players;
       this.$store.state.roles.forEach((role) => {
         // add reminders from player roles
-        if (players.some((p) => p.role.id === role.id)) {
+        if (players.some((p) => (p.role.id === role.id || p.role2.id === role.id))) {
           reminders = [...reminders, ...role.reminders.map(mapReminder(role))];
         }
-        // player has two roles now.
-        else if (players.some((p) => p.role2.id === role.id)) {
-          reminders = [...reminders, ...role.reminders.map(mapReminder(role))];
-        }
+
         // add reminders from bluff/other roles
         else if (bluffs.some((bluff) => bluff.id === role.id)) {
           reminders = [...reminders, ...role.reminders.map(mapReminder(role))];
