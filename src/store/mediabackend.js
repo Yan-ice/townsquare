@@ -60,7 +60,7 @@ class MediasoupRoom {
               targetBitrate
             };
   
-            if (lossRate > 0.05 || nackCount > 5 || targetBitrate < 14000) {
+            if (lossRate > 0.1 || nackCount > 5 || targetBitrate < 14000) {
               isBadNetwork = true;
             }
           }
@@ -85,7 +85,7 @@ class MediasoupRoom {
               rtt
             };
   
-            if (fractionLost > 0.1 || jitter > 0.04 || rtt > 0.4) {
+            if (fractionLost > 0.2 || jitter > 0.08 || rtt > 0.5) {
               isBadNetwork = true;
             }
           }
@@ -175,8 +175,10 @@ class MediasoupRoom {
       return;
     }
 
-    // my_alert("该版本没有开启麦克风。");
-    // return;
+    if(!store.state.loginbackend.isMdict) {
+      my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
+      return;
+    }
 
     if(!roomId || !userId){
       my_alert("错误：客户端信息不同步! 建议刷新网页。");

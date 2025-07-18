@@ -183,7 +183,7 @@
                 <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <template v-if="session.isSpectator && !player.isST">
+            <template v-if="session.isSpectator && !player.isST && loginbackend.isMdict">
               <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="volume-up" />
                 发起私聊

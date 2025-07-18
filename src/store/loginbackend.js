@@ -8,6 +8,7 @@ const state = () => ({
     pwd: '2333',
     isSpeaking: false,
     isMute: true,
+    isMdict: true,
     networkPoor: false,
     commandToServer: null,
     backendServer: null,
@@ -28,6 +29,13 @@ const mutations = {
     setCommandToServer: set("commandToServer"),
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
+    setMdict(state, val) {
+      if(val){
+        state.isMdict = true;
+      }else{
+        state.isMdict = false;
+      }
+    },
     setCurrentChatIndex(state, val) {
       state.currentChatIndex = val;
     },

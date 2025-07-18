@@ -19,7 +19,7 @@
         spectator: !loginbackend.isMute,
         reconnecting: session.isReconnecting,
       }"
-      v-if="loginbackend.sessionId"
+      v-if="loginbackend.sessionId && loginbackend.isMdict"
       @click="toggleMute"
       :title="`${(loginbackend.isMute || loginbackend.networkPoor) ? 'muted' : 'sound'}`"
     >
@@ -130,34 +130,11 @@
             {{ session.isSpectator ? "游戏中" : "说书中" }}
           </li>
           <li class="headline" v-else>线上游戏</li>
-          <template v-if="!loginbackend.sessionId">
-            <li @click="hostSession">主持游戏(废弃)<em>[H]</em></li>
-            <li @click="joinSession">加入游戏(废弃)<em>[J]</em></li>
-          </template>
-          <template v-else>
-            <!-- <li v-if="session.ping">
-              Delay to {{ session.isSpectator ? "host" : "players" }}
-              <em>{{ session.ping }}ms</em>
-            </li> -->
 
-            <li
-              v-if="!loginbackend.isMute"
-              @click="toggleMute"
-            >
-              关闭麦克风<em>[`]</em>
-            </li>
-            <li
-              v-if="loginbackend.isMute"
-              @click="toggleMute"
-            >
-              开启麦克风<em>[`]</em>
-            </li>
-
-            <li @click="leaveSession">
+          <li @click="leaveSession">
               离开房间
               <em>{{ loginbackend.sessionId }}</em>
-            </li>
-          </template>
+          </li>
         </template>
 
         <template v-if="tab === 'players' && !session.isSpectator">

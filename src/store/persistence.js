@@ -49,6 +49,8 @@ module.exports = (store) => {
     );
   }
 
+  store.commit("loginbackend/setMdict", localStorage.isMdict);
+
   /** Quick Login with existing data. */
   if (localStorage.serverURL) {
     console.log("server URL: ", localStorage.serverURL);
@@ -178,6 +180,13 @@ module.exports = (store) => {
           localStorage.setItem("playerId", payload);
         } else {
           localStorage.removeItem("playerId");
+        }
+        break;
+      case "loginbackend/setMdict":
+        if (payload) {
+          localStorage.setItem("isMdict", payload);
+        } else {
+          localStorage.removeItem("isMdict");
         }
         break;
       case "loginbackend/setServerURL":

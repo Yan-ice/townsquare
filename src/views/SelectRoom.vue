@@ -7,7 +7,11 @@
       <button type="submit">加入房间</button>
       <label class="observer-checkbox blackp">
         <input v-model="isObserver" type="checkbox" />
-      以旁观游戏身份加入
+        以旁观游戏身份加入
+      </label>
+      <label class="observer-checkbox blackp">
+        <input v-model="isMdict" type="checkbox" />
+        使用魔典内置语音
       </label>
     </form>
 
@@ -28,12 +32,14 @@ export default {
   data() {
     return {
       room: '',
-      isObserver: false
+      isObserver: false,
+      isMdict: true
     };
   },
 
   methods: {
     handleSubmit() {
+      this.$store.commit('loginbackend/setMdict', this.isMdict);
       if(this.isObserver) {
         this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
         my_alert("此功能仍在开发中。");
