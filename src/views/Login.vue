@@ -1,13 +1,15 @@
 <template>
     <div class="login-container">
       <h2 class="title">用户登录</h2>
-      <form @submit.prevent="handleSubmit" class="login-form">
-        <input v-model="username" type="text" placeholder="昵称" required />
-        <input v-model="password" type="password" placeholder="内测码" required />
+      <div class="login-form">
+        <input v-model="username" type="text" placeholder="昵称" />
+        <input v-model="password" type="password" placeholder="内测码"/>
         <!-- <input :disabled="$store.state.loginbackend.backendServer" v-model="serverurl" type="text" placeholder="区服" required /> -->
         <!-- <input v-model="serverurl" type="text" placeholder="区服" required /> -->
-        <button  type="submit">确认</button>
-      </form>
+        <button @click="handleSubmit">确认</button>
+        <button @click="quickLogin">尝试快速登录</button>
+        <p v-if="$store.state.dialog.message" class="title">{{ $store.state.dialog.message }}</p>
+      </div>
     </div>
 </template>
   
@@ -22,6 +24,11 @@
     },
 
     methods: {
+      quickLogin() {
+        this.$store.commit('loginbackend/setServerURL', 'yanices.site');
+        this.$store.commit('loginbackend/setPlayerId', '');
+        this.$store.commit('loginbackend/tryQuickLogin');
+      },
       handleSubmit() {
         this.$store.commit('loginbackend/setServerURL', 'yanices.site');
 
@@ -32,7 +39,7 @@
           username: this.username,
           pwd: this.password
         });
-
+        this.password = '';
         // 这里你可以调用接口或做其他操作
       }
     }
@@ -54,6 +61,10 @@
     text-align: center;
     margin-bottom: 1.5rem;
     color: black;
+    max-width: 200px;      /* 你可以根据需要调整宽度 */
+    white-space: pre-wrap; /* 保证换行 */
+    word-break: break-all; /* 长单词也会换行 */
+    overflow-wrap: break-word;
   }
   
   .login-form {

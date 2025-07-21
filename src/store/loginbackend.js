@@ -64,6 +64,9 @@ const mutations = {
         state.pwd = payload.pwd;
         console.log("login with usrname.");
     },
+    tryQuickLogin(state) {
+        console.log("tryQuickLogin");
+    },
     loginWithToken(state, payload) {
         state.playerId = payload.playerId;
         console.log("login with token.");

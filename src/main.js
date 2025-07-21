@@ -71,6 +71,7 @@ Vue.config.devtools = true
 // 这里是关键，挂载到window是为了方便在任何地方调用，非必须
 window.my_alert = function (message, title = "提示") {
   return new Promise((resolve) => {
+    console.log("my_alert", message, title);
     store.commit("setDialog", {
       visible: true,
       title,
@@ -83,6 +84,7 @@ window.my_alert = function (message, title = "提示") {
 
 window.my_confirm = function (message, title = "确认") {
   return new Promise((resolve) => {
+    console.log("my_confirm", message, title);
     store.commit("setDialog", {
       visible: true,
       title,
@@ -95,6 +97,7 @@ window.my_confirm = function (message, title = "确认") {
 
 window.my_prompt = function (message, title = "输入", defaultValue = "") {
   return new Promise((resolve) => {
+    console.log("my_prompt", message, title);
     store.commit("setDialog", {
       visible: true,
       title,

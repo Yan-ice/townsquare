@@ -66,16 +66,6 @@ module.exports = (store) => {
     console.log("No data.");
   }
 
-  /**** Session related data *****/
-  // if (localStorage.getItem("playerId")) {
-  //   store.commit("loginbackend/setPlayerId", localStorage.getItem("playerId"));
-  // }
-  // if (localStorage.getItem("session") && !window.location.hash.substr(1)) {
-  //   const [spectator, sessionId] = JSON.parse(localStorage.getItem("session"));
-  //   store.commit("session/setSpectator", spectator);
-  //   store.commit("loginbackend/setSessionId", sessionId);
-  // }
-
   // listen to mutations
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
@@ -199,6 +189,18 @@ module.exports = (store) => {
           console.log("inf updated.",payload.username, payload.pwd);
           localStorage.setItem("username", payload.username);
           localStorage.setItem("password", payload.pwd);
+        }
+        break;
+      case "loginbackend/tryQuickLogin":
+        if (localStorage.username) {
+          console.log("Logining...",localStorage.username, localStorage.password);
+          store.commit("loginbackend/loginWithData", {
+            username: localStorage.username,
+            pwd: localStorage.password
+          });
+        }else{
+          console.log("No data.");
+          my_alert("没有此前登录数据。请输入昵称和内测码");
         }
         break;
       case "loginbackend/logout":

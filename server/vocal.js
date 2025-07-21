@@ -53,7 +53,7 @@ let worker;
 function closeConnection(io, roomId, userId) {
     const room = rooms.get(roomId);
     if(room) {
-        const peer = room.users.get(userId);
+        const peer = room.users.get(userId) ? room.users.get(userId) : room.prepares.get(userId);
         if(peer) {
             
             // io.to(peer.id).emit("closedByRemote");
@@ -66,9 +66,6 @@ function closeConnection(io, roomId, userId) {
                 otherPeer.consumers = otherPeer.consumers.filter(consumer => {
                     if (consumer.producerId === peer.producer?.id) {
                         consumer.close(); // 关闭关联的Consumer
-                        // io.to(otherPeer.id).emit("consumerClosed", {
-                        //     consumerId: consumer.id
-                        // });
                         return false; // 从数组中移除
                     }
                     return true;
@@ -77,6 +74,7 @@ function closeConnection(io, roomId, userId) {
             }
             );
             room.users.delete(userId);
+            room.prepares.delete(userId);
             peer.socket.disconnect();
             console.log('Client disconnected:', peer.id);
         }
