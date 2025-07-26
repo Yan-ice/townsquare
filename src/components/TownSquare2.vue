@@ -292,8 +292,8 @@ export default {
 
 .circle {
   padding: 0;
-  width: 100vmin;
-  height: 100vmin;
+  width: 95vmin;
+  height: 95vmin;
   list-style: none;
   margin: 0;
 

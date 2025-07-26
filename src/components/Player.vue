@@ -406,7 +406,7 @@ export default {
       }
     },
     awakePlayer() {
-      command = {
+      let command = {
         "header": "require",
         "receiver": this.player.id,
         "command": "alert",

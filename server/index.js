@@ -126,6 +126,18 @@ wss.on("connection", function connection(ws, req) {
           }
 
           break;
+
+        case "require":
+          if(!channels[packet.session]) return;
+          if(packet.receiver == 'host') {
+            channels[packet.session].host['socket'].send(packet.serialize());
+            break;
+          }
+          if(channels[packet.session].host['token'] == packet.receiver) {
+              channels[packet.session].host['socket'].send(packet.serialize());
+              break;
+          }
+          break;
         case "direct":
           if(!channels[packet.session]) return;
           if(packet.receiver == 'host') {

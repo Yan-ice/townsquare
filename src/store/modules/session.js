@@ -55,6 +55,7 @@ const mutations = {
   setVoteHistoryAllowed: set("isVoteHistoryAllowed"),
   claimSeat: set("claimedSeat"),
   distributeRoles: set("isRolesDistributed"),
+  
   // Yan_ice: this is used to actively send comand to server.
   sendCommand(state, packet) {
     state.send_packet = packet;

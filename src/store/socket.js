@@ -1116,7 +1116,7 @@ export default (store) => {
         session.requestSync(type, payload);
         break;
       case "session/sendCommand":
-        packet = CommandPacket(payload.header, state.loginbackend.sessionId);
+        let packet = new CommandPacket(payload.header, state.loginbackend.sessionId);
         packet.sender = state.loginbackend.playerId;
         packet.receiver = payload.receiver;
         packet.addCommand(packet.command, packet.param);
