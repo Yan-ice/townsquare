@@ -137,6 +137,11 @@ wss.on("connection", function connection(ws, req) {
               channels[packet.session].host['socket'].send(packet.serialize());
               break;
           }
+          channels[packet.session].players.forEach((player) => {
+              if(player['token'] == packet.receiver) {
+                player['socket'].send(packet.serialize());
+              }
+          });
           break;
         case "direct":
           if(!channels[packet.session]) return;
