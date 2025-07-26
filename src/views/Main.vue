@@ -9,6 +9,7 @@
       <NightOrderModal />
       <VoteHistoryModal />
       <MessageModal />
+      <NoteModal />
       <PrivateChatModal />
       <GameStateModal />
       <PromptModal />
@@ -36,6 +37,7 @@
   import TownSquare2 from "@/components/TownSquare2"
   import MessageModal from "../components/modals/MessageModal";
   import PromptModal from "../components/modals/PromptModal";
+  import NoteModal from "../components/modals/NoteModal";
 
   export default {
     components: {
@@ -52,6 +54,7 @@
       Menu,
       EditionModal,
       RolesModal,
+      NoteModal,
       PromptModal,
       Gradients,
     },

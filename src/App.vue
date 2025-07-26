@@ -44,6 +44,7 @@ import SelectRoomWin from "@/views/SelectRoom";
 import TownInfo from "./components/TownInfo.vue";
 import Vote from "@/components/Vote";
 import Intro from "./components/Intro.vue";
+import loginbackend from "./store/loginbackend";
 
 export default {
   components: {
@@ -75,42 +76,36 @@ export default {
   },
   methods: {
     keyup({ key, ctrlKey, metaKey }) {
-      if (!ctrlKey || metaKey) return;
+
+      //if (!ctrlKey || metaKey) return;
+
+      if(!this.$store.state.loginbackend.sessionId) {
+        console.log("no session");
+        return;
+      }
+
+      const anyModalOpen = Object.values(this.$store.state.modals).some(Boolean);
+      if (anyModalOpen) {
+        console.log("has model open:" + Object.values(this.$store.state.modals));
+        return;
+      }
+
       switch (key.toLocaleLowerCase()) {
-        case "a":
-          this.$refs.menu.addPlayer();
-          break;
-        case "h":
-          this.$refs.menu.hostSession();
-          break;
-        case "j":
-          this.$refs.menu.joinSession();
-          break;
         case "r":
           this.$store.commit("toggleModal", "reference");
           break;
         case "n":
-          this.$store.commit("toggleModal", "nightOrder");
+          this.$store.commit("toggleModal", "notes");
           break;
         case "e":
           if (this.session.isSpectator) return;
           this.$store.commit("toggleModal", "edition");
           break;
-        case "c":
-          if (this.session.isSpectator) return;
-          this.$store.commit("toggleModal", "roles");
-          break;
         case "v":
-          if (this.session.voteHistory.length || !this.session.isSpectator) {
+          if (this.session.voteHistory.length) {
             this.$store.commit("toggleModal", "voteHistory");
           }
           break;
-        case "s":
-          if (this.session.isSpectator) return;
-          this.$refs.menu.toggleNight();
-          break;
-        case "escape":
-          this.$store.commit("toggleModal");
       }
     },
   },

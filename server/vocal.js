@@ -76,7 +76,7 @@ function closeConnection(io, roomId, userId) {
             room.users.delete(userId);
             room.prepares.delete(userId);
             peer.socket.disconnect();
-            console.log('Client disconnected:', peer.id);
+            console.log('Client disconnected:', userId);
         }
     }
 }
@@ -187,7 +187,9 @@ io.on("connection", (socket) => {
     // 当客户端建立 sendTransport 时自动 connect
     socket.on("transport-connect", async ({ transportId, dtlsParameters }) => {
       const transport = [sendTransport, recvTransport].find(t => t.id === transportId);
-      await transport.connect({ dtlsParameters });
+      if(transport) {
+        await transport.connect({ dtlsParameters });
+      }
     });
 
     // 给客户端返回所有初始化信息

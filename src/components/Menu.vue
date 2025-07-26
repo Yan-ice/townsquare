@@ -62,13 +62,6 @@
             <em>[S]</em>
           </li>
 
-          <li
-              v-if="session.voteHistory.length"
-              @click="toggleModal('voteHistory')"
-          >
-              投票记录<em>[V]</em>
-          </li>
-
           <li @click="toggleNightOrder" v-if="players.length">
             显示夜晚顺序
             <em>
@@ -130,6 +123,17 @@
             {{ session.isSpectator ? "游戏中" : "说书中" }}
           </li>
           <li class="headline" v-else>线上游戏</li>
+          <li @click="toggleModal('notes')">
+              便携笔记本
+              <em>[N]</em>
+          </li>
+
+          <li
+              v-if="session.voteHistory.length"
+              @click="toggleModal('voteHistory')"
+          >
+              投票记录<em>[V]</em>
+          </li>
 
           <li @click="leaveSession">
               离开房间
@@ -140,7 +144,9 @@
         <template v-if="tab === 'players' && !session.isSpectator">
           <!-- Users -->
           <li class="headline">玩家选项</li>
-          <li @click="addPlayer" v-if="players.length < 20">添加座位<em>[A]</em></li>
+          <li @click="addPlayer" v-if="players.length < 20">添加座位
+            <em><font-awesome-icon icon="chair" /></em>
+          </li>
 
           <li v-if="!session.isSpectator" @click="distributeRoles">
               派发角色
@@ -173,14 +179,14 @@
           </li>
           <li @click="toggleModal('nightOrder')">
             夜晚顺序表
-            <em>[N]</em>
+            <em><font-awesome-icon icon="cloud-moon" /></em>
           </li>
           <li
             @click="toggleModal('roles')"
             v-if="!session.isSpectator && players.length > 4"
           >
             分配角色
-            <em>[C]</em>
+            <em><font-awesome-icon icon="people-arrows" /></em>
           </li>
           <li @click="clearRoles" v-if="players.length">
             清空角色
@@ -235,12 +241,6 @@ export default {
       const background = prompt("Enter custom background URL");
       if (background || background === "") {
         this.$store.commit("setBackground", background);
-      }
-    },
-    tellST() {
-      const messag = prompt("输入给说书人发的私信消息：");
-      if (messag) {
-        this.$store.commit("loginbackend/tellMes", {receiver: '100', message: messag});
       }
     },
     async distributeRoles() {

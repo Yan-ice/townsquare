@@ -51,6 +51,10 @@ module.exports = (store) => {
 
   store.commit("loginbackend/setMdict", localStorage.isMdict);
 
+  if (localStorage.selfNotes) {
+    store.commit("loginbackend/setNotes", localStorage.selfNotes);
+  }
+  
   /** Quick Login with existing data. */
   if (localStorage.serverURL) {
     console.log("server URL: ", localStorage.serverURL);
@@ -166,10 +170,19 @@ module.exports = (store) => {
         }
         break;
       case "loginbackend/setPlayerId":
-        if (payload) {
+        if (payload && payload != '') {
           localStorage.setItem("playerId", payload);
         } else {
           localStorage.removeItem("playerId");
+
+          //try reconnect.
+          if (localStorage.username) {
+            console.log("Logining...",localStorage.username, localStorage.password);
+            store.commit("loginbackend/loginWithData", {
+              username: localStorage.username,
+              pwd: localStorage.password
+            });
+          }
         }
         break;
       case "loginbackend/setMdict":
@@ -177,6 +190,13 @@ module.exports = (store) => {
           localStorage.setItem("isMdict", payload);
         } else {
           localStorage.removeItem("isMdict");
+        }
+        break;
+      case "loginbackend/setNotes":
+        if (payload) {
+          localStorage.setItem("selfNotes", payload);
+        } else {
+          localStorage.removeItem("selfNotes");
         }
         break;
       case "loginbackend/setServerURL":

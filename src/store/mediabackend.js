@@ -1,6 +1,5 @@
 import io from "socket.io-client";
 import * as mediasoupClient from 'mediasoup-client';
-import store from "@/store";
 
 class MediasoupRoom {
   constructor() {
@@ -12,6 +11,7 @@ class MediasoupRoom {
 
     this.roomId = null;
     this.userId = null;
+    this.serverURL = null;
 
     this.stream = null;        // 本地音频流
     this.producer = null;      // 发送的producer
@@ -27,6 +27,34 @@ class MediasoupRoom {
     this.volumeThreshold = 0.09;
     this.volumeCallback = this._volumeCallback.bind(this);
     this.volumeMonitorId = null;
+
+    this.updateCallback = null;
+  }
+
+  setUpdateCallback(func) {
+    this.updateCallback = func;
+  }
+
+  setMute(mute) {
+
+    if (!this.stream) return;
+    this.isMute = mute;
+
+    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
+
+    if(this.updateCallback){
+      this.updateCallback();
+    }
+  }
+
+  setNetworkPoor(poor) {
+    this.isNetworkPoor = poor;
+    if (!this.stream) return;
+    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
+
+    if(this.updateCallback){
+      this.updateCallback();
+    }
   }
 
   startNetworkMonitor() {
@@ -109,56 +137,36 @@ class MediasoupRoom {
   
   _handleNetworkQuality(isBad, stats) {
     if (isBad) {
-      if (!this._wasBadNetwork) {
+      if (!this.isNetworkPoor) {
         console.warn("网络状态差:", stats);
-        store.commit("loginbackend/setNetworkPoor", true); // Vuex 控制 UI 提示
-  
-        // 可选：自动静音
         this.setNetworkPoor(true);
-  
-        // 可选：动态降码率
-        // if (this.producer) {
-        //   const parameters = this.producer.getParameters();
-        //   parameters.encodings[0].maxBitrate = 12000; // 降为12kbps
-        //   this.producer.setParameters(parameters).catch(console.error);
-        // }
-  
-        this._wasBadNetwork = true;
       }
     } else {
-      if (this._wasBadNetwork) {
+      if (this.isNetworkPoor) {
         console.log("网络恢复正常");
-        store.commit("loginbackend/setNetworkPoor", false);
         this.setNetworkPoor(false);
-        
-        // if (this.producer) {
-        //   const parameters = this.producer.getParameters();
-        //   parameters.encodings[0].maxBitrate = 24000; // 恢复码率
-        //   this.producer.setParameters(parameters).catch(console.error);
-        // }
-  
-        this._wasBadNetwork = false;
       }
     }
   }
 
   
   _volumeCallback(loud) {
-    if(store.state.loginbackend.isSpeaking != loud) {
-      if(loud) {
-        store.commit("loginbackend/setPlayerIsSpeaking", 
-        loud
-        );
+    if(loud) {
+      if(this.loud_keep == 0) {
         this.loud_keep = 60;
+          if(this.updateCallback){
+            this.updateCallback();
+          }
       }
+      this.loud_keep = 60;
     }
-    if(loud && this.loud_keep > 0) {
+    
+    if(this.loud_keep > 0) {
       this.loud_keep--;
       if(this.loud_keep == 0){
-        store.commit("loginbackend/setPlayerIsSpeaking", 
-        loud
-        );
-        this.loud_keep = 60;
+          if(this.updateCallback){
+            this.updateCallback();
+          }
       }
     }
   }
@@ -169,14 +177,9 @@ class MediasoupRoom {
     });
   }
 
-  async joinRoom(roomId, userId) {
+  async joinRoom(roomId, userId, serverURL) {
     if (this.joined) {
       console.warn("Already joined");
-      return;
-    }
-
-    if(!store.state.loginbackend.isMdict) {
-      my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
       return;
     }
 
@@ -221,7 +224,7 @@ class MediasoupRoom {
         this.leaveRoom();
     });
 
-    this.serverURL = store.state.loginbackend.vocalServer;
+    this.serverURL = serverURL;
 
     this.socket = io(this.serverURL, { timeout: 10000, reconnection: false });
 
@@ -387,21 +390,6 @@ class MediasoupRoom {
 
     this.joined = false;
 
-  }
-
-  setMute(mute) {
-    if (!mute && !this.joined && this.roomId) this.joinRoom();
-
-    if (!this.stream) return;
-    this.isMute = mute;
-
-    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
-  }
-
-  setNetworkPoor(poor) {
-    this.isNetworkPoor = poor;
-    if (!this.stream) return;
-    this.stream.getAudioTracks().forEach(track => track.enabled = (!this.isMute && !this.isNetworkPoor));
   }
 
   startVolumeMonitor(stream) {

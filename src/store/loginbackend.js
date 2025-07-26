@@ -10,10 +10,9 @@ const state = () => ({
     isMute: true,
     isMdict: true,
     networkPoor: false,
-    commandToServer: null,
     backendServer: null,
     vocalServer: null,
-    messageLog: '',
+    selfNotes: '',
     currentChatIndex: -1
 });
 
@@ -26,7 +25,7 @@ const set = (key) => (state, val) => {
 const mutations = {
     setPlayerId: set("playerId"),
     setSessionId: set("sessionId"),
-    setCommandToServer: set("commandToServer"),
+    setNotes: set("selfNotes"),
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
     setMdict(state, val) {
@@ -40,8 +39,7 @@ const mutations = {
       state.currentChatIndex = val;
     },
     tellMes(state, payload) { //listened by socket
-      state.messageLog = state.messageLog + "\n[你 -> "+payload.receiver+"] "+payload.message;
-      console.log(state.messageLog);
+      console.log("\n[你 -> "+payload.receiver+"] "+payload.message);
     },
     toggleMute(state) {
       state.isMute = !state.isMute;
@@ -85,11 +83,11 @@ const actions = {
 
     commit("setPlayerId", '');
     if (state.sessionId) {
-      //try {
-      //  await mediasoupRoom.leaveRoom();
-      //} catch (e) {
-      //  console.warn("leaveRoom error:", e);
-      //}
+      try {
+       await mediasoupRoom.leaveRoom();
+      } catch (e) {
+       console.warn("leaveRoom error:", e);
+      }
     }
 
   },
@@ -101,10 +99,19 @@ const actions = {
       console.warn("playerId not set, cannot joinRoom");
       return;
     }
+    commit("session/setWatcher", false, {root: true});
     commit("setSessionId", payload.sessionId);
 
-    await mediasoupRoom.joinRoom(payload.sessionId, state.playerId);
-    mediasoupRoom.setMute(state.isMute);
+    if(!state.isMdict) {
+      my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
+    }else{
+      await mediasoupRoom.joinRoom(payload.sessionId, state.playerId, state.vocalServer);
+      mediasoupRoom.setMute(state.isMute);
+      mediasoupRoom.setUpdateCallback(() => {
+        commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
+        commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+      })
+    }
   },
 
   async leaveSession({ state, commit }) {
@@ -114,12 +121,22 @@ const actions = {
       return;
     }
     commit("setSessionId", '');
+
     try {
         await mediasoupRoom.leaveRoom();
     } catch (e) {
         console.warn("leaveRoom error:", e);
     }
 
+  },
+
+  async observeSession({ state, commit }, payload) {
+    if (!state.playerId) {
+      console.warn("playerId not set, cannot observe session");
+      return;
+    }
+    commit("session/setWatcher", true, {root: true});
+    commit("setSessionId", payload.sessionId);
   },
 
 

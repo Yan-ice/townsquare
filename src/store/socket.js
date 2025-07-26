@@ -70,9 +70,8 @@ class LiveSession {
         clearInterval(this._pingTimer);
         this._pingTimer = null;
         if (err.code !== 1000) {
-          this._store.dispatch("loginbackend/logout");
-          //this._store.commit("loginbackend/setSessionId", "");
-          //this._store.commit("loginbackend/setPlayerId", "");
+          this._store.commit("loginbackend/setSessionId", '');
+          this._store.commit("loginbackend/setPlayerId", '');
           if (err.reason) my_alert(err.reason);
         }
       };
@@ -231,6 +230,9 @@ class LiveSession {
    */
   _handleRequire(packet, command, params) {
     switch(command){
+      case 'alert':
+        my_alert(params);
+        break;
       case 'leave_session':
         my_alert(params);
         this._store.dispatch("loginbackend/leaveSession");
@@ -419,9 +421,6 @@ class LiveSession {
         break;
       case "retrieveMessageLog":
         this._store.dispatch("players/syncMesTo", packet.sender);
-        break;
-      case "showmessage":
-        my_alert(params);
         break;
     }
   }
@@ -1117,7 +1116,11 @@ export default (store) => {
         session.requestSync(type, payload);
         break;
       case "session/sendCommand":
-        session._sendPacket(payload);
+        packet = CommandPacket(payload.header, state.loginbackend.sessionId);
+        packet.sender = state.loginbackend.playerId;
+        packet.receiver = payload.receiver;
+        packet.addCommand(packet.command, packet.param);
+        session._sendPacket(packet);
         break;
       case "loginbackend/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host

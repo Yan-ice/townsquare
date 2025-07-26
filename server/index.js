@@ -173,7 +173,7 @@ function set_online(client, token) {
   if(online_players[token]) {
     if (online_players[token]['socket']) {
       const a = new CommandPacket("require");
-      a.addCommand("logout", "你在其它地方登录了,强制断开连接。");
+      a.addCommand("logout", "你在其它地方登录了。你被强制断开链接，且无法快速登录。");
       online_players[token]['socket'].send(a.serialize());  
       online_players[token]['socket'].close(1000, "Login in other site.");
     }
