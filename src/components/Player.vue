@@ -410,9 +410,10 @@ export default {
         "header": "require",
         "receiver": this.player.id,
         "command": "alert",
-        "params": "说书人正在尝试唤醒你，请留意与说书人私聊。"
+        "param": "说书人正在尝试唤醒你。(请留意与说书人的私聊！)"
       }
       this.$store.commit("session/sendCommand", command);
+      my_alert("已尝试唤醒该玩家。");
     },
     removePlayer() {
       this.isMenuOpen = false;

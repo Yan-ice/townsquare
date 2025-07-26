@@ -1119,7 +1119,7 @@ export default (store) => {
         let packet = new CommandPacket(payload.header, state.loginbackend.sessionId);
         packet.sender = state.loginbackend.playerId;
         packet.receiver = payload.receiver;
-        packet.addCommand(packet.command, packet.param);
+        packet.addCommand(payload.command, payload.param);
         session._sendPacket(packet);
         break;
       case "loginbackend/setPlayerIsSpeaking":
