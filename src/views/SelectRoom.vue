@@ -42,7 +42,6 @@ export default {
       this.$store.commit('loginbackend/setMdict', this.isMdict);
       if(this.isObserver) {
         this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
-        my_alert("此功能仍在开发中。");
       }else{
         this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
       }

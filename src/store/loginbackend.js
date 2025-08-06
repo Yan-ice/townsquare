@@ -100,7 +100,7 @@ const actions = {
       return;
     }
     commit("session/setWatcher", false, {root: true});
-    commit("setSessionId", payload.sessionId);
+    commit("setSessionId", payload.sessionId); //socket listen
 
     if(!state.isMdict) {
       my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
@@ -112,6 +112,15 @@ const actions = {
         commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
       })
     }
+  },
+  async observeSession({ state, commit }, payload) {
+    if (!state.playerId) {
+      console.warn("playerId not set, cannot observe session");
+      return;
+    }
+    commit("session/setWatcher", true, {root: true});
+    commit("setSessionId", payload.sessionId); //socket listen
+    my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
   },
 
   async leaveSession({ state, commit }) {
@@ -129,16 +138,6 @@ const actions = {
     }
 
   },
-
-  async observeSession({ state, commit }, payload) {
-    if (!state.playerId) {
-      console.warn("playerId not set, cannot observe session");
-      return;
-    }
-    commit("session/setWatcher", true, {root: true});
-    commit("setSessionId", payload.sessionId);
-  },
-
 
 };
 

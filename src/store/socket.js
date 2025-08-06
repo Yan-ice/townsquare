@@ -454,6 +454,12 @@ class LiveSession {
     packet.addCommand("join","roompwd");
     this._sendPacket(packet);
   }
+  xobserveSession(sessionID) {
+    const packet = new CommandPacket("sessionset", sessionID);
+    packet.sender = this._store.state.loginbackend.playerId;
+    packet.addCommand("watch","roompwd");
+    this._sendPacket(packet);
+  }
   xleaveSession() {
     const packet = new CommandPacket("sessionset", '');
     packet.sender = this._store.state.loginbackend.playerId;
@@ -1081,7 +1087,11 @@ export default (store) => {
         break;
       case "loginbackend/setSessionId":
         if (state.loginbackend.sessionId) {
-          session.xjoinSession(state.loginbackend.sessionId);
+          if (state.loginbackend.isWatcher) {
+            session.xobserveSession(state.loginbackend.sessionId);
+          }else{
+            session.xjoinSession(state.loginbackend.sessionId);
+          }
         } else{
           session.xleaveSession();
         }
