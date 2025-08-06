@@ -16,6 +16,7 @@
     </form>
 
     <button class="logout-button" @click="logout">退出登录</button>
+    <p v-if="$store.state.dialog.message" class="title">{{ $store.state.dialog.message }}</p>
   </div>
 </template>
 
@@ -72,10 +73,15 @@ export default {
 }
 
 .title {
-  font-size: 1.5rem;
-  margin-bottom: 2rem;
-  color: black;
-}
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: black;
+    max-width: 200px;      /* 你可以根据需要调整宽度 */
+    white-space: pre-wrap; /* 保证换行 */
+    word-break: break-all; /* 长单词也会换行 */
+    overflow-wrap: break-word;
+  }
+  
 .blackp {
   font-size: 0.9rem;
   color: black;

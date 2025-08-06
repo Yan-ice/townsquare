@@ -103,7 +103,7 @@ wss.on("connection", function connection(ws, req) {
           }
         }
       }
-      console.log("packet", packet.serialize());
+      //console.log("packet receive: ", packet.serialize());
       switch(packet.header) {
 
         case "login":
@@ -120,6 +120,10 @@ wss.on("connection", function connection(ws, req) {
           if(packet.sender == channels[packet.session].host.token){
             // similar to boardcast, but send from ST, rec by PL
             channels[packet.session].players.forEach((player) => {
+              packet.receiver = player['token'];
+              player['socket'].send(packet.serialize());
+            });
+            channels[packet.session].watchers.forEach((player) => {
               packet.receiver = player['token'];
               player['socket'].send(packet.serialize());
             });
@@ -144,6 +148,11 @@ wss.on("connection", function connection(ws, req) {
                 player['socket'].send(packet.serialize());
               }
           });
+          channels[packet.session].watchers.forEach((player) => {
+            if(player['token'] == packet.receiver) {
+              player['socket'].send(packet.serialize());
+            }
+        });
           break;
         case "direct":
           if(!channels[packet.session]) return;
@@ -160,6 +169,11 @@ wss.on("connection", function connection(ws, req) {
                 player['socket'].send(packet.serialize());
               }
           });
+          channels[packet.session].watchers.forEach((player) => {
+            if(player['token'] == packet.receiver) {
+              player['socket'].send(packet.serialize());
+            }
+        });
           break;
         case "boardcast":
           if(!channels[packet.session]) return;
@@ -167,6 +181,10 @@ wss.on("connection", function connection(ws, req) {
           channels[packet.session].players.forEach((player) => {
               packet.receiver = player['token'];
               player['socket'].send(packet.serialize());
+          });
+          channels[packet.session].watchers.forEach((player) => {
+            packet.receiver = player['token'];
+            player['socket'].send(packet.serialize());
           });
           break;
         default:
@@ -265,8 +283,8 @@ function set_joingame(client, session, player) {
               }
             )
           ){
-            const a = new CommandPacket("require", session);
-            a.addCommand("note", "You aleady in another game.");
+            const a = new CommandPacket("sessionset", session);
+            a.addCommand("info", "你已经在另一场游戏中了！");
             client.send(a.serialize());  
             return;
           }
@@ -340,34 +358,34 @@ function set_watchgame(client, session, player) {
               }
             )
           ){
-            const a = new CommandPacket("require", session);
-            a.addCommand("note", "You aleady in another game.");
-            client.send(a.serialize());  
+            const a = new CommandPacket("sessionset", session);
+            a.addCommand("info", "你已经在另一场游戏中了！");
+            client.send(a.serialize());   
             return;
           }
       }
 
       if(!channels[session]) {
-        const a = new CommandPacket("require", session);
-            a.addCommand("note", "Game not exist.");
-            client.send(a.serialize());  
+        const a = new CommandPacket("sessionset", session);
+        a.addCommand("info", "尝试观战的房间不存在！");
+        client.send(a.serialize());  
         return;
       }
 
       const room = channels[session];
 
       if(room.host.token == player.token) {
-        const a = new CommandPacket("require", session);
-            a.addCommand("note", "Storyteller cannot watch game.");
-            client.send(a.serialize());  
+        const a = new CommandPacket("sessionset", session);
+        a.addCommand("info", "你已经是该游戏说书人了！");
+        client.send(a.serialize());  
         return;
       }
 
       if(!room.players.some((pl)=> {
         if(pl.token == player.token) {
-              const a = new CommandPacket("require", session);
-              a.addCommand("note", "Player cannot watch game.");
-              client.send(a.serialize());  
+          const a = new CommandPacket("sessionset", session);
+          a.addCommand("info", "你已经该游戏玩家了！");
+          client.send(a.serialize());  
               return true;
         }
         return false;

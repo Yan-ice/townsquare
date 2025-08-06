@@ -134,8 +134,6 @@ const actions = {
       "param": "roompwd"
     }
     commit("session/sendCommand", command, {root: true});
-
-    my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
   },
 
   async leaveSession({ state, commit }) {
@@ -144,7 +142,7 @@ const actions = {
       console.warn("playerId not set, cannot leaveRoom");
       return;
     }
-    
+
     let command = {
       "header": "sessionset",
       "command": "leave",

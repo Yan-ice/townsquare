@@ -209,6 +209,7 @@ class LiveSession {
                 "getGamestate",
                 this._store.state.loginbackend.playerId,
             );
+            my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
           }else if (params == 'leave'){
             this._store.commit("loginbackend/setSessionId", '');
           }
@@ -1096,17 +1097,6 @@ export default (store) => {
         break;
       case "loginbackend/loginWithToken":
         session.login('', payload.playerId);
-        break;
-      case "loginbackend/setSessionId":
-        if (state.loginbackend.sessionId) {
-          if (state.session.isWatcher) {
-            session.xobserveSession(state.loginbackend.sessionId);
-          }else{
-            session.xjoinSession(state.loginbackend.sessionId);
-          }
-        } else{
-          session.xleaveSession();
-        }
         break;
       case "session/privateChatRequest":
         session.sendPrivateChatRequest(payload.targetId);
