@@ -218,11 +218,12 @@ function set_online(client, token) {
   //response login success
   const datab = require('./database.js');
   datab.fetch_user_data(token, (data)=>{
-    online_players[token] = {
+    let new_pl = {
       'token': token,
       'socket': client,
       'username': data['username'],
     }
+    online_players[token] = new_pl;
     const a = new CommandPacket("login");
     a.addCommand("success",data);
     client.send(a.serialize());
@@ -230,7 +231,7 @@ function set_online(client, token) {
     for (let channel in channels) {
 
       if(channels[channel].host['token'] == token) {
-        set_joingame(client, channel, player);
+        set_joingame(client, channel, new_pl);
         return;
       }
 
@@ -241,7 +242,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        set_joingame(client, channel, player);
+        set_joingame(client, channel, new_pl);
         return;
       }
 
@@ -252,7 +253,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        set_watchgame(client, channel, player);
+        set_watchgame(client, channel, new_pl);
         return;
       }
       
