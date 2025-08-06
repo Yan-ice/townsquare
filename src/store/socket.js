@@ -180,11 +180,13 @@ class LiveSession {
             this._store.commit("session/setWatcher", false);
             this._store.commit("players/update", {player: 100, property: 'id', value: this._store.state.loginbackend.playerId});
             this._store.commit("players/update", {player: 100, property: 'name', value: this._store.state.loginbackend.username});
+            this._store.commit("loginbackend/setSessionId", packet.session);
             this.sendGamestate();
           }else if (params == 'play'){
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
             this._store.commit("session/setWatcher", false);
+            this._store.commit("loginbackend/setSessionId", packet.session);
             this._sendDirect(
                 "host",
                 "getGamestate",
@@ -201,6 +203,7 @@ class LiveSession {
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
             this._store.commit("session/setWatcher", true);
+            this._store.commit("loginbackend/setSessionId", packet.session);
             this._sendDirect(
                 "host",
                 "getGamestate",
@@ -449,12 +452,14 @@ class LiveSession {
   }
 
   xjoinSession(sessionID) {
+    console.log("xjoinSession", sessionID);
     const packet = new CommandPacket("sessionset", sessionID);
     packet.sender = this._store.state.loginbackend.playerId;
     packet.addCommand("join","roompwd");
     this._sendPacket(packet);
   }
   xobserveSession(sessionID) {
+    console.log("xobserveSession", sessionID);
     const packet = new CommandPacket("sessionset", sessionID);
     packet.sender = this._store.state.loginbackend.playerId;
     packet.addCommand("watch","roompwd");
@@ -1020,7 +1025,9 @@ class LiveSession {
     */
   _sendPacket(packet) {
       const sessionId = this._store.state.loginbackend.sessionId;
-      packet.session = sessionId;
+      if(sessionId){ 
+        packet.session = sessionId;
+      }
       if (this._socket && this._socket.readyState == 1) {
         this._socket.send(packet.serialize());
       }
@@ -1087,7 +1094,7 @@ export default (store) => {
         break;
       case "loginbackend/setSessionId":
         if (state.loginbackend.sessionId) {
-          if (state.loginbackend.isWatcher) {
+          if (state.session.isWatcher) {
             session.xobserveSession(state.loginbackend.sessionId);
           }else{
             session.xjoinSession(state.loginbackend.sessionId);
@@ -1126,10 +1133,15 @@ export default (store) => {
         session.requestSync(type, payload);
         break;
       case "session/sendCommand":
-        let packet = new CommandPacket(payload.header, state.loginbackend.sessionId);
+        let sessionid = state.loginbackend.sessionId;
+        if(payload.session){
+          sessionid = payload.session;
+        }
+        let packet = new CommandPacket(payload.header, sessionid);
         packet.sender = state.loginbackend.playerId;
         packet.receiver = payload.receiver;
         packet.addCommand(payload.command, payload.param);
+        console.log("sendCommand", packet.serialize());
         session._sendPacket(packet);
         break;
       case "loginbackend/setPlayerIsSpeaking":

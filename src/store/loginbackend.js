@@ -99,8 +99,16 @@ const actions = {
       console.warn("playerId not set, cannot joinRoom");
       return;
     }
-    commit("session/setWatcher", false, {root: true});
-    commit("setSessionId", payload.sessionId); //socket listen
+    //setWatcher should be done before this.
+    //commit("setSessionId", payload.sessionId); //socket listen
+
+    let command = {
+      "header": "sessionset",
+      "session": payload.sessionId,
+      "command": "join",
+      "param": "roompwd"
+    }
+    commit("session/sendCommand", command, {root: true});
 
     if(!state.isMdict) {
       my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
@@ -114,12 +122,19 @@ const actions = {
     }
   },
   async observeSession({ state, commit }, payload) {
+    //setWatcher should be done before this.
     if (!state.playerId) {
       console.warn("playerId not set, cannot observe session");
       return;
     }
-    commit("session/setWatcher", true, {root: true});
-    commit("setSessionId", payload.sessionId); //socket listen
+    let command = {
+      "header": "sessionset",
+      "session": payload.sessionId,
+      "command": "watch",
+      "param": "roompwd"
+    }
+    commit("session/sendCommand", command, {root: true});
+
     my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
   },
 

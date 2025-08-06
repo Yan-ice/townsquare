@@ -41,8 +41,10 @@ export default {
     handleSubmit() {
       this.$store.commit('loginbackend/setMdict', this.isMdict);
       if(this.isObserver) {
+        this.$store.commit("session/setWatcher", true);
         this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
       }else{
+        this.$store.commit("session/setWatcher", false);
         this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
       }
       

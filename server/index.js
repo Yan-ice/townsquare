@@ -103,12 +103,14 @@ wss.on("connection", function connection(ws, req) {
           }
         }
       }
+      console.log("packet", packet.serialize());
       switch(packet.header) {
 
         case "login":
           console.log("login request found");
           packet.forEachCommand(analyse_login_command);
           break;
+
         case "sessionset": //If room number available, join. Otherwise, leave.
           packet.forEachCommand(analyse_room_command);
           break;
@@ -299,7 +301,7 @@ function set_joingame(client, session, player) {
         if(pl.token == player.token) {
               pl.username = player.username;
               pl.socket = player.socket;
-              const a = new CommandPacket("sessionset");
+              const a = new CommandPacket("sessionset", session);
               a.addCommand("state", "play");
               client.send(a.serialize());  
 
@@ -311,7 +313,7 @@ function set_joingame(client, session, player) {
         }
         return false;
       })) {
-        const a = new CommandPacket("sessionset");
+        const a = new CommandPacket("sessionset", session);
         a.addCommand("state", "play");
         client.send(a.serialize());  
         room.players.push(player);
@@ -372,14 +374,14 @@ function set_watchgame(client, session, player) {
           if(pl.token == player.token) {
                 pl.username = player.username;
                 pl.socket = player.socket;
-                const a = new CommandPacket("sessionset");
+                const a = new CommandPacket("sessionset", session);
                 a.addCommand("state", "watch");
                 client.send(a.serialize());  
                 return true;
           }
           return false;
         })) {
-          const a = new CommandPacket("sessionset");
+          const a = new CommandPacket("sessionset", session);
           a.addCommand("state", "watch");
           client.send(a.serialize());  
           room.watchers.push(player);
