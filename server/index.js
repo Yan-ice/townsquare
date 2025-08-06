@@ -225,21 +225,42 @@ function set_online(client, token) {
     }
     const a = new CommandPacket("login");
     a.addCommand("success",data);
+    client.send(a.serialize());
 
     for (let channel in channels) {
+
+      if(channels[channel].host['token'] == token) {
+        let state_command = new CommandPacket("sessionset", session);
+        state_command.addCommand("state", "host");
+        client.send(state_command.serialize());
+      }
+
       if (
         channels[channel].players.some(
           (player) => {
             return player['token'] == token;
           }
-        ) ||
-        channels[channel].host['token'] == token
+        )
       ) {
-        a.addCommand("session_restore", channel);
+        let state_command = new CommandPacket("sessionset", session);
+        state_command.addCommand("state", "play");
+        client.send(state_command.serialize());
       }
+
+      if (
+        channels[channel].watchers.some(
+          (player) => {
+            return player['token'] == token;
+          }
+        )
+      ) {
+        let state_command = new CommandPacket("sessionset", session);
+        state_command.addCommand("state", "watch");
+        client.send(state_command.serialize());
+      }
+      
     }
 
-    client.send(a.serialize());
   });
 }
 

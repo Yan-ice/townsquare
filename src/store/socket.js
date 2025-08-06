@@ -171,7 +171,7 @@ class LiveSession {
         
   }
 
-  _handleSession(packet, command, params) {
+  async _handleSession(packet, command, params) {
       switch (command) {
         case 'state':
           if(params == 'host') {
@@ -182,6 +182,19 @@ class LiveSession {
             this._store.commit("players/update", {player: 100, property: 'name', value: this._store.state.loginbackend.username});
             this._store.commit("loginbackend/setSessionId", packet.session);
             this.sendGamestate();
+
+            if(!this._store.state.loginbackend.isMdict) {
+              my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
+            }else{
+              await mediasoupRoom.joinRoom(packet.session, 
+                this._store.state.loginbackend.playerId, this._store.state.vocalServer);
+              mediasoupRoom.setMute(this._store.state.isMute);
+              mediasoupRoom.setUpdateCallback(() => {
+                commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
+                commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+              })
+            }
+            
           }else if (params == 'play'){
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
@@ -199,6 +212,19 @@ class LiveSession {
             const needlog = new CommandPacket("boardcast");
             needlog.addCommand("retrieveMessageLog");
             this._sendPacket(needlog);
+
+            if(!this._store.state.loginbackend.isMdict) {
+              my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
+            }else{
+              await mediasoupRoom.joinRoom(packet.session, 
+                this._store.state.loginbackend.playerId, this._store.state.vocalServer);
+              mediasoupRoom.setMute(this._store.state.isMute);
+              mediasoupRoom.setUpdateCallback(() => {
+                commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
+                commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+              })
+            }
+
           }else if (params == 'watch') {
             this._isSpectator = true;
             this._store.commit("session/setSpectator", true);
@@ -210,8 +236,14 @@ class LiveSession {
                 this._store.state.loginbackend.playerId,
             );
             my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
+
           }else if (params == 'leave'){
             this._store.commit("loginbackend/setSessionId", '');
+            try {
+                  await mediasoupRoom.leaveRoom();
+              } catch (e) {
+                  console.warn("leaveRoom error:", e);
+              }
           }
           break;
         case 'reset':
