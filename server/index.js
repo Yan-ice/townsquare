@@ -230,20 +230,23 @@ function set_leavegame(client, session, player) {
       if(channels[session]) {
         const room = channels[session];
 
-        const a = new CommandPacket("require");
+        let leave_command = new CommandPacket("sessionset", session);
+        leave_command.addCommand("state", "leave");
+        client.send(leave_command.serialize());
+
         if(room.host.token == player.token) {
-          a.addCommand("leave_session", "说书人解散了游戏。");
+          leave_command.addCommand("info", "说书人解散了游戏。");
           room.players.forEach((pl)=>{
-            pl.socket.send(a.serialize())
+            pl.socket.send(leave_command.serialize())
           })
           delete channels[session];
           return;
         }else{
-          a.addCommand("clean_seat", player.token);
-          room.host.socket.send(a.serialize());
+          let require_command = new CommandPacket("require", session);
+          require_command.addCommand("clean_seat", player.token);
+          room.host.socket.send(require_command.serialize());
         }
         
-        // note others that someone leave the game.
         channels[session].players = channels[session].players.filter(item => item.token != player.token);
         channels[session].watchers = channels[session].watchers.filter(item => item.token != player.token);
       

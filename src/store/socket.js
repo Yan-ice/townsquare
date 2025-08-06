@@ -209,6 +209,8 @@ class LiveSession {
                 "getGamestate",
                 this._store.state.loginbackend.playerId,
             );
+          }else if (params == 'leave'){
+            this._store.commit("loginbackend/setSessionId", '');
           }
           break;
         case 'reset':
@@ -222,7 +224,10 @@ class LiveSession {
             mediasoupRoom.stopPrivateChat();
             this._store.commit("session/setPrivateChatConnected", false);
           }
-          
+          break;
+        case 'info':
+          my_alert(params);
+          break;
       }
   }
   /**

@@ -110,16 +110,16 @@ const actions = {
     }
     commit("session/sendCommand", command, {root: true});
 
-    if(!state.isMdict) {
-      my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
-    }else{
-      await mediasoupRoom.joinRoom(payload.sessionId, state.playerId, state.vocalServer);
-      mediasoupRoom.setMute(state.isMute);
-      mediasoupRoom.setUpdateCallback(() => {
-        commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
-        commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
-      })
-    }
+    // if(!state.isMdict) {
+    //   my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
+    // }else{
+    //   await mediasoupRoom.joinRoom(payload.sessionId, state.playerId, state.vocalServer);
+    //   mediasoupRoom.setMute(state.isMute);
+    //   mediasoupRoom.setUpdateCallback(() => {
+    //     commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
+    //     commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+    //   })
+    // }
   },
   async observeSession({ state, commit }, payload) {
     //setWatcher should be done before this.
@@ -144,13 +144,21 @@ const actions = {
       console.warn("playerId not set, cannot leaveRoom");
       return;
     }
-    commit("setSessionId", '');
-
-    try {
-        await mediasoupRoom.leaveRoom();
-    } catch (e) {
-        console.warn("leaveRoom error:", e);
+    
+    let command = {
+      "header": "sessionset",
+      "command": "leave",
+      "param": "-"
     }
+    commit("session/sendCommand", command, {root: true});
+
+    //commit("setSessionId", '');
+
+    // try {
+    //     await mediasoupRoom.leaveRoom();
+    // } catch (e) {
+    //     console.warn("leaveRoom error:", e);
+    // }
 
   },
 
