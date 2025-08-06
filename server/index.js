@@ -230,7 +230,7 @@ function set_online(client, token) {
     for (let channel in channels) {
 
       if(channels[channel].host['token'] == token) {
-        let state_command = new CommandPacket("sessionset", session);
+        let state_command = new CommandPacket("sessionset", channel);
         state_command.addCommand("state", "host");
         client.send(state_command.serialize());
       }
@@ -242,7 +242,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        let state_command = new CommandPacket("sessionset", session);
+        let state_command = new CommandPacket("sessionset", channel);
         state_command.addCommand("state", "play");
         client.send(state_command.serialize());
       }
@@ -254,7 +254,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        let state_command = new CommandPacket("sessionset", session);
+        let state_command = new CommandPacket("sessionset", channel);
         state_command.addCommand("state", "watch");
         client.send(state_command.serialize());
       }
