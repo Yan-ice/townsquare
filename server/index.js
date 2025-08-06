@@ -230,7 +230,7 @@ function set_online(client, token) {
     for (let channel in channels) {
 
       if(channels[channel].host['token'] == token) {
-        set_joingame(client, channel, token);
+        set_joingame(client, channel, player);
         return;
       }
 
@@ -241,7 +241,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        set_joingame(client, channel, token);
+        set_joingame(client, channel, player);
         return;
       }
 
@@ -252,7 +252,7 @@ function set_online(client, token) {
           }
         )
       ) {
-        set_watchgame(client, channel, token);
+        set_watchgame(client, channel, player);
         return;
       }
       
