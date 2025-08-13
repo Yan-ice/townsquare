@@ -1,23 +1,5 @@
 import Vue from 'vue';
 
-const NEWPLAYER = {
-  name: "",
-  id: "",
-  role: {},
-  role2: {},
-  reminders: [],
-  reminders2: [],
-  isVoteless: false,
-  talkingTimer: null,
-  isTalkingFlag: false,
-  privateChat: false,
-  isOnline: true,
-  isDead: false,
-  pronouns: "",
-  hasUnreadMessage: false,
-  messageLogWithHim: ''
-};
-
 const state = () => ({
   storyteller: {
     name: "",
@@ -220,6 +202,26 @@ const actions = {
 };
 
 const mutations = {
+
+  add(state) {
+    state.players.push({
+      name: "",
+      id: "",
+      role: {},
+      role2: {},
+      reminders: [],
+      reminders2: [],
+      isVoteless: false,
+      talkingTimer: null,
+      isTalkingFlag: false,
+      privateChat: false,
+      isOnline: true,
+      isDead: false,
+      hasUnreadMessage: false,
+      messageLogWithHim: ''
+    });
+  },
+
   clear(state) {
     state.players = [];
     state.bluffs = [];
@@ -302,21 +304,6 @@ const mutations = {
     const player = state.players[idx];
     // 用 Vue.set 保证响应式
     Vue.set(player, 'privateChat', flag);
-  },
-
-  add(state) {
-    state.players.push({
-      name: '',
-      id: "",
-      role: {},
-      role2: {},
-      reminders: [],
-      reminders2: [],
-      isVoteless: false,
-      isDead: false,
-      pronouns: "",
-      privateChat: false
-    });
   },
 
   kick(state, idx) {

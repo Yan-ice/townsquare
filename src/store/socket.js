@@ -15,7 +15,60 @@ class LiveSession {
     this._reconnectTimer = null;
     this._players = {}; // map of players connected to a session
     this._pings = {}; // map of player IDs to ping
-    // reconnect to previous session
+
+    this._setupVisibilityListener();
+  }
+
+  _setupVisibilityListener() {
+    // 检测页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && this._store.state.loginbackend.sessionId) {
+        // 页面变为可见且有登录状态时，尝试重连
+        this._handlePageVisible();
+      }
+    });
+
+    // 检测页面焦点变化（移动端切屏）
+    window.addEventListener('focus', () => {
+      if (this._store.state.loginbackend.sessionId) {
+        this._handlePageVisible();
+      }
+    });
+
+    // 检测网络状态变化
+    window.addEventListener('online', () => {
+      if (this._store.state.loginbackend.sessionId) {
+        this._handlePageVisible();
+      }
+    });
+  }
+
+  _handlePageVisible() {
+    // 如果当前没有连接或连接已断开，尝试重连
+    if (!this._socket || this._socket.readyState !== WebSocket.OPEN) {
+      console.log('页面重新可见，尝试重连...');
+      this._attemptReconnect();
+    }
+  }
+
+  _attemptReconnect() {
+    if (this._isReconnecting) return;
+    
+    this._isReconnecting = true;
+    console.log('开始重连...');
+    
+    // 清除之前的重连定时器
+    if (this._reconnectTimer) {
+      clearTimeout(this._reconnectTimer);
+    }
+    
+    // 尝试重连
+    this._reconnectTimer = setTimeout(() => {
+      this._isReconnecting = false;
+      if (this._store.state.loginbackend.serverURL) {
+        this._store.commit("loginbackend/tryQuickLogin");
+      }
+    }, 1000); // 1秒后重连
   }
 
   /**
@@ -69,22 +122,27 @@ class LiveSession {
         this._socket = null;
         clearInterval(this._pingTimer);
         this._pingTimer = null;
+
         if (err.code !== 1000) {
-          this._store.commit("loginbackend/setSessionId", '');
-          this._store.commit("loginbackend/setPlayerId", '');
-          if (err.reason) my_alert(err.reason);
+          // 非正常关闭，尝试重连
+          if (this._store.state.loginbackend.sessionId) {
+            console.log('连接异常断开，尝试重连...');
+            this._attemptReconnect();
+          } else {
+            // 没有登录状态，清除连接信息
+            this._store.commit("loginbackend/setSessionId", '');
+            this._store.commit("loginbackend/setPlayerId", '');
+            if (err.reason) my_alert(err.reason);
+          }
         }
       };
 
       this._socket.onerror = () => {
-        my_alert("服务器状态异常。");
-        this._socket = null;
-        if (this._pingTimer) {
-          clearInterval(this._pingTimer);
-          this._pingTimer = null;
-        }
+        console.log('WebSocket 连接错误');
         // 可选：触发退出登录或提示
-        this._store.commit("loginbackend/resetServerURL");
+        if (!this._store.state.loginbackend.sessionId) {
+          my_alert("服务器状态异常。");
+        }
       };
 
     }
