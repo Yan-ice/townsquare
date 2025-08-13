@@ -55,7 +55,7 @@ class LiveSession {
     if (this._isReconnecting) return;
     
     this._isReconnecting = true;
-    console.log('开始重连...');
+    my_alert('尝试重连...');
     
     // 清除之前的重连定时器
     if (this._reconnectTimer) {
@@ -65,9 +65,7 @@ class LiveSession {
     // 尝试重连
     this._reconnectTimer = setTimeout(() => {
       this._isReconnecting = false;
-      if (this._store.state.loginbackend.serverURL) {
-        this._store.commit("loginbackend/tryQuickLogin");
-      }
+      this.login('', this._store.state.loginbackend.playerId);
     }, 1000); // 1秒后重连
   }
 

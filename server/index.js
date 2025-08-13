@@ -104,8 +104,11 @@ function set_online(client, token) {
         set_watchgame(client, channel, new_pl);
         return;
       }
-      
     }
+
+    let leave_command = new CommandPacket("sessionset", session);
+    leave_command.addCommand("state", "leave");
+    client.send(leave_command.serialize());
 
   });
 }
