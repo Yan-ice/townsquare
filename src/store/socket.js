@@ -407,6 +407,7 @@ class LiveSession {
    */
   _handleRequest(packet, type, payload) {
     if (this._isSpectator) return;
+    console.log("request:", type, payload);
     this._store.commit(type, payload);
   }
   

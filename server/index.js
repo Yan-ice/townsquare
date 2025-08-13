@@ -641,7 +641,7 @@ function mark_connection_lost(ws) {
   for (const channel in channels) {
       for (const player in channels[channel].players) {
         if (player['socket'] == ws) {
-          
+          console.log("player disconnected:", player.token);
           const packet = new CommandPacket("request");
           packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
           channels[channel].host['socket'].send(packet.serialize());
