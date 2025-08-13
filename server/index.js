@@ -639,9 +639,9 @@ const interval = setInterval(
 function mark_connection_lost(ws) {
   console.log("client disconnected.");
   for (const channel in channels) {
-    console.log("channel:", channel);
+    console.log("channel:", channel, channels[channel]);
       for (const player in channels[channel].players) {
-        console.log("player:", player);
+        console.log("player:", player, channels[channel].players[player]);
         if (player && player['socket'].userId == ws.userId) {
           console.log("player disconnected:", player.token);
           const packet = new CommandPacket("request");
