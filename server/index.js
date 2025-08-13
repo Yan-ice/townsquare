@@ -573,6 +573,7 @@ wss.on("connection", function connection(ws, req) {
   ws.on("pong", heartbeat);
 
   ws.on('close', () => {
+    console.log("ws disconnected by client.");
     mark_connection_lost(ws);
     ws.isAlive = false;
   });
