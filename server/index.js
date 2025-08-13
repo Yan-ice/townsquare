@@ -648,6 +648,7 @@ function mark_connection_lost(ws) {
         channels[channel].host['socket'].send(packet.serialize());
       }
     })
+  }   
 }
 // handle server shutdown
 wss.on("close", function close() {
