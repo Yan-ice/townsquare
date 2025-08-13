@@ -106,7 +106,7 @@ function set_online(client, token) {
       }
     }
 
-    let leave_command = new CommandPacket("sessionset", session);
+    let leave_command = new CommandPacket("sessionset", '');
     leave_command.addCommand("state", "leave");
     client.send(leave_command.serialize());
 
