@@ -637,19 +637,17 @@ const interval = setInterval(
   }, PING_INTERVAL);
 
 function mark_connection_lost(ws) {
-  console.log("client disconnected.");
   for (const channel in channels) {
     console.log("channel:", channel, channels[channel]);
-      for (const player in channels[channel].players) {
-        console.log("player:", player, channels[channel].players[player]);
-        if (player && player['socket'].userId == ws.userId) {
-          console.log("player disconnected:", player.token);
-          const packet = new CommandPacket("request");
-          packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
-          channels[channel].host['socket'].send(packet.serialize());
-        }
+    channels[channel].players.forEach((player)=>{
+      console.log("player:", player);
+      if (player['socket'].userId == ws.userId) {
+        console.log("player disconnected:", player.token);
+        const packet = new CommandPacket("request");
+        packet.addCommand("player/update", {player: player.token, property: 'isOnline', value: false});
+        channels[channel].host['socket'].send(packet.serialize());
       }
-    }
+    })
 }
 // handle server shutdown
 wss.on("close", function close() {
