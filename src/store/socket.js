@@ -227,6 +227,10 @@ class LiveSession {
         
   }
 
+  async mediaCallback() {
+    this._store.commit("loginbackend/setNetworkPoor", mediasoupRoom.isNetworkPoor);
+    this._store.commit("loginbackend/setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+  }
   async _handleSession(packet, command, params) {
       switch (command) {
         case 'state':
@@ -243,12 +247,9 @@ class LiveSession {
               my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
             }else{
               await mediasoupRoom.joinRoom(packet.session, 
-                this._store.state.loginbackend.playerId, this._store.state.vocalServer);
+                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
               mediasoupRoom.setMute(this._store.state.isMute);
-              mediasoupRoom.setUpdateCallback(() => {
-                commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
-                commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
-              })
+              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
             }
             
           }else if (params == 'play'){
@@ -273,12 +274,9 @@ class LiveSession {
               my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
             }else{
               await mediasoupRoom.joinRoom(packet.session, 
-                this._store.state.loginbackend.playerId, this._store.state.vocalServer);
+                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
               mediasoupRoom.setMute(this._store.state.isMute);
-              mediasoupRoom.setUpdateCallback(() => {
-                commit("setNetworkPoor", mediasoupRoom.isNetworkPoor);
-                commit("setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
-              })
+              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
             }
 
           }else if (params == 'watch') {
