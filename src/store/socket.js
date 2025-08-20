@@ -55,6 +55,7 @@ class LiveSession {
     if (this._isReconnecting) return;
     
     this._isReconnecting = true;
+    this._store.commit("session/setTotalTimer", 0);
     my_alert('尝试重连...');
     
     // 清除之前的重连定时器
@@ -616,6 +617,8 @@ class LiveSession {
         isVoteHistoryAllowed: session.isVoteHistoryAllowed,
         nomination: session.nomination,
         votingSpeed: session.votingSpeed,
+        totalTimer: session.totalTimer,
+        timerPhase: session.timerPhase,
         lockedVote: session.lockedVote,
         isVoteInProgress: session.isVoteInProgress,
         markedPlayer: session.markedPlayer,
@@ -640,6 +643,8 @@ class LiveSession {
       isVoteHistoryAllowed,
       nomination,
       votingSpeed,
+      totalTimer,
+      timerPhase,
       votes,
       lockedVote,
       isVoteInProgress,
@@ -692,6 +697,11 @@ class LiveSession {
         });
       }
     });
+
+    //start timer quickly
+    this._store.commit("session/setTotalTimer", totalTimer);
+    this._store.commit("session/setTimerPhase", timerPhase);
+
     if (!isLightweight) {
       this._store.commit("toggleNight", !!isNight);
       this._store.commit("session/setVoteHistoryAllowed", isVoteHistoryAllowed);
@@ -1206,6 +1216,8 @@ export default (store) => {
       case "session/clearVoteHistory":  
       case "session/setMarkedPlayer":
       case "session/addHistory":
+      case "session/setTotalTimer":
+      case "session/setTimerPhase":
       case "players/setTalking":
       case "players/setPrivateChat":
       case "players/swap":

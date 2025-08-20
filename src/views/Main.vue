@@ -1,5 +1,6 @@
 <template>
     <div style="width: 100vw; height: 100vh;">
+      <TimerCircle />
       <TownSquare2 />
       <Menu ref="menu"></Menu>
       <EditionModal />
@@ -38,6 +39,7 @@
   import MessageModal from "../components/modals/MessageModal";
   import PromptModal from "../components/modals/PromptModal";
   import NoteModal from "../components/modals/NoteModal";
+  import TimerCircle from "@/components/TimerCircle.vue";
 
   export default {
     components: {
@@ -57,6 +59,7 @@
       NoteModal,
       PromptModal,
       Gradients,
+      TimerCircle,
     },
     computed: {
     ...mapState(["grimoire", "session"]),

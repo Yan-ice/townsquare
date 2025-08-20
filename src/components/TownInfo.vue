@@ -1,5 +1,19 @@
 <template>
   <ul class="info">
+    <!-- 95vmin 圆扇形倒计时（居中，置底，不挡交互） -->
+    <!-- <transition name="pie-fade">
+      <div
+        v-show="showPie"
+        class="countdown-pie"
+        :style="{
+          '--pct': remainingPct,
+          '--pie-fg': pieColor,
+          '--pie-bg': pieBg,
+        }"
+        aria-hidden="true"
+      ></div>
+    </transition> -->
+
     <li
       class="edition"
       :class="['edition-' + edition.id]"
@@ -11,24 +25,23 @@
         })`,
       }"
     ></li>
-    <li> </li>
-    <li v-if="players.length - teams.traveler < 5">请添加更多玩家！</li>
+    <li></li>
     <li>
       <span class="meta" v-if="!edition.isOfficial">
-        {{ edition.name }}
-        {{ edition.author ? "by " + edition.author : "" }}
+        {{ edition.name }} {{ edition.author ? "by " + edition.author : "" }}
       </span>
       <span>
         {{ players.length }} <font-awesome-icon class="players" icon="users" />
       </span>
       <span>
-        {{ teams.alive }}
-        <font-awesome-icon class="alive" icon="heartbeat" />
+        {{ teams.alive }} <font-awesome-icon class="alive" icon="heartbeat" />
       </span>
       <span>
         {{ teams.votes }} <font-awesome-icon class="votes" icon="vote-yea" />
       </span>
     </li>
+
+    <li v-if="players.length - teams.traveler < 5">请添加更多玩家！</li>
     <li v-if="players.length - teams.traveler >= 5">
       <span>
         {{ teams.townsfolk }}
@@ -63,8 +76,10 @@
         />
       </span>
       <span v-if="grimoire.isNight">
-        Night phase
-        <font-awesome-icon :icon="['fas', 'cloud-moon']" />
+        夜晚阶段 <font-awesome-icon :icon="['fas', 'cloud-moon']" />
+      </span>
+      <span v-if="!session.isSpectator && session.totalTimer > 0">
+        计时器: {{ padZero(session.totalTimer / 60000) }}:{{ padZero((session.totalTimer % 60000) / 1000) }}
       </span>
     </li>
   </ul>
@@ -75,11 +90,16 @@ import gameJSON from "./../game";
 import { mapState } from "vuex";
 
 export default {
+  data() {
+    return {
+      presetTotalMs: 300 * 1000,
+    };
+  },
   computed: {
-    teams: function () {
+    teams() {
       const { players } = this.$store.state.players;
       const nonTravelers = this.$store.getters["players/nonTravelers"];
-      const alive = players.filter((player) => player.isDead !== true).length;
+      const alive = players.filter((p) => p.isDead !== true).length;
       return {
         ...gameJSON[nonTravelers - 5],
         traveler: players.length - nonTravelers,
@@ -87,13 +107,19 @@ export default {
         votes:
           alive +
           players.filter(
-            (player) => player.isDead === true && player.isVoteless !== true,
+            (p) => p.isDead === true && p.isVoteless !== true
           ).length,
       };
     },
-    ...mapState(["edition", "grimoire"]),
+    ...mapState(["edition", "grimoire", "session"]),
     ...mapState("players", ["players"]),
   },
+  methods: {
+    padZero(n) {
+      n = Math.floor(n);
+      return n < 10 ? "0" + n : n;
+    },
+  }
 };
 </script>
 
@@ -112,6 +138,7 @@ export default {
   flex-wrap: wrap;
   background: url("../assets/demon-head.png") center center no-repeat;
   background-size: auto 100%;
+  z-index: 1; // 置于倒计时扇形之上
 
   li {
     font-weight: bold;
@@ -120,15 +147,8 @@ export default {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    text-shadow:
-      0 2px 1px black,
-      0 -2px 1px black,
-      2px 0 1px black,
-      -2px 0 1px black;
-
-    span {
-      white-space: nowrap;
-    }
+    text-shadow: 0 2px 1px black, 0 -2px 1px black, 2px 0 1px black, -2px 0 1px black;
+    span { white-space: nowrap; }
 
     .meta {
       text-align: center;
@@ -136,35 +156,15 @@ export default {
       font-family: PiratesBay, sans-serif;
       font-weight: normal;
     }
-
-    svg {
-      margin-right: 10px;
-    }
-
-    .players {
-      color: #00f700;
-    }
-    .alive {
-      color: #ff4a50;
-    }
-    .votes {
-      color: #fff;
-    }
-    .townsfolk {
-      color: $townsfolk;
-    }
-    .outsider {
-      color: $outsider;
-    }
-    .minion {
-      color: $minion;
-    }
-    .demon {
-      color: $demon;
-    }
-    .traveler {
-      color: $traveler;
-    }
+    svg { margin-right: 10px; }
+    .players { color: #00f700; }
+    .alive { color: #ff4a50; }
+    .votes { color: #fff; }
+    .townsfolk { color: $townsfolk; }
+    .outsider { color: $outsider; }
+    .minion { color: $minion; }
+    .demon { color: $demon; }
+    .traveler { color: $traveler; }
   }
 
   li.edition {

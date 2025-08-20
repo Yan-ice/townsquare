@@ -24,6 +24,9 @@ const state = () => ({
   lockedVote: 0,
   votingSpeed: 3000,
   isVoteInProgress: false,
+  totalTimer: 0,
+  openTimer: false,
+  timerPhase: "倒计时",
   voteHistory: [],
   markedPlayer: -1,
   isVoteHistoryAllowed: true,
@@ -55,7 +58,10 @@ const mutations = {
   setVoteHistoryAllowed: set("isVoteHistoryAllowed"),
   claimSeat: set("claimedSeat"),
   distributeRoles: set("isRolesDistributed"),
-  
+  setTotalTimer: set("totalTimer"), // sync to all players
+  selfUpdateTotalTimer: set("totalTimer"), // not sync to all players
+  setOpenTimer: set("openTimer"),
+  setTimerPhase: set("timerPhase"),
   // Yan_ice: this is used to actively send comand to server.
   sendCommand(state, packet) {
     state.send_packet = packet;

@@ -124,8 +124,12 @@
           </li>
           <li class="headline" v-else>线上游戏</li>
           <li @click="toggleModal('notes')">
-              便携笔记本
-              <em>[N]</em>
+                便携笔记本
+                <em>[N]</em>
+          </li>
+          <li @click="toggleOpenTimer">
+                计时器(开/关)
+                <em>[T]</em>
           </li>
 
           <li
@@ -307,6 +311,9 @@ export default {
     },
     toggleMute() {
       this.$store.commit("loginbackend/toggleMute");
+    },
+    toggleOpenTimer() {
+      this.$store.commit("session/setOpenTimer", !this.session.openTimer);
     },
     ...mapMutations([
       "toggleMenu",

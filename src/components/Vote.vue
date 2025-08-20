@@ -67,6 +67,24 @@
           </div>
           <div class="button" @click="removeMarked">清除待处决</div>
         </div>
+
+        <div>
+          计时器:
+          <font-awesome-icon
+            @mousedown.prevent="setCountdown(-30000)"
+            icon="minus-circle"
+          />
+          {{ padZero(presetTotalMs / 60000) }}m {{ padZero((presetTotalMs % 60000) / 1000) }}s
+          <font-awesome-icon
+            @mousedown.prevent="setCountdown(30000)"
+            icon="plus-circle"
+          />
+          <div class="button-group mark">
+            <div class="button" @click="startCountdownButton">开始</div>
+            <div class="button" @click="stopCountdownButton">停止</div>
+          </div>
+        </div>
+
       </template>
       <template v-else-if="canVote">
         <div v-if="!session.isVoteInProgress">
@@ -183,10 +201,27 @@ export default {
   data() {
     return {
       voteTimer: null,
+      presetTotalMs: 60 * 1000,
     };
   },
   methods: {
-    countdown() {
+    padZero(n) {
+        n = Math.floor(n);
+        return n < 10 ? "0" + n : n;
+    },
+    setCountdown(diff) {
+      if(this.presetTotalMs + diff > 0) {
+        this.presetTotalMs += diff;
+      }
+    },
+    startCountdownButton() { // Timer
+        this.$store.commit("session/setTotalTimer", this.presetTotalMs);
+    },
+    stopCountdownButton() { // Timer
+        this.$store.commit("session/setTotalTimer", 0);
+    },
+    countdown() { // vote
+      this.stopCountdownButton();
       this.$store.commit("session/lockVote", 0);
       this.$store.commit("session/setVoteInProgress", true);
       this.voteTimer = setInterval(() => {
@@ -194,6 +229,7 @@ export default {
       }, 4000);
     },
     start() {
+      this.stopCountdownButton();
       this.$store.commit("session/lockVote", 1);
       this.$store.commit("session/setVoteInProgress", true);
       clearInterval(this.voteTimer);

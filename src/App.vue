@@ -43,6 +43,7 @@ import MainWindow from "@/views/Main";
 import SelectRoomWin from "@/views/SelectRoom";
 import TownInfo from "./components/TownInfo.vue";
 import Vote from "@/components/Vote";
+import TimerInfo from "@/components/TimerInfo";
 import Intro from "./components/Intro.vue";
 import loginbackend from "./store/loginbackend";
 
@@ -54,6 +55,7 @@ export default {
     Vote,
     Intro,
     TownInfo,
+    TimerInfo,
   },
   computed: {
     ...mapState(["grimoire", "session"]),
@@ -63,8 +65,10 @@ export default {
     currentComponent() {
       if (this.sessionId && this.playerId) {
         if (!this.players.length) return "Intro";
-        if (!this.session.nomination) return "TownInfo";
-        return "Vote";
+        if (this.session.nomination) return "Vote";
+        if (!this.session.isSpectator && this.session.openTimer) return "TimerInfo";
+        if (this.session.isSpectator && this.session.totalTimer > 0) return "TimerInfo";
+        return "TownInfo";
       }
       return null;
     },
@@ -105,6 +109,9 @@ export default {
           if (this.session.voteHistory.length) {
             this.$store.commit("toggleModal", "voteHistory");
           }
+          break;
+        case "t":
+          this.$store.commit("session/setOpenTimer", !this.session.openTimer);
           break;
       }
     },
