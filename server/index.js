@@ -361,6 +361,9 @@ function analyse_room_command(packet, cmd, param) {
       return;
   }
   const room = channels[packet.session];
+  
+  if(!room && cmd != 'join') return;
+
   switch (cmd) {
     case 'join':
       set_joingame(packet.sender_socket, packet.session, sender_player);
@@ -392,7 +395,6 @@ function analyse_room_command(packet, cmd, param) {
     case "private_chat":
       let request = ['',''];
       let receive = ['__x-','__x-'];
-
       room.privchat_pair.forEach((pair)=>{
         if (pair[0] == sender_player.token) {
           request = pair;

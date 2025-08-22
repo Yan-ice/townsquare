@@ -1,7 +1,7 @@
 <template>
   <Modal class="editions" v-if="modals.edition" @close="toggleModal('edition')">
     <div v-if="!isCustom">
-      <h3>Select an edition:</h3>
+      <h3>选择剧本:</h3>
       <ul class="editions">
         <li
           v-for="edition in editions"
@@ -19,7 +19,7 @@
         </li>
         <li
           class="edition edition-custom"
-          @click="isCustom = true"
+          @click="openCustom"
           :style="{
             backgroundImage: `url(${require('../../assets/editions/custom.png')})`,
           }"
@@ -28,33 +28,38 @@
         </li>
       </ul>
     </div>
+
     <div class="custom" v-else>
       <h3>加载自定义剧本与角色</h3>
-      To play with a custom script, you need to select the characters you want
-      to play with in the official
-      <a href="https://script.bloodontheclocktower.com/" target="_blank"
-        >Script Tool</a
-      >
-      and then upload the generated "custom-list.json" either directly here or
-      provide a URL to such a hosted JSON file.<br />
-      <br />
-      To play with custom characters, please read
-      <a
-        href="https://github.com/bra1n/townsquare#custom-characters"
-        target="_blank"
-        >the documentation</a
-      >
-      on how to write a custom character definition file.
-      <!-- <h3>Some popular custom scripts:</h3>
-      <ul class="scripts">
-        <li
-          v-for="(script, index) in scripts"
-          :key="index"
-          @click="handleURL(script[1])"
-        >
-          {{ script[0] }}
-        </li>
-      </ul> -->
+
+      <!-- 搜索框 -->
+      <div class="search-bar">
+          <input
+            type="text"
+            v-model="searchText"
+            placeholder="搜索剧本..."
+            @keyup.enter="loadScriptsFromServer"
+          />
+          <button @click="loadScriptsFromServer">搜索</button>
+        </div>
+
+        <!-- 滚动框 -->
+        <div class="scroll-box">
+          <ul class="editions">
+            <li
+              v-for="edition in scripts"
+              class="editiongrid"
+              :style="{
+                backgroundImage: `url(${edition.logo})`,
+              }"
+              :key="edition.id"
+              @click="loadJsonFromServer(edition.id)"
+            >
+              {{ edition.name }}
+            </li>
+          </ul>
+        </div>
+
       <input
         type="file"
         ref="upload"
@@ -92,36 +97,48 @@ export default {
     return {
       editions: editionJSON,
       isCustom: false,
-      scripts: [
-        [
-          "Deadly Penance Day",
-          "https://gist.githubusercontent.com/bra1n/0337cc44c6fd2c44f7589256ed5486d2/raw/16be38fa3c01aaf49827303ac80577bdb52c0b25/penanceday.json",
-        ],
-        [
-          "Catfishing 11.1",
-          "https://gist.githubusercontent.com/bra1n/8a5ec41a7bbf945f6b7dfc1cef72b569/raw/a312ab93c2f302e0ef83c8b65a4e8e82760fda3a/catfishing.json",
-        ],
-        [
-          "On Thin Ice (Teensyville)",
-          "https://gist.githubusercontent.com/bra1n/8dacd9f2abc6f428331ea1213ab153f5/raw/0cacbcaf8ed9bddae0cca25a9ada97e9958d868b/on-thin-ice.json",
-        ],
-        [
-          "Race To The Bottom (Teensyville)",
-          "https://gist.githubusercontent.com/bra1n/63e1354cb3dc9d4032bcd0623dc48888/raw/5acb0eedcc0a67a64a99c7e0e6271de0b7b2e1b2/race-to-the-bottom.json",
-        ],
-        [
-          "Frankenstein's Mayor by Ted (Teensyville)",
-          "https://gist.githubusercontent.com/bra1n/32c52b422cc01b934a4291eeb81dbcee/raw/5bf770693bbf7aff5e86601c82ca4af3222f4ba6/Frankensteins_Mayor_by_Ted.json",
-        ],
-        [
-          "Vigormortis High School (Teensyville)",
-          "https://gist.githubusercontent.com/bra1n/1f65bd4a999524719d5dabe98c3c2d27/raw/22bbec6bf56a51a7459e5ae41ed47e41971c5445/VigormortisHighSchool.json",
-        ],
-      ],
+      scripts: [],
+      searchText: "",
     };
   },
   computed: mapState(["modals"]),
   methods: {
+    openCustom() {
+      this.isCustom = true;
+      this.loadScriptsFromServer();
+    },
+    async loadScriptsFromServer() {
+      try {
+        const url = "https://yanices.site/api/edition_list"; // Flask 路由
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            begin: 0,
+            size: 100,
+            search: this.searchText, // 可以传关键字
+          }),
+        });
+
+        if (!res.ok) throw new Error("请求失败: " + res.status);
+
+        this.scripts = await res.json();
+        // scripts = [ {id, logo, name, version, author}, ... ]
+      } catch (e) {
+        console.error("加载scripts失败:", e);
+        my_alert("加载scripts失败: " + e.message);
+      }
+    },
+    async loadJsonFromServer(id) {
+      const url = "https://yanices.site/api/edition_json/" + id; // Flask 路由
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      this.parseRoles(JSON.parse(data));
+    },
+
     openUpload() {
       this.$refs.upload.click();
     },
@@ -169,6 +186,17 @@ export default {
     },
     parseRoles(roles) {
       if (!roles || !roles.length) return;
+
+        // 如果 roles 是字符串，先解析一次
+      if (typeof roles === "string") {
+        try {
+          roles = JSON.parse(roles);
+        } catch (e) {
+          console.error("parseRoles: 无法解析 JSON 字符串:", roles);
+          return;
+        }
+      }
+
       roles = roles.map((role) =>
         typeof role === "string" ? { id: role } : role,
       );
@@ -222,6 +250,43 @@ ul.editions .edition {
     color: red;
   }
 }
+.search-bar {
+  width: 80%;
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+
+  input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+
+  button {
+    padding: 6px 12px;
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background: #666;
+    }
+  }
+}
+
+.scroll-box {
+  width: 90%;
+  max-height: 60vh; // 限定高度
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
 
 .custom {
   text-align: center;
@@ -239,6 +304,35 @@ ul.editions .edition {
     li:hover {
       color: red;
     }
+  }
+}
+
+.editiongrid {
+  width: 200px;
+  height: 120px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background-position: center center;   // 纵向居上
+  background-size: 100% auto;        // 宽度撑满，高度按比例
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;  // 文字靠底部
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 5px rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin: 10px;
+
+  &:hover {
+    transform: scale(1.05);    // 悬停轻微放大
+    border-color: #fffa;       // 悬停时边框微透明变化
   }
 }
 </style>
