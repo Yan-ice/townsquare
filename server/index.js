@@ -488,6 +488,7 @@ wss.on("connection", function connection(ws, req) {
   console.log("new connection found");
 
   ws.isAlive = true;
+  ws.missedPings = 0;
   ws.pingStart = new Date().getTime();
   ws.userId = '(未登录)';
   ws.username = '(未登录)';

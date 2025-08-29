@@ -58,16 +58,19 @@
     methods: {
       startCountdown() {
         this.stopCountdown();
-        this.remainingMs = this.totalMs;
+        const startTime = Date.now();
+        const endTime = startTime + this.totalMs;
         this.showPie = true;
+
         this.timerId = setInterval(() => {
-          this.remainingMs -= 100; // 0.1s 刷新更丝滑
+          const now = Date.now();
+          this.remainingMs = Math.max(0, endTime - now);
           this.$store.commit("session/selfUpdateTotalTimer", this.remainingMs);
+
           if (this.remainingMs <= 0) {
-            this.remainingMs = 0;
             this.stopCountdown();
           }
-        }, 100);
+        }, 100); // 仍然可以用100ms刷新界面
       },
       stopCountdown() {
         if (this.timerId) {
