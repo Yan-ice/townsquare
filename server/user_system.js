@@ -74,7 +74,7 @@ class FlaskClient {
     if(token.startsWith("guest_")){
       return {
         token: token,
-        name: token.replace("guest_", ""),
+        username: token.replace("guest_", ""),
         is_storyteller: false,
         is_guest: true,
       }
@@ -85,7 +85,7 @@ class FlaskClient {
     }
     return {
       token: token,
-      name: userInfo.username,
+      username: userInfo.username,
       is_storyteller: userInfo.permission_storyteller,
       is_guest: false,
     };
