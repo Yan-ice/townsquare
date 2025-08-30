@@ -27,7 +27,7 @@ class FlaskClient {
     console.log(payload);
     // 用 HMAC-SHA256 生成本地签名
     const expectedSig = crypto
-    .createHmac("sha256", Buffer.from(secretKey, "utf8")) // secret_key utf8 编码
+    .createHmac("sha256", Buffer.from(this.secretKey, "utf8")) // secret_key utf8 编码
     .update(Buffer.from(payload, "utf8")) // payload utf8 编码
     .digest("hex");
 
