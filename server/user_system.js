@@ -79,7 +79,7 @@ class FlaskClient {
         is_guest: true,
       }
     }
-    const userInfo = this.userInfos.find(user => user.id === token);
+    const userInfo = this.userInfos.find(user => String(user.id) === token);
     if(!userInfo){
       throw new Error("User not found");
     }
