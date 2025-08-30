@@ -5,6 +5,7 @@ const { constants } = require('fs/promises');
 
 class FlaskClient {
   userInfos = [];
+  guest_counter = 5200000;
 
   constructor(baseURL = 'https://0.0.0.0:5000', secretKey = 'yanicesno1') {
     this.baseURL = baseURL;
@@ -45,33 +46,18 @@ class FlaskClient {
   }
   // 登录接口, return token
   async login(username, password) {
-    if(password=="__guest__"){
-      return  "guest_"+username;
-    }
-    try {
-      const res = await axios.post(
-        `${this.baseURL}/user/login_submit`,
-        { username, password },
-        { withCredentials: true } // 支持 Cookie
-      );
-
-      if (res.data.status !== 'success') {
-        throw new Error(res.data.reason || 'Login failed');
-      }
-
-      // token 从返回 JSON 或 Cookie 中获取
-      const token = res.data.id;
-      if (!token) throw new Error('No token returned from Flask');
-
-      return token;
-    } catch (err) {
-      throw new Error(`Login failed: ${err.message}`);
-    }
+    this.guest_counter++;
+    this.userInfos.push({
+      id: this.guest_counter,
+      username: username,
+      permission_storyteller: false,
+    });
+    return String(this.guest_counter);
   }
 
   // 查询用户信息
   async getUser(token) {
-    if(token.startsWith("guest_")){
+    if(token.startsWith("52")){
       return {
         token: token,
         username: token.replace("guest_", ""),
