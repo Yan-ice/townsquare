@@ -3,6 +3,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 class FlaskClient {
+  userInfos = [];
+
   constructor(baseURL = 'https://0.0.0.0:5000', secretKey = 'yanicesno1') {
     this.baseURL = baseURL;
     this.secretKey = secretKey;
@@ -32,6 +34,8 @@ class FlaskClient {
       console.log("Invalid signature");
       throw new Error("Invalid signature");
     }
+
+    this.userInfos.push(jsonFromMe);
 
     return String(jsonFromMe.id);
   }
@@ -71,31 +75,16 @@ class FlaskClient {
         is_guest: true,
       }
     }
-    try {
-      const res = await axios.post(
-        `${this.baseURL}/user/view_user/${token}`,
-        {}, // POST body 可为空
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
-        }
-      );
-
-      if (res.data.status !== 'success') {
-        return {
-            token: token,
-            name: res.data.name,
-            is_storyteller: res.data.permission_storyteller,
-            is_guest: false,
-        }
-      }
-
-      return res.data;
-    } catch (err) {
-      throw new Error(`Get user failed: ${err.message}`);
+    userInfo = this.userInfos.find(user => user.id === token);
+    if(!userInfo){
+      throw new Error("User not found");
     }
+    return {
+      token: token,
+      name: userInfo.username,
+      is_storyteller: userInfo.permission_storyteller,
+      is_guest: false,
+    };
   }
 }
 
