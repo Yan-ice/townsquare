@@ -57,18 +57,20 @@ class FlaskClient {
 
   // 查询用户信息
   async getUser(token) {
-    if(token.startsWith("52")){
-      return {
-        token: token,
-        username: token.replace("guest_", ""),
-        is_storyteller: false,
-        is_guest: true,
-      }
-    }
     const userInfo = this.userInfos.find(user => String(user.id) === token);
     if(!userInfo){
       throw new Error("User not found");
     }
+
+    if(token.startsWith("52")){
+      return {
+        token: token,
+        username: userInfo.username,
+        is_storyteller: false,
+        is_guest: true,
+      }
+    }
+    
     return {
       token: token,
       username: userInfo.username,
