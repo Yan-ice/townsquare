@@ -485,7 +485,7 @@ function analyse_login_command(packet, cmd, param) {
           break;
       case 'token':
           flaskClient.quickLogin(param).then((token)=>{
-            console.log(param["name"], "login success:", token);
+            console.log(param["username"], "login success:", token);
             set_online(packet.sender_socket, token);
           }).catch((err)=>{
             const a = new CommandPacket("login");

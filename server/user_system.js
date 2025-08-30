@@ -32,7 +32,7 @@ class FlaskClient {
       throw new Error("Invalid signature");
     }
 
-    return jsonFromMe.id;
+    return String(jsonFromMe.id);
   }
   // 登录接口, return token
   async login(username, password) {

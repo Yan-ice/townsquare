@@ -109,9 +109,7 @@ class LiveSession {
           });
           
         }else{
-          cmd.addCommand("token",{
-            token: pwd,
-          });
+          cmd.addCommand("token",pwd);
         }
         this._sendPacket(cmd);
         
