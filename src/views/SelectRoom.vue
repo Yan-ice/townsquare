@@ -4,7 +4,7 @@
 
     <form @submit.prevent="handleSubmit" class="login-form">
       <input v-model="room" type="text" placeholder="请输入房间号" required />
-      <button type="submit">加入房间</button>
+      <button type="submit">{{ $store.state.loginbackend.canStoryteller ? "创建/加入房间" : "加入房间" }}</button>
       <label class="observer-checkbox blackp">
         <input v-model="isObserver" type="checkbox" />
         以旁观游戏身份加入

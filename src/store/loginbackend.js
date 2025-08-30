@@ -5,7 +5,8 @@ const state = () => ({
     sessionId: '',
     playerId: '',
     username: '',
-    pwd: '2333',
+    pwd: '2333', 
+    canStoryteller: false,
     isSpeaking: false,
     isMute: true,
     isMdict: true,
@@ -25,6 +26,8 @@ const set = (key) => (state, val) => {
 const mutations = {
     setPlayerId: set("playerId"),
     setSessionId: set("sessionId"),
+    setUsername: set("username"),
+    setCanStoryteller: set("canStoryteller"),
     setNotes: set("selfNotes"),
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
