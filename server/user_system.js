@@ -46,6 +46,11 @@ class FlaskClient {
   }
   // 登录接口, return token
   async login(username, password) {
+    const userInfo = this.userInfos.find(user => String(user.id) === token);
+    if(userInfo){
+      return String(userInfo.id);
+    }
+    
     this.guest_counter++;
     this.userInfos.push({
       id: this.guest_counter,
