@@ -133,29 +133,6 @@ const actions = {
       .map((a) => a[1]);
     commit("set", players);
   },
-  clearRoles({ state, commit, rootState }) {
-    let players;
-    if (rootState.session.isSpectator) {
-      players = state.players.map((player) => {
-        if (player.role.team !== "traveler") {
-          player.role = {};
-          player.role2 = {};
-        }
-        player.reminders = [];
-        return player;
-      });
-    } else {
-      players = state.players.map(({ name, id, pronouns }) => ({
-        ...NEWPLAYER,
-        name,
-        id,
-        pronouns,
-      }));
-      commit("setFabled", { fabled: [] });
-    }
-    commit("set", players);
-    commit("setBluff");
-  },
   speak({ commit, state }, { idx, value }) {
     if (value) {
       commit('setTalking', { idx, flag: true });
@@ -230,7 +207,17 @@ const mutations = {
   set(state, players = []) {
     state.players = players;
   },
-
+  clearRoles(state) {
+    state.players = state.players.map((player) => {
+      if (player.role.team !== "traveler") {
+        player.role = {};
+        player.role2 = {};
+      }
+      player.reminders = [];
+      return player;
+    });
+    state.bluffs = [];
+  },
   updateMes(state, {sender, tellerName, message}) {
     const index = findIndex(state, sender);
     if(index == -1) {

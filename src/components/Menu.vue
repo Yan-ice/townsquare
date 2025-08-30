@@ -297,7 +297,7 @@ export default {
     },
     async clearRoles() {
       if (await my_confirm("确认清空所有角色标记与token吗？")) {
-        this.$store.dispatch("players/clearRoles");
+        this.$store.commit("players/clearRoles");
       }
     },
     toggleNight() {

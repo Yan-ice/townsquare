@@ -1,5 +1,5 @@
 import mediasoupRoom from './mediabackend.js';
-
+import axios from "axios";
 const CommandPacket = require('./packet.js');
 
 class LiveSession {
@@ -15,6 +15,9 @@ class LiveSession {
     this._reconnectTimer = null;
     this._players = {}; // map of players connected to a session
     this._pings = {}; // map of player IDs to ping
+
+    this.loginun = '';      //store for reconnect.
+    this.loginpw = '';      //store for reconnect.
 
     this._setupVisibilityListener();
   }
@@ -64,9 +67,11 @@ class LiveSession {
     }
     
     // 尝试重连
-    this._reconnectTimer = setTimeout(() => {
+    this._reconnectTimer = setTimeout(async () => {
       this._isReconnecting = false;
-      this.login('', this._store.state.loginbackend.playerId);
+
+      this.login(this.loginun, this.loginpw);
+
     }, 1000); // 1秒后重连
   }
 
@@ -86,6 +91,10 @@ class LiveSession {
       this._socket.addEventListener("message", this._handlePacket.bind(this));
       
       console.log("login with",usrname, pwd);
+
+      this.loginun = usrname;
+      this.loginpw = pwd;
+      //store for reconnect.
 
       // 设置连接超时（单位：毫秒）
       const timeoutDuration = 10000;

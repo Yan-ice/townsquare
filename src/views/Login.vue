@@ -37,18 +37,17 @@ export default {
   methods: {
     async tryLoginWithSystemMe() {
       this.$store.commit('loginbackend/setServerURL', 'yanices.site');
-      console.log("尝试统一认证登录");
       try {
+        console.log("尝试统一认证登录");
         const res = await axios.get("https://yanices.site/user/me");
         if (res.data.status === "success") {
           this.$store.commit('loginbackend/loginWithSystemMe', res.data);
-        } else {
-          console.log("未登录，尝试游客登录模式");
-          this.$store.commit('loginbackend/loginWithStorage');
         }
       } catch (err) {
         console.log("请求失败或未登录", err);
       }
+      console.log("未登录，尝试游客登录模式");
+      this.$store.commit('loginbackend/loginWithStorage');
     },
     handlePlayerLogin() {
       this.$store.commit('loginbackend/setServerURL', 'yanices.site');

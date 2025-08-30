@@ -16,7 +16,7 @@
     </form>
 
     <button class="logout-button" @click="logout">退出登录</button>
-    <p v-if="$store.state.dialog.message" class="title">{{ $store.state.dialog.message }}</p>
+    <p v-if="$store.state.dialog.message" class="title blackp">{{ $store.state.dialog.message }}</p>
   </div>
 </template>
 
@@ -63,8 +63,8 @@ export default {
 <style scoped>
 
 .login-container {
-  max-width: 400px;
-  margin: 80px auto;
+  max-width: 500px;
+  margin: 50px auto;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -74,9 +74,9 @@ export default {
 
 .title {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: black;
-    max-width: 200px;      /* 你可以根据需要调整宽度 */
+    max-width: 400px;      /* 你可以根据需要调整宽度 */
     white-space: pre-wrap; /* 保证换行 */
     word-break: break-all; /* 长单词也会换行 */
     overflow-wrap: break-word;
@@ -89,7 +89,7 @@ export default {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .login-form input {
@@ -100,7 +100,7 @@ export default {
 }
 
 .login-form button {
-  padding: 0.75rem;
+  padding: 0.5rem;
   background-color: #42b983;
   color: white;
   border: none;
@@ -114,7 +114,7 @@ export default {
 }
 
 .logout-button {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   padding: 0.5rem;
   background-color: #ff4d4f;
   color: white;

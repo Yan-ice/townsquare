@@ -218,9 +218,6 @@ module.exports = (store) => {
             username: localStorage.username,
             pwd: localStorage.password
           });
-        }else{
-          console.log("No data.");
-          my_alert("没有此前登录数据。请输入昵称");
         }
         break;
       case "loginbackend/logout":

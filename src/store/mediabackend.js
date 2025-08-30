@@ -16,7 +16,7 @@ class MediasoupRoom {
     this.stream = null;        // 本地音频流
     this.producer = null;      // 发送的producer
 
-    this.isMute = false;
+    this.isMute = true;
     this.isNetworkPoor = false;
     // 音量检测相关
     this.audioContext = null;
@@ -313,7 +313,7 @@ class MediasoupRoom {
     }
 
     this.joined = true;
-
+    this.setMute(true);
     
   }
 
