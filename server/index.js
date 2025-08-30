@@ -453,11 +453,11 @@ function analyse_room_command(packet, cmd, param) {
 }
 
 function analyse_login_command(packet, cmd, param) {
+  const loginData = param;
   switch (cmd) {
       case 'login':
           try {
-          const loginData = param;
-
+          
           flaskClient.login(loginData["username"], loginData["password"]).then((token)=>{
             console.log(loginData["username"], "login success:", token);
             set_online(packet.sender_socket, token);
@@ -485,10 +485,9 @@ function analyse_login_command(packet, cmd, param) {
           break;
       case 'token':
           flaskClient.quickLogin(param).then((token)=>{
-            console.log(loginData["username"], "login success:", token);
+            console.log(param["name"], "login success:", token);
             set_online(packet.sender_socket, token);
           }).catch((err)=>{
-            console.log(loginData["username"], "login failed.");
             const a = new CommandPacket("login");
             a.addCommand("failed","认证信息无效或已过期");
             packet.sender_socket.send(a.serialize());
