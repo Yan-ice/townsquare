@@ -214,6 +214,8 @@ class LiveSession {
           switch (command) {
             case "success":  
               this._store.commit("loginbackend/setPlayerId", params['token']);
+              this._store.commit("loginbackend/setUsername", params['username']);
+              this._store.commit("loginbackend/setCanStoryteller", params['is_storyteller']);
               break;
             case "failed":
               my_alert("登录失败：激活码无效, 或已被其他昵称使用。");
