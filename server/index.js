@@ -462,6 +462,7 @@ function analyse_login_command(packet, cmd, param) {
             console.log(loginData["username"], "login success:", token);
             set_online(packet.sender_socket, token);
           }).catch((err)=>{
+            console.log(err);
             console.log(loginData["username"], "login failed.");
             const a = new CommandPacket("login");
             a.addCommand("failed","密码不匹配");
@@ -488,6 +489,7 @@ function analyse_login_command(packet, cmd, param) {
             console.log(param["username"], "login success:", token);
             set_online(packet.sender_socket, token);
           }).catch((err)=>{
+            console.log(err);
             const a = new CommandPacket("login");
             a.addCommand("failed","认证信息无效或已过期");
             packet.sender_socket.send(a.serialize());

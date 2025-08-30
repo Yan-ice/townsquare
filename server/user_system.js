@@ -1,5 +1,6 @@
 // flaskClient.js
 const axios = require('axios');
+const crypto = require('crypto');
 
 class FlaskClient {
   constructor(baseURL = 'https://0.0.0.0:5000', secretKey = 'yanicesno1') {
