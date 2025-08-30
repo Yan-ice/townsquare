@@ -1,6 +1,7 @@
 // flaskClient.js
 const axios = require('axios');
 const crypto = require('crypto');
+const { constants } = require('fs/promises');
 
 class FlaskClient {
   userInfos = [];
@@ -78,7 +79,7 @@ class FlaskClient {
         is_guest: true,
       }
     }
-    userInfo = this.userInfos.find(user => user.id === token);
+    const userInfo = this.userInfos.find(user => user.id === token);
     if(!userInfo){
       throw new Error("User not found");
     }
