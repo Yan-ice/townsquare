@@ -2,8 +2,9 @@
 const axios = require('axios');
 
 class FlaskClient {
-  constructor(baseURL = 'https://0.0.0.0:5000') {
+  constructor(baseURL = 'https://0.0.0.0:5000', secretKey = 'yanicesno1') {
     this.baseURL = baseURL;
+    this.secretKey = secretKey;
   }
   async quickLogin(jsonFromMe) {
     if (!jsonFromMe || !jsonFromMe.signature) {
