@@ -56,7 +56,8 @@ const faIcons = [
   "WindowMinimize",
   "CommentDots",
   "Microphone",
-  "MicrophoneSlash"
+  "MicrophoneSlash",
+  "Key"
 ];
 const fabIcons = ["Github", "Discord"];
 library.add(

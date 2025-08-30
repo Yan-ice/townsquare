@@ -74,6 +74,7 @@ class LiveSession {
    * Open a new session for the passed channel.
    * @param channel
    * @private
+   * If usrname is empty, it means login with system me. (me = pwd)
    */
     login(usrname, pwd) {
       this._wss = this._store.state.loginbackend.backendServer;
@@ -1192,8 +1193,8 @@ export default (store) => {
       case "loginbackend/loginWithData":
         session.login(payload.username, payload.pwd);
         break;
-      case "loginbackend/loginWithToken":
-        session.login('', payload.playerId);
+      case "loginbackend/loginWithSystemMe":
+        session.login('', payload);
         break;
       case "session/privateChatRequest":
         session.sendPrivateChatRequest(payload.targetId);

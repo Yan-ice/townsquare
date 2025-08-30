@@ -48,6 +48,9 @@ const online_players = {};
 const channels = {};
 
 const CommandPacket = require('./packet.js');
+const FlaskClient = require('./user_system'); // 路径根据你的文件位置调整
+
+const flaskClient = new FlaskClient();
 
 function set_online(client, token) {
   //previous socket online
@@ -60,12 +63,14 @@ function set_online(client, token) {
     }
   }
   //response login success
-  const datab = require('./database.js');
-  datab.fetch_user_data(token, (data)=>{
+  flaskClient.getUser(token).then((data)=>{
+  //const datab = require('./database.js');
+  // datab.fetch_user_data(token, (data)=>{
     let new_pl = {
       'token': token,
       'socket': client,
       'username': data['username'],
+      'is_storyteller': data['is_storyteller']
     }
 
     client.userId = token;
@@ -161,6 +166,12 @@ function set_joingame(client, session, player) {
       }
 
       if(!channels[session]) {
+        if(!player.is_storyteller) {
+          const a = new CommandPacket("sessionset", session);
+          a.addCommand("info", "你没有权限创建房间！请加入一个现有的房间。");
+          client.send(a.serialize()); 
+          return;
+        }
         channels[session] = {
           host: player,
           players: [],
@@ -445,35 +456,43 @@ function analyse_login_command(packet, cmd, param) {
   switch (cmd) {
       case 'login':
           try {
-          const datab = require('./database.js');
-          datab.db_init();
-  
           const loginData = param;
-          datab.user_login(loginData["username"], loginData["password"], (token)=>{
-              if (token > 0) {
-                  console.log(loginData["username"], "login success:", token);
-                  set_online(packet.sender_socket, token);
-              }else{
-                  console.log(loginData["username"], "login failed.");
-                  const a = new CommandPacket("login");
-                  a.addCommand("failed","密码不匹配");
-                  packet.sender_socket.send(a.serialize());
-              }
-          });
+
+          flaskClient.login(loginData["username"], loginData["password"]).then((token)=>{
+            console.log(loginData["username"], "login success:", token);
+            set_online(packet.sender_socket, token);
+          }).catch((err)=>{
+            console.log(loginData["username"], "login failed.");
+            const a = new CommandPacket("login");
+            a.addCommand("failed","密码不匹配");
+            packet.sender_socket.send(a.serialize());
+          })
+
+          // datab.user_login(loginData["username"], loginData["password"], (token)=>{
+          //     if (token > 0) {
+          //         console.log(loginData["username"], "login success:", token);
+          //         set_online(packet.sender_socket, token);
+          //     }else{
+          //         console.log(loginData["username"], "login failed.");
+          //         const a = new CommandPacket("login");
+          //         a.addCommand("failed","密码不匹配");
+          //         packet.sender_socket.send(a.serialize());
+          //     }
+          // });
           } catch (e) {
               console.log("error parsing direct message JSON", e);
           }
           break;
       case 'token':
-          try {
-              const datab = require('./database.js');
-              datab.db_init();
-
-              set_online(packet.sender_socket, param.token);
-
-          } catch (e) {
-              console.log("error parsing direct message JSON", e);
-          }
+          flaskClient.quickLogin(param).then((token)=>{
+            console.log(loginData["username"], "login success:", token);
+            set_online(packet.sender_socket, token);
+          }).catch((err)=>{
+            console.log(loginData["username"], "login failed.");
+            const a = new CommandPacket("login");
+            a.addCommand("failed","认证信息无效或已过期");
+            packet.sender_socket.send(a.serialize());
+          })
           break;
       default:
           console.log("default", cmd, param);
