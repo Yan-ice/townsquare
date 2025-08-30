@@ -8,6 +8,7 @@ class FlaskClient {
   }
   async quickLogin(jsonFromMe) {
     if (!jsonFromMe || !jsonFromMe.signature) {
+      console.log("Missing signature");
       throw new Error("Missing signature");
     }
 
@@ -19,7 +20,7 @@ class FlaskClient {
       dataWithoutSig,
       Object.keys(dataWithoutSig).sort()
     );
-
+    console.log(payload);
     // 用 HMAC-SHA256 生成本地签名
     const expectedSig = crypto
       .createHmac("sha256", this.secretKey)
@@ -27,6 +28,7 @@ class FlaskClient {
       .digest("hex");
 
     if (signature !== expectedSig) {
+      console.log("Invalid signature");
       throw new Error("Invalid signature");
     }
 

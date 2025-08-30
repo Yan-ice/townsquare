@@ -168,7 +168,7 @@ function set_joingame(client, session, player) {
       if(!channels[session]) {
         if(!player.is_storyteller) {
           const a = new CommandPacket("sessionset", session);
-          a.addCommand("info", "你没有权限创建房间！请加入一个现有的房间。");
+          a.addCommand("info", "你没有权限创建房间！请加入现有的房间。");
           client.send(a.serialize()); 
           return;
         }

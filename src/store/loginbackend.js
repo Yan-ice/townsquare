@@ -66,7 +66,6 @@ const mutations = {
         console.log("get login data from storage.");
     },
     loginWithSystemMe(state, payload) {
-      state.playerId = payload.id;
       console.log("login with system me.");
   },
     logout(state) {
