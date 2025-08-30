@@ -35,8 +35,11 @@ class FlaskClient {
       throw new Error("Invalid signature");
     }
 
+    // 先移除同 id 的用户
+    this.userInfos = this.userInfos.filter(user => user.id !== jsonFromMe.id);
+    // 再插入新的用户对象
     this.userInfos.push(jsonFromMe);
-
+    
     return String(jsonFromMe.id);
   }
   // 登录接口, return token
