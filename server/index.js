@@ -17,8 +17,8 @@ const MAX_MISSED_PINGS = 6;         // 允许连续丢失 5 次 ping
 const options = {};
 
 if (process.env.NODE_ENV !== "development") {
-  options.cert = fs.readFileSync("./cert.pem");
-  options.key = fs.readFileSync("./privkey.pem");
+  options.cert = fs.readFileSync("/home/ubuntu/cert/cert.pem");
+  options.key = fs.readFileSync("/home/ubuntu/cert/privkey.pem");
 }
 
 const server = https.createServer(options);

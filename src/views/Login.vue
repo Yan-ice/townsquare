@@ -42,6 +42,8 @@ export default {
         const res = await axios.get("https://yanices.site/user/me");
         if (res.data.status === "success") {
           this.$store.commit('loginbackend/loginWithSystemMe', res.data);
+          console.log("统一认证登录成功");
+          return;
         }
       } catch (err) {
         console.log("请求失败或未登录", err);
