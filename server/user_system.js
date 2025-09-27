@@ -72,6 +72,7 @@ class FlaskClient {
         token: token,
         username: userInfo.username,
         is_storyteller: false,
+        is_storyteller_vocal: false,
         is_guest: true,
       }
     }
@@ -80,6 +81,7 @@ class FlaskClient {
       token: token,
       username: userInfo.username,
       is_storyteller: userInfo.permission_storyteller,
+      is_storyteller_vocal: userInfo.permission_storyteller_vocal,
       is_guest: false,
     };
   }

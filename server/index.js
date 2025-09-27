@@ -70,7 +70,8 @@ function set_online(client, token) {
       'token': token,
       'socket': client,
       'username': data['username'],
-      'is_storyteller': data['is_storyteller']
+      'is_storyteller': data['is_storyteller'],
+      'is_storyteller_vocal': data['is_storyteller_vocal']
     }
 
     client.userId = token;
@@ -168,11 +169,16 @@ function set_joingame(client, session, player, mdict) {
       if(!channels[session]) {
         if(!player.is_storyteller) {
           const a = new CommandPacket("sessionset", session);
-          a.addCommand("info", "你没有权限创建房间！请加入现有的房间。");
+          a.addCommand("info", "房间号不存在（你没有权限创建房间）！请联系管理员获取权限，或加入现有的房间。");
           client.send(a.serialize()); 
           return;
         }
-
+        if(!player.is_storyteller_vocal) {
+          const a = new CommandPacket("sessionset", session);
+          a.addCommand("info", "你没有权限创建具有内置语音的房间！请联系管理员获取权限，或取消勾选内置语音。");
+          client.send(a.serialize()); 
+          return;
+        }
         channels[session] = {
          host: player,
           players: [],
