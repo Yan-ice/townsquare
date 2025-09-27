@@ -69,8 +69,9 @@ const mutations = {
     loginWithStorage(state) { //listen by persistence
         console.log("get login data from storage.");
     },
-    loginWithSystemMe(state, payload) {
+    loginWithSystemMe(state, payload) { //listen
       console.log("login with system me.");
+      console.log(payload);
   },
     logout(state) {
         state.playerId = '';
@@ -139,7 +140,7 @@ const actions = {
     let command = {
       "header": "sessionset",
       "command": "leave",
-      "param": "-"
+      "param": "--"
     }
     commit("session/sendCommand", command, {root: true});
 

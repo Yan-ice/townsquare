@@ -248,6 +248,7 @@ class LiveSession {
       switch (command) {
         case 'mdict':
           this._mdict = params;
+          this._store.commit("loginbackend/setMdict", params);
           break;
         case 'state':
           if(params == 'host') {
@@ -557,27 +558,7 @@ class LiveSession {
       this._open(sessionID);
     }
   }
-
-  xjoinSession(sessionID) {
-    console.log("xjoinSession", sessionID);
-    const packet = new CommandPacket("sessionset", sessionID);
-    packet.sender = this._store.state.loginbackend.playerId;
-    packet.addCommand("join","roompwd");
-    this._sendPacket(packet);
-  }
-  xobserveSession(sessionID) {
-    console.log("xobserveSession", sessionID);
-    const packet = new CommandPacket("sessionset", sessionID);
-    packet.sender = this._store.state.loginbackend.playerId;
-    packet.addCommand("watch","roompwd");
-    this._sendPacket(packet);
-  }
-  xleaveSession() {
-    const packet = new CommandPacket("sessionset", '');
-    packet.sender = this._store.state.loginbackend.playerId;
-    packet.addCommand("leave","-");
-    this._sendPacket(packet);
-  }
+  
   /**
    * Close the current session, if any.
    */

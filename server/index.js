@@ -174,7 +174,7 @@ function set_joingame(client, session, player, mdict) {
         }
 
         channels[session] = {
-          host: player,
+         host: player,
           players: [],
           watchers: [],
           seat: [],
@@ -385,7 +385,8 @@ function analyse_room_command(packet, cmd, param) {
 
   switch (cmd) {
     case 'join':
-      set_joingame(packet.sender_socket, packet.session, sender_player);
+      set_joingame(packet.sender_socket, packet.session, sender_player, param); 
+      //when join, param T/F shows whether Mdict (enable vocal)
       break;
     case 'watch':
       set_watchgame(packet.sender_socket, packet.session, sender_player);

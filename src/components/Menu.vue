@@ -268,22 +268,6 @@ export default {
         this.toggleImageOptIn();
       }
     },
-    joinSession() {
-      if (this.loginbackend.sessionId) return this.leaveSession();
-      let sessionId = prompt(
-        "Enter the channel number / name of the session you want to join",
-      );
-      if (sessionId.match(/^https?:\/\//i)) {
-        sessionId = sessionId.split("#").pop();
-      }
-      if (sessionId) {
-        // removed
-        this.$store.commit("session/clearVoteHistory");
-        this.$store.commit("session/setSpectator", true);
-        this.$store.commit("loginbackend/setSessionId", sessionId);
-
-      }
-    },
     async leaveSession() {
       if (await my_confirm("你确定想离开当前房间吗")) {
         this.$store.commit("session/setSpectator", false);

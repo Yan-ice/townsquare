@@ -9,9 +9,9 @@
         <input v-model="isObserver" type="checkbox" />
         以旁观游戏身份加入
       </label>
-      <label class="observer-checkbox blackp">
+      <label v-if="$store.state.loginbackend.canStoryteller" class="observer-checkbox blackp">
         <input v-model="isMdict" type="checkbox" />
-        使用魔典内置语音
+        创建内置语音房间
       </label>
     </form>
 
@@ -34,19 +34,20 @@ export default {
     return {
       room: '',
       isObserver: false,
-      isMdict: true
+      isMdict: false
     };
   },
 
   methods: {
     handleSubmit() {
-      this.$store.commit('loginbackend/setMdict', this.isMdict);
+      //this.$store.commit('loginbackend/setMdict', this.isMdict);
       if(this.isObserver) {
         this.$store.commit("session/setWatcher", true);
         this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
       }else{
         this.$store.commit("session/setWatcher", false);
-        this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room});
+        console.log("joinSession: "+this.room+" "+this.isMdict);
+        this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room, mdict: this.isMdict});
       }
       
       //this.$store.commit('loginbackend/setSessionId', this.room);
