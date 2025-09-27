@@ -173,7 +173,7 @@ function set_joingame(client, session, player, mdict) {
           client.send(a.serialize()); 
           return;
         }
-        if(!player.is_storyteller_vocal) {
+        if(mdict && !player.is_storyteller_vocal) {
           const a = new CommandPacket("sessionset", session);
           a.addCommand("info", "你没有权限创建具有内置语音的房间！请联系管理员获取权限，或取消勾选内置语音。");
           client.send(a.serialize()); 
