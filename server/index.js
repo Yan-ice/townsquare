@@ -146,7 +146,7 @@ function set_leavegame(client, session, player) {
       }
 }
 
-function set_joingame(client, session, player) {
+function set_joingame(client, session, player, mdict) {
       for (let channel in channels) {
           if (channel == session) {
             continue;
@@ -172,14 +172,17 @@ function set_joingame(client, session, player) {
           client.send(a.serialize()); 
           return;
         }
+
         channels[session] = {
           host: player,
           players: [],
           watchers: [],
           seat: [],
           privchat_pair: [],
+          mdict: mdict
         }
         const a = new CommandPacket("sessionset", session);
+        a.addCommand("mdict", mdict);
         a.addCommand("state", "host");
         a.addCommand("reset", "");
         client.send(a.serialize());  
@@ -194,6 +197,7 @@ function set_joingame(client, session, player) {
         room.host.socket = player.socket;
 
         const a = new CommandPacket("sessionset", session);
+        a.addCommand("mdict", room.mdict);
         a.addCommand("state", "host");
         client.send(a.serialize());  
         return;
@@ -204,6 +208,7 @@ function set_joingame(client, session, player) {
               pl.username = player.username;
               pl.socket = player.socket;
               const a = new CommandPacket("sessionset", session);
+              a.addCommand("mdict", room.mdict);
               a.addCommand("state", "play");
               client.send(a.serialize());  
 
@@ -216,6 +221,7 @@ function set_joingame(client, session, player) {
         return false;
       })) {
         const a = new CommandPacket("sessionset", session);
+        a.addCommand("mdict", room.mdict);
         a.addCommand("state", "play");
         client.send(a.serialize());  
         room.players.push(player);
@@ -277,6 +283,7 @@ function set_watchgame(client, session, player) {
                 pl.username = player.username;
                 pl.socket = player.socket;
                 const a = new CommandPacket("sessionset", session);
+                a.addCommand("mdict", room.mdict);
                 a.addCommand("state", "watch");
                 client.send(a.serialize());  
                 return true;
@@ -284,6 +291,7 @@ function set_watchgame(client, session, player) {
           return false;
         })) {
           const a = new CommandPacket("sessionset", session);
+          a.addCommand("mdict", room.mdict);
           a.addCommand("state", "watch");
           client.send(a.serialize());  
           room.watchers.push(player);
@@ -469,17 +477,6 @@ function analyse_login_command(packet, cmd, param) {
             packet.sender_socket.send(a.serialize());
           })
 
-          // datab.user_login(loginData["username"], loginData["password"], (token)=>{
-          //     if (token > 0) {
-          //         console.log(loginData["username"], "login success:", token);
-          //         set_online(packet.sender_socket, token);
-          //     }else{
-          //         console.log(loginData["username"], "login failed.");
-          //         const a = new CommandPacket("login");
-          //         a.addCommand("failed","密码不匹配");
-          //         packet.sender_socket.send(a.serialize());
-          //     }
-          // });
           } catch (e) {
               console.log("error parsing direct message JSON", e);
           }

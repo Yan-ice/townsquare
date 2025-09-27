@@ -7,9 +7,10 @@ const state = () => ({
     username: '',
     pwd: '2333', 
     canStoryteller: false,
+    canVocalStoryteller: false,
     isSpeaking: false,
     isMute: true,
-    isMdict: true,
+    isMdict: false, //使用内置语音
     networkPoor: false,
     backendServer: null,
     vocalServer: null,
@@ -108,7 +109,7 @@ const actions = {
       "header": "sessionset",
       "session": payload.sessionId,
       "command": "join",
-      "param": "roompwd"
+      "param": payload.mdict
     }
     commit("session/sendCommand", command, {root: true});
 

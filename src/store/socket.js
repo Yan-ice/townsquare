@@ -16,6 +16,8 @@ class LiveSession {
     this._players = {}; // map of players connected to a session
     this._pings = {}; // map of player IDs to ping
 
+    this._mdict = false;
+
     this.loginun = '';      //store for reconnect.
     this.loginpw = '';      //store for reconnect.
 
@@ -231,7 +233,7 @@ class LiveSession {
               this._store.commit("loginbackend/logout");
               break;
             case "session_restore":
-              this._store.dispatch("loginbackend/joinSession", {sessionId: params});
+              this._store.dispatch("loginbackend/joinSession", {sessionId: params, mdict: false});
               //this._store.commit("loginbackend/setSessionId", param);
               break;
           }
@@ -244,6 +246,9 @@ class LiveSession {
   }
   async _handleSession(packet, command, params) {
       switch (command) {
+        case 'mdict':
+          this._mdict = params;
+          break;
         case 'state':
           if(params == 'host') {
             this._isSpectator = false;
@@ -254,9 +259,8 @@ class LiveSession {
             this._store.commit("loginbackend/setSessionId", packet.session);
             this.sendGamestate();
 
-            if(!this._store.state.loginbackend.isMdict) {
-              my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
-            }else{
+            if(this._mdict) {
+              my_alert("提示：该房间开启了魔典内置语音。请允许魔典使用麦克风权限。");
               await mediasoupRoom.joinRoom(packet.session, 
                 this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
               mediasoupRoom.setMute(this._store.state.isMute);
@@ -281,9 +285,8 @@ class LiveSession {
             needlog.addCommand("retrieveMessageLog");
             this._sendPacket(needlog);
 
-            if(!this._store.state.loginbackend.isMdict) {
-              my_alert("当前未使用魔典内置语音。若要启用，请重新进入房间。");
-            }else{
+            if(this._mdict) {
+              my_alert("提示：该房间开启了魔典内置语音。请允许魔典使用麦克风权限。");
               await mediasoupRoom.joinRoom(packet.session, 
                 this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
               mediasoupRoom.setMute(this._store.state.isMute);
@@ -300,7 +303,7 @@ class LiveSession {
                 "getGamestate",
                 this._store.state.loginbackend.playerId,
             );
-            my_alert("你处于观战模式。如要进行游戏，请退出房间重新进入。");
+            my_alert("提示：你处于观战模式。如要进行游戏，请退出房间重新进入。");
 
           }else if (params == 'leave'){
             this._store.commit("loginbackend/setSessionId", '');
