@@ -14,6 +14,7 @@
       <PrivateChatModal />
       <GameStateModal />
       <PromptModal />
+      <OfflineShowInfoModal />
       <Gradients />
     </div>
       
@@ -40,6 +41,7 @@
   import PromptModal from "../components/modals/PromptModal";
   import NoteModal from "../components/modals/NoteModal";
   import TimerCircle from "@/components/TimerCircle.vue";
+import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue";
 
   export default {
     components: {
@@ -58,6 +60,7 @@
       RolesModal,
       NoteModal,
       PromptModal,
+      OfflineShowInfoModal,
       Gradients,
       TimerCircle,
     },

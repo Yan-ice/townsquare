@@ -24,6 +24,7 @@
 
     <LoginWin v-if="!playerId" />
     <SelectRoomWin v-else-if="!sessionId" />
+    <ShowInfo v-else-if="openInfo" />
     <MainWindow v-else />
 
     <!-- 修改后的 transition 只包含一个子元素 -->
@@ -46,6 +47,7 @@ import Vote from "@/components/Vote";
 import TimerInfo from "@/components/TimerInfo";
 import Intro from "./components/Intro.vue";
 import loginbackend from "./store/loginbackend";
+import ShowInfo from "./views/ShowInfo.vue";
 
 export default {
   components: {
@@ -56,10 +58,12 @@ export default {
     Intro,
     TownInfo,
     TimerInfo,
+    ShowInfo,
   },
   computed: {
     ...mapState(["grimoire", "session"]),
     ...mapState("players", ["players"]),
+    ...mapState("showinfo", ["openInfo"]),
     ...mapState("loginbackend", ["playerId", "sessionId"]),
 
     currentComponent() {

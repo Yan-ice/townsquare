@@ -39,7 +39,7 @@
           <font-awesome-icon icon="broadcast-tower" @click="tab = 'session'" />
           <font-awesome-icon
             icon="users"
-            v-if="!session.isSpectator && !isOfflineRoom"
+            v-if="!session.isSpectator"
             @click="tab = 'players'"
           />
           <font-awesome-icon icon="theater-masks" @click="tab = 'characters'" />
@@ -127,7 +127,11 @@
                 便携笔记本
                 <em>[N]</em>
           </li>
-          <li @click="toggleOpenTimer">
+          <li v-if="!session.isSpectator" @click="toggleModal('showInfo')">
+                夜晚提示器(线下)
+                <em>[?]</em>
+          </li>
+          <li v-if="!session.isSpectator" @click="toggleOpenTimer">
                 计时器(开/关)
                 <em>[T]</em>
           </li>
@@ -148,6 +152,7 @@
         <template v-if="tab === 'players' && !session.isSpectator">
           <!-- Users -->
           <li class="headline">玩家选项</li>
+
           <li @click="addPlayer" v-if="players.length < 20">添加座位
             <em><font-awesome-icon icon="chair" /></em>
           </li>

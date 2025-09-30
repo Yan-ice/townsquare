@@ -5,6 +5,7 @@ import loginbackend from "./loginbackend";
 import persistence from "./persistence";
 import players from "./modules/players";
 import session from "./modules/session";
+import showinfo from "./showinfo";
 import countdown from "./modules/countdown";
 import editionJSON from "../editions.json";
 import rolesJSON from "../roles.json";
@@ -102,7 +103,8 @@ export default new Vuex.Store({
     players,
     session,
     loginbackend,
-    countdown
+    countdown,
+    showinfo
   },
   state: {
     grimoire: {
@@ -138,7 +140,8 @@ export default new Vuex.Store({
       roles: false,
       voteHistory: false,
       prompt: false,
-      notes: false
+      notes: false,
+      showInfo: false,
     },
     edition: editionJSONbyId.get("custom"),
     roles: getRolesByEdition(),
