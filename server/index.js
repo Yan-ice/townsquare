@@ -47,6 +47,14 @@ const online_players = {};
 //
 const channels = {};
 
+const offline_counter = {'counter': 1000}
+
+function next_offline_room() {
+  cnt = offline_counter['counter'];
+  offline_counter['counter'] = cnt + 1;
+  return '__offline__'+cnt;
+}
+
 const CommandPacket = require('./packet.js');
 const FlaskClient = require('./user_system'); // 路径根据你的文件位置调整
 
@@ -165,7 +173,22 @@ function set_joingame(client, session, player, mdict) {
             return;
           }
       }
-
+      if(session == '__offline__') {
+        offlineid = next_offline_room();
+        channels[offlineid] = {
+           host: player,
+           players: [],
+           watchers: [],
+           seat: [],
+           privchat_pair: [],
+           mdict: false
+         }
+         const a = new CommandPacket("sessionset", offlineid);
+         a.addCommand("mdict", false);
+         a.addCommand("state", "host");
+         a.addCommand("reset", "");
+         client.send(a.serialize());  
+      }
       if(!channels[session]) {
         if(!player.is_storyteller) {
           const a = new CommandPacket("sessionset", session);

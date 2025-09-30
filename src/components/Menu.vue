@@ -39,7 +39,7 @@
           <font-awesome-icon icon="broadcast-tower" @click="tab = 'session'" />
           <font-awesome-icon
             icon="users"
-            v-if="!session.isSpectator"
+            v-if="!session.isSpectator && !isOfflineRoom"
             @click="tab = 'players'"
           />
           <font-awesome-icon icon="theater-masks" @click="tab = 'characters'" />
@@ -141,7 +141,7 @@
 
           <li @click="leaveSession">
               离开房间
-              <em>{{ loginbackend.sessionId }}</em>
+              <em>{{ isOfflineRoom ? '离线' : loginbackend.sessionId }}</em>
           </li>
         </template>
 
@@ -234,6 +234,10 @@ export default {
     ...mapState(["grimoire", "session","loginbackend", "edition"]),
     ...mapState("players", ["players"]),
     ...mapState("loginbackend",["sessionId"]),
+    isOfflineRoom() {
+      const id = this.$store.state.loginbackend.sessionId || '';
+      return id.startsWith('__offline__');
+    }
   },
   data() {
     return {
