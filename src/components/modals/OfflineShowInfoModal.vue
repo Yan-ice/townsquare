@@ -41,12 +41,12 @@
         <!-- 下：数字多选 -->
         <div class="number-grid">
           <div
-            v-for="n in 15"
+            v-for="n in 16"
             :key="n"
-            :class="['number-cell', selectedNumbers.includes(n) ? 'selected' : '']"
-            @click="toggleNumber(n)"
+            :class="['number-cell', selectedNumbers.includes(n-1) ? 'selected' : '']"
+            @click="toggleNumber(n-1)"
           >
-            {{ n }}
+            {{ n-1 }}
           </div>
 
           <div
@@ -84,7 +84,7 @@ export default {
   data() {
     return {
       roleSelection: {},
-      keywords: ["这些角色不在场", " 他是恶魔 ", "他(们)是爪牙", "  你得知  ", "请选择玩家", "请选择角色", "这个选择不被允许", "要使用能力吗", "邪恶的", "善良的"], // 左侧关键词
+      keywords: ["你的角色是", " 他是恶魔 ", "他(们)是爪牙", "这些角色不在场", "  你得知  ", "请选择玩家", "请选择角色", "要使用能力吗", "这个选择不被允许", "他的能力对你生效", "邪恶的", "善良的"], // 左侧关键词
       selectedKeyword: null,
       selectedNumbers: [],
       selectedYN: 0,
@@ -106,8 +106,8 @@ export default {
         if (!this.roleSelection[role.team]) {
           this.$set(this.roleSelection, role.team, []);
         }
-        this.roleSelection[role.team].push(role);
         this.$set(role, "selected", 0);
+        this.roleSelection[role.team].push(role);
       });
       delete this.roleSelection["traveler"];
     },

@@ -43,7 +43,7 @@
       </text>
     </svg>
     <div class="edition" :class="[`edition-${role.edition}`, role.team]"></div>
-    <div class="ability" v-if="role.ability">
+    <div class="ability" v-if="role.ability" ref="ability">
       {{ role.ability }}
     </div>
   </div>
@@ -69,6 +69,12 @@ export default {
     },
     ...mapState(["grimoire"]),
   },
+  mounted() {
+    this.$nextTick(() => {
+      const tooltip = this.$refs.ability;
+      if (tooltip) adjustAbilityPosition(tooltip);
+    });
+  },
   data() {
     return {};
   },
@@ -81,6 +87,24 @@ export default {
     },
   },
 };
+
+function adjustAbilityPosition(tooltip) {
+  if (!tooltip) return;
+
+  const rect = tooltip.getBoundingClientRect();
+
+  // 超出顶部 → 贴合到 10px
+  if (rect.top < 0) {
+    tooltip.style.top = `${10 - rect.top}px`; 
+  }
+
+  // 超出底部 → 往上挪
+  if (rect.bottom > window.innerHeight - 10) {
+    const offset = rect.bottom - window.innerHeight + 10;
+    tooltip.style.top = `${tooltip.offsetTop - offset}px`;
+  }
+}
+
 </script>
 
 <style scoped lang="scss">

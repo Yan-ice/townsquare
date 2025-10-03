@@ -163,13 +163,20 @@
               <font-awesome-icon icon="times-circle" />
               移除座位
             </li>
-            <!-- <li
-              @click="updatePlayer('id', '', true)"
-              v-if="player.id && loginbackend.sessionId"
-            >
-              <font-awesome-icon icon="chair" />
-              Empty seat
-            </li> -->
+
+            <template v-if="!session.isSpectator && player.isST">
+              <li @click="$store.commit('toggleModal', 'showInfo')">
+                <font-awesome-icon icon="hand-point-right" />
+                线下提示器
+              </li>
+            </template>
+            <template v-if="!session.isSpectator && player.isST">
+              <li @click="$store.commit('session/setOpenTimer', !session.openTimer)">
+                <font-awesome-icon icon="hand-point-right" />
+                计时器
+              </li>
+            </template>
+
             <template v-if="!session.nomination && !player.isST">
               <li @click="nominatePlayer()">
                 <font-awesome-icon icon="hand-point-right" />
