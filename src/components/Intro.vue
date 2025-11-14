@@ -8,9 +8,9 @@
       <span class="button" @click="toggleMenu">
         <font-awesome-icon icon="cog" /> 菜单
       </span>
-      进行添加座位、选择剧本等。<br><br>
+      添加座位、选择剧本等。<br><br>
 
-      如果您提供了麦克风权限，您将与玩家语音聊天。
+      如果您提供麦克风权限，您将与玩家语音聊天。
       <div class="footer">
         这是一个开源项目，源码可以在
         <a href="https://github.com/yan-ice/townsquare" target="_blank">GitHub</a> 中获取。它与The Pandemonium Institute没有任何关联。“染·钟楼谜团”是Steven Medway和The Pandemonium的商标, 在国内由"集石"代理。

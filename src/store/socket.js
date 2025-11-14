@@ -608,6 +608,7 @@ class LiveSession {
         storyteller: this._store.state.players.storyteller,
         gamestate: this._gamestate,
         isNight: grimoire.isNight,
+        isMaskGrimoire: grimoire.isMaskGrimoire,
         isVoteHistoryAllowed: session.isVoteHistoryAllowed,
         nomination: session.nomination,
         votingSpeed: session.votingSpeed,
@@ -634,6 +635,7 @@ class LiveSession {
       gamestate,
       isLightweight,
       isNight,
+      isMaskGrimoire,
       isVoteHistoryAllowed,
       nomination,
       votingSpeed,
@@ -698,6 +700,7 @@ class LiveSession {
 
     if (!isLightweight) {
       this._store.commit("toggleNight", !!isNight);
+      this._store.commit("toggleMaskGrimoire", !!isMaskGrimoire);
       this._store.commit("session/setVoteHistoryAllowed", isVoteHistoryAllowed);
       this._store.commit("session/nomination", {
         nomination,
@@ -1206,6 +1209,7 @@ export default (store) => {
       case "session/setVoteInProgress":
       case "session/setVotingSpeed":
       case "toggleNight":
+      case "toggleMaskGrimoire":
       case "session/setVoteHistoryAllowed":
       case "session/clearVoteHistory":  
       case "session/setMarkedPlayer":

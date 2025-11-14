@@ -13,7 +13,7 @@
             )})`,
           }"
           :key="edition.id"
-          @click="handleURL(edition.url)"
+          @click="deadlyWaltz(edition.url)"
         >
           {{ edition.name }}
         </li>
@@ -101,7 +101,9 @@ export default {
       searchText: "",
     };
   },
-  computed: mapState(["modals"]),
+  computed: {
+   ...mapState(["modals", "grimoire"]),
+  },
   methods: {
     openCustom() {
       this.isCustom = true;
@@ -164,6 +166,12 @@ export default {
         this.handleURL(url);
       }
     },
+    async deadlyWaltz(url) {
+      if(!this.grimoire.isMaskGrimoire) {
+        this.$store.commit("toggleMaskGrimoire");
+      }
+      this.handleURL(url);
+    },
     async handleURL(url) {
       const res = await fetch(url);
       if (res && res.json) {
@@ -222,7 +230,7 @@ export default {
       }
       this.isCustom = false;
     },
-    ...mapMutations(["toggleModal", "setEdition"]),
+    ...mapMutations(["toggleModal", "toggleMaskGrimoire", "setEdition"]),
   },
 };
 </script>

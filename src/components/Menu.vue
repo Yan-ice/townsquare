@@ -50,9 +50,9 @@
           <!-- Grimoire -->
           <li class="headline">魔典选项</li>
 
-          <li @click="toggleMask">
-            <template v-if="!grimoire.isMaskGrimoire">切换到假面</template>
-            <template v-if="grimoire.isMaskGrimoire">切换到真身</template>
+          <li @click="toggleMask" v-if="!session.isSpectator">
+            <template v-if="!grimoire.isMaskGrimoire">开启双身份</template>
+            <template v-if="grimoire.isMaskGrimoire">关闭双身份</template>
             <em>[?]</em>
           </li>
 

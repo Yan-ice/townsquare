@@ -440,10 +440,10 @@ export default {
     movePlayer(targetplayer) {
       this.isMenuOpen = false;
       // this.$emit("trigger", ["movePlayer", player]);
-      this.$store.commit("players/swap", [
-          this.index,
-          this.playerToIndex(this.loginbackend.playerId),
-        ]);
+      // this.$store.commit("players/swap", [
+      //     this.index,
+      //     this.playerToIndex(this.loginbackend.playerId),
+      //   ]);
       
       let command = {
         "header": "request",
