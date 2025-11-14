@@ -72,6 +72,10 @@
         @mousedown="isFading = true"
         @mouseup="isFading = false"
         @mouseleave="isFading = false"
+
+        @touchstart.prevent="isFading = true"
+        @touchend.prevent="isFading = false"
+        @touchcancel.prevent="isFading = false"
       >
         <font-awesome-icon icon="people-arrows" />
         (按住)观察魔典

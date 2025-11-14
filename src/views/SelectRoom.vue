@@ -33,7 +33,7 @@
         <button type="submit">
           创建离线房间
         </button>
-        <!-- <p class="title blackp">注：该功能为线下使用电子魔典说书专用。</p> -->
+        <p class="title blackp">（线下说书专用）</p>
         </form>
       </div>
     </div>

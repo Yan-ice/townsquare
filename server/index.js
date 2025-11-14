@@ -188,6 +188,7 @@ function set_joingame(client, session, player, mdict) {
          a.addCommand("state", "host");
          a.addCommand("reset", "");
          client.send(a.serialize());  
+         return;
       }
       if(!channels[session]) {
         if(!player.is_storyteller) {
