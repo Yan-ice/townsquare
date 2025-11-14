@@ -57,10 +57,28 @@ const getters = {
     return players.filter((player) => !player.isDead).length;
   },
   playerToIndex: (state) => (player) => {
-    if(state.storyteller.id != '' && player.id == state.storyteller.id) {
-      return 100;
+    let index = -1;
+    if(Number.isInteger(Number(player))) {
+      if(Number(player) > 1000) {
+        for(let a = 0;a<state.players.length;a++) {
+          if(state.players[a].id === player) {
+            index = a;
+          }
+        }
+        //story teller has fixed index 100.
+        if(state.storyteller.id != '' && state.storyteller.id === player) {
+          index = 100;
+        }
+      }else{
+        index = Number(player);
+      }
+    }else{
+      index = state.players.indexOf(player);
+      if(state.storyteller.id != '' && player.id === state.storyteller.id) {
+        index = 100;
+      }
     }
-    return state.players.indexOf(player);
+    return index;
   },
   indexToPlayer: (state) => (index) => {
     if(index == -1) {

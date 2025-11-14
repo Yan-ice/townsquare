@@ -208,7 +208,7 @@ class LiveSession {
         packet.forEachCommand(this._handleSession.bind(this));
         return;
       case 'require':
-        packet.forEachCommand(this._handleRequire.bind(this));
+        packet.forEachCommand(this._handleRequire.bind(this)); //HOST can require anyone.
         return;
       case 'sync':
         packet.forEachCommand(this._handleSync.bind(this)); //HOST sync commits to all PLAYER through this.

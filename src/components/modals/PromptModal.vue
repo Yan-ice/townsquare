@@ -42,6 +42,10 @@
     methods: {
       ...mapMutations(["setDialog", "toggleModal"]),
 
+      resetData() {
+        // 重置你所有 data 中的字段
+        this.promptInput = "";
+      },
       onConfirm() {
         if (this.dialog.resolve) {
           if (this.dialog.type === "prompt") {
@@ -70,8 +74,15 @@
           resolve: null,
         });
         this.toggleModal("");
-      },
+      }
     },
+    watch: {
+      "modals.showInfo"(val) {
+        if (val) {
+          this.resetData();   // 每次打开时清空 data
+        }
+      },
+    }
   };
   </script>
   

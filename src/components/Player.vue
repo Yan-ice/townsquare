@@ -205,6 +205,13 @@
             </template>
           </template>
 
+          <template v-if="!session.isWatcher && !player.id">
+            <li @click="movePlayer()" :class="{ disabled: session.lockedVote }">
+                <font-awesome-icon icon="book-dead" />
+              交换座位
+            </li>
+          </template>
+
           <template v-if="session.isWatcher && player.id">
             <li @click="watchGrimoire()">
                 <font-awesome-icon icon="question" />
@@ -430,9 +437,24 @@ export default {
       this.isMenuOpen = false;
       this.$emit("trigger", ["swapPlayer", player]);
     },
-    movePlayer(player) {
+    movePlayer(targetplayer) {
       this.isMenuOpen = false;
-      this.$emit("trigger", ["movePlayer", player]);
+      // this.$emit("trigger", ["movePlayer", player]);
+      this.$store.commit("players/swap", [
+          this.index,
+          this.playerToIndex(this.loginbackend.playerId),
+        ]);
+      
+      let command = {
+        "header": "request",
+        "receiver": "host",
+        "command": "players/swap",
+        "param": [
+          this.index,
+          this.playerToIndex(this.loginbackend.playerId)
+        ],
+      }
+      this.$store.commit("session/sendCommand", command);
     },
     nominatePlayer(player) {
       this.isMenuOpen = false;

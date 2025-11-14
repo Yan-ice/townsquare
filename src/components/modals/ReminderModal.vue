@@ -99,7 +99,7 @@ export default {
     ...mapState("players", ["players"]),
   },
   methods: {
-    addReminder(reminder) {
+    async addReminder(reminder) {
       const player = this.$store.state.players.players[this.playerIndex];
       let value;
       if(this.playerRoleth === 2)  {
@@ -118,7 +118,8 @@ export default {
         });
       } else {
         if (reminder.role === "custom") {
-          const name = prompt("添加自定义reminder");
+          const name = await my_prompt("添加自定义reminder:"); //TODO
+          
           if (!name) return;
           
           value = [...player.reminders, { role: "custom", name }];

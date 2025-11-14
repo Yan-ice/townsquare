@@ -607,6 +607,10 @@ wss.on("connection", function connection(ws, req) {
           if(!channels[packet.session]) return;
           routeTo(packet.session, packet, Router.TARGET);
           break;
+        case "request":
+          if(!channels[packet.session]) return;
+          routeTo(packet.session, packet, Router.HOST);
+          break;
         case "direct":
           if(!channels[packet.session]) return;
           routeTo(packet.session, packet, Router.TARGET);

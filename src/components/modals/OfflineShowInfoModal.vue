@@ -1,4 +1,6 @@
 <template>
+  <div :class="['modal-fade-wrapper', isFading ? 'faded' : '']">
+
   <Modal
     v-if="modals.showInfo"
     @close="toggleModal('showInfo')"
@@ -63,15 +65,25 @@
         
       </div>
     </div>
-
     <!-- 确认按钮 -->
     <div class="button-group">
+      <div
+        class="button"
+        @mousedown="isFading = true"
+        @mouseup="isFading = false"
+        @mouseleave="isFading = false"
+      >
+        <font-awesome-icon icon="people-arrows" />
+        (按住)观察魔典
+      </div>
       <div class="button" @click="confirmSelection">
         <font-awesome-icon icon="people-arrows" />
         确认展示
       </div>
     </div>
   </Modal>
+      
+</div>
 </template>
 
 <script>
@@ -83,6 +95,7 @@ export default {
   components: { Token, Modal },
   data() {
     return {
+      isFading: false,
       roleSelection: {},
       keywords: ["你的角色是", " 他是恶魔 ", "他(们)是爪牙", "这些角色不在场", "  你得知  ", "请选择玩家", "请选择角色", "要使用能力吗", "这个选择不被允许", "他的能力对你生效", "邪恶的", "善良的"], // 左侧关键词
       selectedKeyword: null,
@@ -156,12 +169,25 @@ export default {
     roles() {
       this.selectRandomRoles();
     },
+    isFading() {
+      console.log("Faded: "+this.isFading);
+    }
   },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "../../vars.scss";
+
+.modal-fade-wrapper {
+  z-index: 5000;
+  transition: opacity 0.15s ease;
+}
+
+.modal-fade-wrapper.faded {
+  opacity: 0.1;   /* 或者 0.02，看你想透明到什么程度 */
+}
+
 
 .selector-wrapper {
   display: flex;
