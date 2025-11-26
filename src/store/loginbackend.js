@@ -125,7 +125,7 @@ const actions = {
       "header": "sessionset",
       "session": payload.sessionId,
       "command": "watch",
-      "param": "roompwd"
+      "param": false
     }
     commit("session/sendCommand", command, {root: true});
   },

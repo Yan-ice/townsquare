@@ -224,8 +224,12 @@ io.on("connection", (socket) => {
     const prepare_peer = room.prepares.get(socket.data.userId);
     prepare_peer.rtpCapabilities = rtpCapabilities;
 
-    // 当客户端调用 sendTransport.produce 时，服务端创建 Producer, 这是玩家或说书人。
-    socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
+    if (prepare_peer.isWatch) {
+      room.watchers.set(socket.data.userId, prepare_peer);
+      room.prepares.delete(socket.data.userId);
+    }else{
+      // 当客户端调用 sendTransport.produce 时，服务端创建 Producer, 这是玩家或说书人。
+      socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
 
         // 限制最大码率
         if (rtpParameters.encodings && rtpParameters.encodings.length > 0) {
@@ -261,19 +265,16 @@ io.on("connection", (socket) => {
         }
 
         callback({ id: prepare_peer.producer.id });
+      });
+    }
 
-    });
 
-    // 当客户端调用 sendTransport.watch 时，服务端创建 Producer, 这是旁观者。
-    socket.on("watch", async ({ transportId, kind, rtpParameters }, callback) => {
-      room.watchers.set(socket.data.userId, prepare_peer);
-      room.prepares.delete(socket.data.userId);
-    });
     // 客户端发送 consume 请求时，立即创建 consumer[]
     socket.on("consume", async ({ targetuserId }, callback) => {
       console.log(socket.data.userId, "start consume", targetuserId);
 
       var peer = room.users.get(socket.data.userId);
+
       if(!peer) {
         peer = room.watchers.get(socket.data.userId);
       }

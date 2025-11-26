@@ -369,30 +369,13 @@ class MediasoupRoom {
 
     await this.device.load({ routerRtpCapabilities });
 
-    // this.sendTransport = this.device.createSendTransport(sendTransportOptions);
+    //this.sendTransport = this.device.createSendTransport(sendTransportOptions);
     this.recvTransport = this.device.createRecvTransport(recvTransportOptions);
-
-    // 连接 sendTransport
-    // this.sendTransport.on("connect", ({ dtlsParameters }, callback) => {
-    //   this.socket.emit("transport-connect", { transportId: this.sendTransport.id, dtlsParameters });
-    //   callback();
-    // });
 
     // 连接 recvTransport
     this.recvTransport.on("connect", ({ dtlsParameters }, callback) => {
       this.socket.emit("transport-connect", { transportId: this.recvTransport.id, dtlsParameters });
       callback();
-    });
-
-    //produce 事件
-    this.sendTransport.on("produce", ({ kind, rtpParameters }, callback) => {
-      this.socket.emit("watch", {
-        transportId: this.sendTransport.id,
-        kind,
-        rtpParameters,
-      }, ({ id }) => {
-        callback({ id });
-      });
     });
 
     const { existingUsers } = await this.promise_request("startTalk", {
