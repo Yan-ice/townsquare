@@ -400,9 +400,6 @@ function routeTo(session, packet, router) {
   }
 }
 
-
-
-
 function analyse_room_command(packet, cmd, param) {
   const sender_player = online_players[packet.sender];
   if(!sender_player) {
@@ -487,6 +484,25 @@ function analyse_room_command(packet, cmd, param) {
           online_players[request[1]].socket.send(b.serialize());
           //new private chat. connect.
       }
+      break;
+    case "follow_chat":
+      let frequest = ['',''];
+      let freceive = ['__x-','__x-'];
+      room.privchat_pair.forEach((pair)=>{
+        if (pair[0] == sender_player.token) {
+          frequest = pair;
+        }
+        if (pair[1] == sender_player.token) {
+          freceive = pair;
+        }
+      });
+
+      if(request[0] == receive[1] && request[1] == receive[0]) {
+        const a = new CommandPacket("sessionset");
+        a.addCommand("follow_chat", frequest);
+        sender_player.socket.send(a.serialize());
+        //Originally in chat. could follow.
+    }
       break;
   }
 }

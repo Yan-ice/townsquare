@@ -257,7 +257,7 @@ class MediasoupRoom {
       routerRtpCapabilities,
       sendTransportOptions,
       recvTransportOptions,
-    } = await this.promise_request("initializeTalk", { roomId, userId });
+    } = await this.promise_request("initializeTalk", { roomId, userId, isWatch: false });
 
     await this.device.load({ routerRtpCapabilities });
 
@@ -277,6 +277,7 @@ class MediasoupRoom {
 
     // produce 事件
     this.sendTransport.on("produce", ({ kind, rtpParameters }, callback) => {
+
       this.socket.emit("produce", {
         transportId: this.sendTransport.id,
         kind,
@@ -304,6 +305,114 @@ class MediasoupRoom {
         opusStereo: false,  // 可选：单声道，减少带宽
       },
     });
+
+    this.startNetworkMonitor();
+
+    // 消费其他producer
+    for (const userId of existingUsers) {
+      this.consume(userId);
+    }
+
+    this.joined = true;
+    this.setMute(true);
+    
+  }
+
+  async watchRoom(roomId, userId, serverURL) {
+    if (this.joined) {
+      console.warn("Already joined");
+      return;
+    }
+
+    if(!roomId || !userId){
+      my_alert("错误：客户端信息不同步! 建议刷新网页。");
+      return;
+    }
+
+    this.roomId = roomId;
+    this.userId = userId;
+
+    this.serverURL = serverURL;
+
+    this.socket = io(this.serverURL, { timeout: 10000, reconnection: false });
+
+    this.device = new mediasoupClient.Device();
+
+    this.socket.on("newUser", ({ userId }) => {
+      this.consume(userId);
+    });
+
+    this.socket.on("connect_error", () => {
+      my_alert("无法连接至语音服务器。");
+      this.socket = null;
+      this.device = null;
+      this.joined = false;
+      this.roomId = '';
+      this.userId = '';
+      this.sendTransport = null;
+      this.recvTransport = null;
+    });
+
+    this.socket.on("disconnect", () => {
+      this.socket = null;
+      this.device = null;
+      this.joined = false;
+      this.sendTransport = null;
+      this.recvTransport = null;
+    });
+
+    const {
+      routerRtpCapabilities,
+      sendTransportOptions,
+      recvTransportOptions,
+    } = await this.promise_request("initializeTalk", { roomId, userId, isWatch: true });
+
+    await this.device.load({ routerRtpCapabilities });
+
+    // this.sendTransport = this.device.createSendTransport(sendTransportOptions);
+    this.recvTransport = this.device.createRecvTransport(recvTransportOptions);
+
+    // 连接 sendTransport
+    // this.sendTransport.on("connect", ({ dtlsParameters }, callback) => {
+    //   this.socket.emit("transport-connect", { transportId: this.sendTransport.id, dtlsParameters });
+    //   callback();
+    // });
+
+    // 连接 recvTransport
+    this.recvTransport.on("connect", ({ dtlsParameters }, callback) => {
+      this.socket.emit("transport-connect", { transportId: this.recvTransport.id, dtlsParameters });
+      callback();
+    });
+
+    //produce 事件
+    this.sendTransport.on("produce", ({ kind, rtpParameters }, callback) => {
+      this.socket.emit("watch", {
+        transportId: this.sendTransport.id,
+        kind,
+        rtpParameters,
+      }, ({ id }) => {
+        callback({ id });
+      });
+    });
+
+    const { existingUsers } = await this.promise_request("startTalk", {
+      roomId,
+      rtpCapabilities: this.device.rtpCapabilities,
+    });
+
+    // 限制最大码率
+    // this.producer = await this.sendTransport.produce({
+    //   track,
+    //   encodings: [
+    //     {
+    //       maxBitrate: 24000, // 限制最大码率为 24kbps
+    //     },
+    //   ],
+    //   codecOptions: {
+    //     opusDtx: true,      // ✅ 启用 DTX（静音时不发送）
+    //     opusStereo: false,  // 可选：单声道，减少带宽
+    //   },
+    // });
 
     this.startNetworkMonitor();
 
@@ -358,6 +467,16 @@ class MediasoupRoom {
       //Not implemented yet.
     });
   }
+
+  async followPrivateChat(target_user_id1, target_user_id2) {
+    this.socket.emit("follow_private", {
+      target_user_id1,
+      target_user_id2
+    }, async () =>{
+      //Not implemented yet.
+    });
+  }
+
 
   async leaveRoom() {
     

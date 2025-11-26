@@ -113,6 +113,9 @@ const mutations = {
   lockVote(state, lock) {
     state.lockedVote = lock !== undefined ? lock : state.lockedVote + 1;
   },
+  followChatRequest(state, payload) { //listened by socket
+    state.private_chat_target = payload.username;
+  },
   privateChatRequest(state, payload) { //listened by socket
     state.private_chat_target = payload.username;
   },

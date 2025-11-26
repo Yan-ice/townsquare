@@ -43,7 +43,7 @@ const CODECS = {
 
 const rooms = new Map(); 
 // roomId => 
-// { router, users: Map{userId, peers}, prepares: Map{userId, peers}}
+// { router, users: Map{userId, peers}, watchers: Map{userId, peers}, prepares: Map{userId, peers}}
 
 let worker;
 
@@ -75,13 +75,14 @@ function closeConnection(io, roomId, userId) {
             );
             room.users.delete(userId);
             room.prepares.delete(userId);
+            room.watchers.delete(userId);
             peer.socket.disconnect();
             console.log('Client disconnected:', userId);
         }
     }
 }
 
-function intoPrivate(io, roomId, userId) {
+function intoPrivate(roomId, userId, targetId) {
     const room = rooms.get(roomId);
     if(room) {
         const peer = room.users.get(userId);
@@ -103,16 +104,18 @@ function intoPrivate(io, roomId, userId) {
             );
 
             peer.inprivate = true;
+            peer.privateTarget = targetId;
         }
     }
 }
 
-function leavePrivate(io, roomId, userId) {
+function leavePrivate(roomId, userId) {
     const room = rooms.get(roomId);
     if(room) {
         const peer = room.users.get(userId);
         if(peer) {
             peer.inprivate = false;
+            peer.privateTarget = 0;
             console.log('Client leave Private:', peer.id);
             // io.to(peer.id).emit("closedByRemote");
             
@@ -149,13 +152,13 @@ function findProducerId(roomId, userId) {
 
 io.on("connection", (socket) => {
 
-  socket.on("initializeTalk", async ({roomId, userId}, callback) => {
+  socket.on("initializeTalk", async ({roomId, userId, isWatch}, callback) => {
     console.log('Client initialize:', socket.id, roomId, userId);
     
 
     if (!rooms.has(roomId)) {
       const router = await worker.createRouter({ mediaCodecs: [ CODECS ] });
-      rooms.set(roomId, { router, users: new Map(), prepares: new Map()});
+      rooms.set(roomId, { router, users: new Map(), watchers: new Map(), prepares: new Map()});
     }else{
       closeConnection(io, roomId, userId);
     }
@@ -175,10 +178,12 @@ io.on("connection", (socket) => {
     const peer = {
       id: socket.id,
       userId: userId,
+      isWatch: isWatch,
       transports: { send: sendTransport, recv: recvTransport },
       producer: null,
       consumers: [],
       inprivate: false,
+      privateTarget: 0,
       socket: socket
     };
 
@@ -219,47 +224,64 @@ io.on("connection", (socket) => {
     const prepare_peer = room.prepares.get(socket.data.userId);
     prepare_peer.rtpCapabilities = rtpCapabilities;
 
-    // 当客户端调用 sendTransport.produce 时，服务端创建 Producer
+    // 当客户端调用 sendTransport.produce 时，服务端创建 Producer, 这是玩家或说书人。
     socket.on("produce", async ({ transportId, kind, rtpParameters }, callback) => {
 
-      // 限制最大码率
-      if (rtpParameters.encodings && rtpParameters.encodings.length > 0) {
-        console.log(rtpParameters.encodings)
-        for (const encoding of rtpParameters.encodings) {
-          encoding.maxBitrate = 24000; // 24kbps
+        // 限制最大码率
+        if (rtpParameters.encodings && rtpParameters.encodings.length > 0) {
+          console.log(rtpParameters.encodings)
+          for (const encoding of rtpParameters.encodings) {
+            encoding.maxBitrate = 24000; // 24kbps
+          }
+        } else {
+          // 如果没有encodings数组，可以手动创建
+          rtpParameters.encodings = [{ maxBitrate: 24000 }];
         }
-      } else {
-        // 如果没有encodings数组，可以手动创建
-        rtpParameters.encodings = [{ maxBitrate: 24000 }];
-      }
 
-      const transport = prepare_peer.transports.send;
-      const producer = await transport.produce({ kind, rtpParameters });
+        const transport = prepare_peer.transports.send;
+        const producer = await transport.produce({ kind, rtpParameters });
 
-      prepare_peer.producer = producer;
-      console.log('Client has new producer:', socket.data.userId, producer.id);
+        prepare_peer.producer = producer;
+        console.log('Client has new producer:', socket.data.userId, producer.id);
+
 
       room.users.set(socket.data.userId, prepare_peer);
       room.prepares.delete(socket.data.userId);
 
-      // 通知其他人有新 producer（可选）
-      for (let [otherId, otherPeer] of room.users.entries()) {
-        if (otherId !== socket.data.userId) {
-          io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
+        // 通知其他人有新 producer（可选）
+        for (let [otherId, otherPeer] of room.users.entries()) {
+          if (otherId !== socket.data.userId) {
+            io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
+          }
         }
-      }
+        for (let [otherId, otherPeer] of room.watchers.entries()) {
+            if (otherId !== socket.data.userId) {
+              io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
+            }
+        }
 
-      callback({ id: producer.id });
+        callback({ id: prepare_peer.producer.id });
+
     });
 
+    // 当客户端调用 sendTransport.watch 时，服务端创建 Producer, 这是旁观者。
+    socket.on("watch", async ({ transportId, kind, rtpParameters }, callback) => {
+      room.watchers.set(socket.data.userId, prepare_peer);
+      room.prepares.delete(socket.data.userId);
+    });
     // 客户端发送 consume 请求时，立即创建 consumer[]
     socket.on("consume", async ({ targetuserId }, callback) => {
       console.log(socket.data.userId, "start consume", targetuserId);
-      const peer = room.users.get(socket.data.userId);
+
+      var peer = room.users.get(socket.data.userId);
+      if(!peer) {
+        peer = room.watchers.get(socket.data.userId);
+      }
       if(!peer) {
         console.log("error: ",socket.data.userId,"not prepared.");
         return;
       }
+
       const producerId = findProducerId(socket.data.roomId, targetuserId);
 
       if (!room.router.canConsume({ producerId, rtpCapabilities })) {
@@ -291,9 +313,9 @@ io.on("connection", (socket) => {
         return;
       }
       
-      intoPrivate(io, socket.data.roomId, socket.data.userId);
-
       if (target_user_id) {
+        intoPrivate(socket.data.roomId, socket.data.userId, target_user_id);
+
         console.log(socket.data.userId+" enable connection to "+target_user_id);
         peer.consumers.forEach((consumer)=>
           {
@@ -320,9 +342,32 @@ io.on("connection", (socket) => {
         console.log("error: ",socket.data.userId,"not prepared.");
         return;
       }
-      leavePrivate(io, socket.data.roomId, socket.data.userId);
+      leavePrivate(socket.data.roomId, socket.data.userId);
     });
 
+    socket.on("follow_private", async ({ target_user_id1, target_user_id2 }, callback) => {
+      const peer = room.users.get(socket.data.userId);
+      if(!peer) {
+        console.log("error: ",socket.data.userId,"not prepared.");
+        return;
+      }
+      if(!target_peer || !target_peer.inprivate) {
+        console.log("error: ",target_user_id,"not in private (or not exist).");
+      }
+
+        intoPrivate(io, socket.data.roomId, socket.data.userId, target_user_id);
+
+        peer.consumers.forEach((meconsumer)=>
+          {
+            if(meconsumer.target == target_user_id1) {
+              consumer.resume();
+            }
+            if(meconsumer.target == target_user_id2) {
+              consumer.resume();
+            }
+          }
+        );
+    });
     // 给客户端返回所有初始化信息
     callback({
       existingUsers: Array.from(room.users.keys().filter((id)=>{return id!=socket.data.userId;})),

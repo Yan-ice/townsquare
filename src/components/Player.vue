@@ -197,7 +197,7 @@
                 <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <template v-if="session.isSpectator && !player.isST && loginbackend.isMdict">
+            <template v-if="loginbackend.isMdict">
               <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="volume-up" />
                 发起私聊
@@ -359,9 +359,9 @@ export default {
     privateChat() {
       this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
     },
-    listenPrivateChat_ST() {
+    listenPrivateChat() {
       if (this.session.isSpectator) return;
-      this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
+      this.$store.commit("session/followChatRequest", {targetId: this.player.id, username: this.player.name});
     },
     watchGrimoire() {
       my_alert("功能正在开发中～");

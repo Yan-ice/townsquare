@@ -27,7 +27,7 @@
     <font-awesome-icon v-if = "loginbackend.networkPoor" icon="minus-circle" />
     <font-awesome-icon v-else-if = "loginbackend.isMute" icon="microphone-slash" />
     <font-awesome-icon v-else icon="microphone" />
-    {{ loginbackend.networkPoor ? '警告:当前网络质量较差' : (loginbackend.isMute ? '麦克风:已关闭(点击切换)' : '麦克风:开启中(点击切换)') }}
+    {{ loginbackend.networkPoor ? '警告:当前网络质量较差' : (session.isWatcher ? '旁观模式(无法开启麦克风)': (loginbackend.isMute ? '麦克风:已关闭(点击切换)' : '麦克风:开启中(点击切换)')) }}
 
     </span>
 

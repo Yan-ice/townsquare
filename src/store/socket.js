@@ -304,6 +304,12 @@ class LiveSession {
                 "getGamestate",
                 this._store.state.loginbackend.playerId,
             );
+            if(this._mdict) {
+              await mediasoupRoom.watchRoom(packet.session, 
+                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
+              mediasoupRoom.setMute(this._store.state.isMute);
+              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
+            }
             my_alert("提示：你处于观战模式。如要进行游戏，请退出房间重新进入。");
 
           }else if (params == 'leave'){
@@ -327,6 +333,15 @@ class LiveSession {
             this._store.commit("session/setPrivateChatConnected", false);
           }
           break;
+        case 'follow_chat':
+            if(params && params.length >= 2) {
+              mediasoupRoom.followPrivateChat(params[0], params[1]);
+              this._store.commit("session/setPrivateChatConnected", true);
+            }else{
+              mediasoupRoom.stopPrivateChat();
+              this._store.commit("session/setPrivateChatConnected", false);
+            }
+            break;
         case 'info':
           my_alert(params);
           break;
@@ -1171,7 +1186,18 @@ class LiveSession {
       }else{
         this._store.commit("toggleModal", "");
       }
-      
+  }
+
+  sendFollowChatRequest(targetId) { //enpty means leave chat.
+    if (this._isSpectator) return;
+      const packet = new CommandPacket("sessionset");
+      packet.addCommand("follow_chat", targetId);
+      this._sendPacket(packet);
+      if(targetId) {
+        this._store.commit("toggleModal", "followChat");
+      }else{
+        this._store.commit("toggleModal", "");
+      }
   }
 }
 
@@ -1197,6 +1223,9 @@ export default (store) => {
         break;
       case "session/privateChatLeave":
         session.sendPrivateChatRequest('');
+        break;
+      case "session/followChatRequest":
+        session.sendFollowChatRequest(payload.targetId);
         break;
       case "players/kick":
         session.kickPlayer(payload);

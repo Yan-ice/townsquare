@@ -201,6 +201,7 @@ export default {
 /* 左栏：单选关键词 */
 .left-panel {
   flex: 0 0 18vw;
+  min-width: 20vw;
   border-right: 1px solid #ccc;
   padding: 10px;
 
@@ -212,8 +213,7 @@ export default {
     li {
       display: block; /* ✅ 每个 li 独占一行 */
       cursor: pointer;
-      padding: 8px;
-      margin-bottom: 5px;
+      padding: 10px;
       border-radius: 4px;
       text-align: center;
 
