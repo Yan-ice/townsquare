@@ -90,6 +90,9 @@ const getters = {
     return state.players[index];
   },
   uidToPlayer: (state) => (uid) => {
+    if(state.storyteller.id == uid) {
+      return state.storyteller;
+    }
     return state.players.find(player => player.id === uid) || null;
   },
   nonTravelers({ players }) {

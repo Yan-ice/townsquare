@@ -58,7 +58,7 @@
 
       <!-- Overlay icons -->
       <div class="overlay">
-        <template v-if="playerHosting">
+        <template v-if="isHostingChat">
           <font-awesome-icon
             icon="phone"
             class="hostchat"
@@ -205,12 +205,13 @@
                 <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <template v-if="loginbackend.isMdict && player.id == loginbackend.playerId">
+          </template>
+
+          <template v-if="loginbackend.isMdict && player.id == loginbackend.playerId">
               <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="volume-up" />
                 发起私聊
               </li>
-            </template>
           </template>
 
           <template v-if="!session.isWatcher && !player.id">
@@ -295,7 +296,7 @@ export default {
   },
   computed: {
     ...mapState("players", ["players"]),
-    ...mapState(["grimoire", "session", "loginbackend"]),
+    ...mapState(["grimoire", "session", "loginbackend", "chat"]),
     ...mapGetters({ nightOrder: "players/nightOrder", playerToIndex: "players/playerToIndex" }),
     index: function () {
       return this.playerToIndex(this.player);
@@ -345,8 +346,9 @@ export default {
     },
     isHostingChat() {
       const uid = this.player.id;
-      const hostroom = this.$store.state.chat.chatRooms.get(uid);
-      return hostroom?.includes(uid) ?? false;
+      const hostroom = this.chat.chatRooms[uid]; // 直接通过对象 key 访问
+      const isHosting = hostroom ? hostroom.includes(uid) : false;
+      return isHosting;
     }
   },
   data() {
@@ -389,8 +391,23 @@ export default {
           "receiver": "host",
           "command": "chat/applyChatChannel",
           "param": {
-            userId: this.$store.loginbackend.playerId,
+            userId: this.loginbackend.playerId,
             roomId: this.player.id
+          },
+        }
+        this.$store.commit("session/sendCommand", command);
+      }
+
+      //观战者或说书人直接通过
+      if(this.session.isWatcher || !this.session.isSpectator) {
+        let command = {
+          "header": "request",
+          "receiver": "host",
+          "command": "chat/processChatChannel",
+          "param": {
+            ownerId: this.player.id,
+            applierId: this.loginbackend.playerId,
+            comment: true
           },
         }
         this.$store.commit("session/sendCommand", command);
@@ -711,7 +728,7 @@ export default {
   &.move,
   &.nominate,
   &.vote,
-  &.cancel {
+  &.cancel{
     width: 50%;
     height: 60%;
     opacity: 0;
@@ -731,13 +748,23 @@ export default {
       fill: url(#townsfolk);
     }
   }
-  &.hostroom {
-    width: 60%;
-    height: 60%;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 200ms;
-    transform: scale(0.2);
+  &.hostchat {
+    width: 45%;
+    height: 52%;
+    pointer-events: all;
+    * {
+      stroke-width: 10px;
+      stroke: white;
+      fill: url(#default);
+    }
+    &:hover *,
+    &.fa-hand-paper * {
+      fill: url(#demon);
+    }
+    &.fa-times * {
+      fill: url(#townsfolk);
+    }
+    z-index: 30;
   }
 }
 

@@ -1,32 +1,30 @@
-// chatroom.js  —— 完整可直接复制
+// chat.js
+import Vue from "vue";
 
 const state = () => ({
-    chatAppliers: new Map(),  // ownerId -> [users...]
-    chatRooms: new Map(),     // ownerId -> [users...]
-    myRoom: null, //referred by mediabackend
+    chatAppliers: {},  // ownerId -> array of users
+    chatRooms: {},     // ownerId -> array of users  
     isMute: false, 
     networkPoor: false,
     isSpeaking: false
 });
 
-const getters = {
-    // 返回包含 userId 的房间 ownerId
-    findChannel: (state) => (userId) => {
-        // 在 chatRooms 中查找
-        for (const [owner, members] of state.chatRooms.entries()) {
-            if (members.includes(userId)) return owner;
-        }
-        // 在 chatAppliers 中查找
-        for (const [owner, appliers] of state.chatAppliers.entries()) {
-            if (appliers.includes(userId)) return owner;
-        }
-        return null;
-    },
+// helper 查找用户所在房间（返回 ownerId 或 null）
+function findChannel(state, userId) {
+    for (const ownerId in state.chatRooms) {
+        if (state.chatRooms[ownerId].includes(userId)) return ownerId;
+    }
+    for (const ownerId in state.chatAppliers) {
+        if (state.chatAppliers[ownerId].includes(userId)) return ownerId;
+    }
+    return null;
+}
 
+const getters = {
     // 返回当前玩家所在房间的 ownerId（如果有）
     myRoomId: (state, getters, rootState) => {
         const playerId = rootState.loginbackend.playerId;
-        return getters.findChannel(playerId);
+        return findChannel(state, playerId);
     },
 
     // 是否是当前房间的房主（myRoomId 是否等于 playerId）
@@ -36,44 +34,54 @@ const getters = {
         return roomId === playerId;
     },
 
+    // 是否是申请中
+    isApplying: (state, getters, rootState) => {
+        const playerId = rootState.loginbackend.playerId;
+        const roomId = getters.myRoomId;
+        if (roomId && state.chatAppliers[roomId]) {
+            return state.chatAppliers[roomId].includes(playerId);
+        }
+        return false;
+    },
+
     // 当前所在房间的成员列表（来自 chatRooms）
     myRoomMember: (state, getters) => {
         const roomId = getters.myRoomId;
         if (!roomId) return null;
-        return state.chatRooms.get(roomId) || null;
+        return state.chatRooms[roomId] || [];
     },
 
     // 当前所在房间的申请者列表（来自 chatAppliers）
     myRoomApplier: (state, getters) => {
         const roomId = getters.myRoomId;
         if (!roomId) return null;
-        return state.chatAppliers.get(roomId) || null;
+        return state.chatAppliers[roomId] || [];
     },
 };
 
-
-// mutations helper functions
 const set = (key) => (state, val) => {
     state[key] = val;
-  };
+};
 
 const mutations = {
-    joinRoom(state, {roomId}){ //listened by mediabackend
+    joinRoom(state, { roomId }) { //subscribed
         state.isMute = true;
     },
-    leaveRoom(state){ //listened by mediabackend
 
-    },
+    leaveRoom(state) { }, //subscribed
+
     setMute: set("isMute"),
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
+
     toggleMute(state) {
-        state.isMute = !isMute;
+        state.isMute = !state.isMute;
     },
+
     // ---------- 1) 房主处理玩家申请 ----------
-    processChatChannel(state, { ownerId, applierId, comment }, rootState) { //sync
-        const appliers = state.chat_appliers.get(ownerId);
-        const room = state.chat_rooms.get(ownerId);
+    processChatChannel(state, { ownerId, applierId, comment }) {
+        const appliers = state.chatAppliers[ownerId];
+        const room = state.chatRooms[ownerId];
 
         if (!appliers || !room) return;
 
@@ -83,71 +91,49 @@ const mutations = {
 
             if (comment) {
                 room.push(applierId);
-
-                // 当前玩家加入房间
-                if (applierId === rootState.loginbackend.playerId) {
-                    state.my_room = ownerId;
-                }
             }
         }
     },
 
     // ---------- 2) 用户申请加入房间 ----------
-    applyChatChannel(state, { userId, roomId }, rootState, getters) { //sync
+    applyChatChannel(state, { userId, roomId }) {
+        console.log("apply chat "+userId+" "+roomId);
 
-        // 如果用户是房主，创建房间
+        // 初始化房间对象
+        if (!state.chatRooms[roomId]) {
+            Vue.set(state.chatRooms, roomId, []);
+            Vue.set(state.chatAppliers, roomId, []);
+        }
+
+        // 检查用户是否已经在某个房间或申请列表
+        if (findChannel(state, userId)) return;
+
+        // 如果用户是房主，直接加入房间
         if (userId === roomId) {
-            state.chat_rooms.set(userId, [userId]);
-
-            if (userId === rootState.loginbackend.playerId) {
-                state.myRoom = userId;
-            }
+            state.chatRooms[roomId].push(userId);
             return;
         }
 
-        // 检查该用户是否已经在某个房间或申请列表
-        if (getters.findChannel(userId)) return;
-
         // 添加到申请列表
-        const appliers = state.chatAppliers.get(roomId);
-        if (appliers) {
-            appliers.push(userId);
-        } else {
-            state.chatAppliers.set(roomId, [userId]);
-        }
+        state.chatAppliers[roomId].push(userId);
     },
 
     // ---------- 3) 用户离开 ----------
-    leaveChatChannel(state, { userId }, rootState) { //sync
+    leaveChatChannel(state, { userId }, rootState) {
 
         // A. 从房间中移除
-        for (const [owner, members] of state.chatRooms.entries()) {
-            const idx = members.indexOf(userId);
-
-            if (idx !== -1) {
-                members.splice(idx, 1);
-
-                // 当前玩家离开
-                if (userId === rootState.loginbackend.playerId) {
-                    state.myRoom = null;
-                }
-            }
+        for (const owner in state.chatRooms) {
+            const idx = state.chatRooms[owner].indexOf(userId);
+            if (idx !== -1) state.chatRooms[owner].splice(idx, 1);
         }
 
         // B. 从申请列表中移除
-        for (const [owner, appliers] of state.chatAppliers.entries()) {
-            const idx = appliers.indexOf(userId);
-            if (idx !== -1) {
-                appliers.splice(idx, 1);
-            }
+        for (const owner in state.chatAppliers) {
+            const idx = state.chatAppliers[owner].indexOf(userId);
+            if (idx !== -1) state.chatAppliers[owner].splice(idx, 1);
         }
     },
 };
-
-
-// --------------------------------------------------------------
-// 🔥 4) 注册 my_room 监听器 —— 关键部分
-// --------------------------------------------------------------
 
 export default {
     namespaced: true,

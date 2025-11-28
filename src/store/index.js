@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import socket from "./socket";
 import loginbackend from "./loginbackend";
+import mediabackend from "./mediabackend";
 import persistence from "./persistence";
 import players from "./modules/players";
 import session from "./modules/session";
@@ -311,5 +312,5 @@ export default new Vuex.Store({
       state.modals.edition = false;
     },
   },
-  plugins: [socket, persistence],
+  plugins: [socket, mediabackend, persistence],
 });

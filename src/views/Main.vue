@@ -141,8 +141,7 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
     background: url("@/assets/background.jpg") center center;
     background-size: cover;
     color: white;
-    height: 100svh;
-    width: 100svw;
+    height: 100%;
     font-family: "Roboto Condensed", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -182,34 +181,7 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
     margin: 0;
     padding: 0;
   }
-  
-  #app {
-    height: 100%;
-    background-position: center center;
-    background-size: cover;
-    display: flex;
-    align-items: center;
-    align-content: center;
-    justify-content: center;
-  
-    // disable all animations
-    &.static *,
-    &.static *:after,
-    &.static *:before {
-      transition: none !important;
-      animation: none !important;
-    }
-  }
-  
-  #version {
-    position: absolute;
-    text-align: right;
-    right: 10px;
-    bottom: 10px;
-    font-size: 60%;
-    opacity: 0.5;
-  }
-  
+ 
   .blur-enter-active,
   .blur-leave-active {
     transition: all 250ms;
@@ -308,55 +280,5 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
     }
   }
   
-  /* video background */
-  video#background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  /* Night phase backdrop */
-  #app > .backdrop {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: 0;
-    pointer-events: none;
-    background: black;
-    background: linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(1, 22, 46, 1) 50%,
-      rgba(0, 39, 70, 1) 100%
-    );
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-    &:after {
-      content: " ";
-      display: block;
-      width: 100%;
-      padding-right: 2000px;
-      height: 100%;
-      background: url("@/assets/clouds.png") repeat;
-      background-size: 2000px auto;
-      animation: move-background 120s linear infinite;
-      opacity: 0.3;
-    }
-  }
-  
-  @keyframes move-background {
-    from {
-      transform: translate3d(-2000px, 0px, 0px);
-    }
-    to {
-      transform: translate3d(0px, 0px, 0px);
-    }
-  }
-  
-  #app.night > .backdrop {
-    opacity: 0.5;
-  }
   </style>
   

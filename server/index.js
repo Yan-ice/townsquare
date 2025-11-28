@@ -180,7 +180,6 @@ function set_joingame(client, session, player, mdict) {
            players: [],
            watchers: [],
            seat: [],
-           privchat_pair: [],
            mdict: false
          }
          const a = new CommandPacket("sessionset", offlineid);
@@ -208,7 +207,6 @@ function set_joingame(client, session, player, mdict) {
           players: [],
           watchers: [],
           seat: [],
-          privchat_pair: [],
           mdict: mdict
         }
         const a = new CommandPacket("sessionset", session);
@@ -440,73 +438,80 @@ function analyse_room_command(packet, cmd, param) {
       
       break;
     case "private_chat":
-      let request = ['',''];
-      let receive = ['__x-','__x-'];
-      room.privchat_pair.forEach((pair)=>{
-        if (pair[0] == sender_player.token) {
-          request = pair;
-        }
-        if (pair[1] == sender_player.token) {
-          receive = pair;
-        }
-      });
-
-      if(request[0] == '') {
-        room.privchat_pair.push([sender_player.token, param]) //request not exist.
+      if (param) {
+        const a = new CommandPacket("sessionset");
+        a.addCommand("private_chat", param);
+        sender_player.socket.send(a.serialize());
+        online_players[request[1]].socket.send(a.serialize());
+      }else{
+        const a = new CommandPacket("sessionset");
+        a.addCommand("private_chat", '');
+        sender_player.socket.send(a.serialize());
+        online_players[request[1]].socket.send(a.serialize());
       }
-
-      if(param == request[1]) {
-        break; //chat request already exist.
-      }
-      if(request[0] == receive[1] && request[1] == receive[0]) {
+      break;
+    case "chat_permit":
+        if (param) {
+          const a = new CommandPacket("sessionset");
+          a.addCommand("private_chat", param);
+          sender_player.socket.send(a.serialize());
+          online_players[request[1]].socket.send(a.serialize());
+        }else{
           const a = new CommandPacket("sessionset");
           a.addCommand("private_chat", '');
           sender_player.socket.send(a.serialize());
           online_players[request[1]].socket.send(a.serialize());
-          //Originally in chat. disconnect.
-      }
-
-      //update chat request target.
-      room.privchat_pair.forEach((pair)=>{
-        if (pair[0] == sender_player.token) {
-          pair[1] = param;
-          request = pair;
         }
-      });
-
-      if(request[0] == receive[1] && request[1] == receive[0]) {
-          const a = new CommandPacket("sessionset");
-          a.addCommand("private_chat", request[1]);
-          online_players[request[0]].socket.send(a.serialize());
-
-          const b = new CommandPacket("sessionset");
-          b.addCommand("private_chat", request[0]);
-          online_players[request[1]].socket.send(b.serialize());
-          //new private chat. connect.
-      }
-      break;
+        break;
     case "follow_chat":
       let frequest = ['',''];
       let freceive = ['__x-','__x-'];
       room.privchat_pair.forEach((pair)=>{
-        if (pair[0] == sender_player.token) {
+        if (pair[0] == param) {
           frequest = pair;
         }
-        if (pair[1] == sender_player.token) {
+        if (pair[1] == param) {
           freceive = pair;
         }
       });
 
-      if(request[0] == receive[1] && request[1] == receive[0]) {
+      if(frequest[0] == freceive[1] && frequest[1] == freceive[0]) {
+        
+        room.followchat_pair.push([sender_player.token, frequest[0]])
         const a = new CommandPacket("sessionset");
         a.addCommand("follow_chat", frequest);
         sender_player.socket.send(a.serialize());
         //Originally in chat. could follow.
     }
-      break;
+    break;
   }
 }
 
+function analyse_chat_command(packet, cmd, param) {
+  const sender_player = online_players[packet.sender];
+
+  if(!sender_player) {
+      console.log("[ERROR] Login first.");
+      return;
+  }
+  const room = channels[packet.session];
+
+  if(!room) return;
+
+  switch (cmd) {
+    case 'enter_chat':
+      if(param == sender_player.userId) { // 房间主人
+        const a = new CommandPacket("sessionset");
+        a.addCommand("chat", param);
+        sender_player.socket.send(a.serialize());
+        online_players[request[1]].socket.send(a.serialize());
+      }
+      //when join, param T/F shows whether Mdict (enable vocal)
+      break;
+    case 'leave_chat':
+      
+  }
+}
 function analyse_login_command(packet, cmd, param) {
   const loginData = param;
   switch (cmd) {
@@ -609,6 +614,9 @@ wss.on("connection", function connection(ws, req) {
           packet.forEachCommand(analyse_room_command);
           break;
 
+        case "chat": //related to private chat
+          packet.forEachCommand(analyse_chat_command);
+          break;
         case "sync":
           if(!channels[packet.session]) return;
           if(packet.sender == channels[packet.session].host.token){
@@ -712,6 +720,11 @@ function mark_connection_lost(ws) {
     channels[channel].players.forEach((player)=>{
       if (player['socket'].userId == ws.userId) {
         console.log("player disconnected:", player.token);
+
+        const chatlost = new CommandPacket("request");
+        chatlost.addCommand("chat/leaveChatChannel", {userId: player.token});
+        channels[channel].host['socket'].send(chatlost.serialize());
+
         const packet = new CommandPacket("request");
         packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: false});
         channels[channel].host['socket'].send(packet.serialize());

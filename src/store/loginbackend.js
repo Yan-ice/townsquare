@@ -78,6 +78,16 @@ const actions = {
 
     commit("setPlayerId", '');
     if (state.sessionId) {
+      let command1 = {
+        "header": "request",
+        "receiver": "host",
+        "command": "chat/leaveChatChannel",
+        "param": {
+          "userId": state.playerId
+        },
+      }
+      commit("session/sendCommand", command1, {root: true});
+  
       try {
        await mediasoupRoom.leaveRoom();
       } catch (e) {
@@ -126,6 +136,21 @@ const actions = {
     if (!state.playerId) {
       console.warn("playerId not set, cannot leaveRoom");
       return;
+    }
+
+    let command1 = {
+      "header": "request",
+      "receiver": "host",
+      "command": "chat/leaveChatChannel",
+      "param": {
+        "userId": state.playerId
+      },
+    }
+    commit("session/sendCommand", command1, {root: true});
+    try {
+      await mediasoupRoom.leaveRoom();
+    } catch (e) {
+      console.warn("leaveRoom error:", e);
     }
 
     let command = {

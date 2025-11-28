@@ -8,30 +8,16 @@
       点击申请者的名字，即可同意其参与你们的私聊。
     </h3>
     <br>
-
-      <div class="member-list">
-        <!-- 1. 渲染真正的成员 -->
-        <template v-for="uid in myRoomMember">
-          <PlayerShow
-            v-if="uidToPlayer(uid)"
-            :key="'member-' + uid"
-            :player="uidToPlayer(uid)"
-            :roleth="1"
-            :darken="false"
-          />
-        </template>
-
-        <!-- 2. 渲染申请者（灰暗） -->
-        <template v-for="uid in myRoomApplier">
-          <PlayerShow
-            v-if="uidToPlayer(uid)"
-            :key="'applier-' + uid"
-            :player="uidToPlayer(uid)"
-            :roleth="1"
-            :darken="true"
-          />
-        </template>
-
+      <div v-if="isApplying">
+        <h1> 正在等待房主同意加入私聊</h1>
+      </div>
+      <div class="member-list" v-if="!isApplying">
+        <PlayerShow
+          v-for="uid in [...myRoomMember, ...myRoomApplier]"
+          :key="uid"
+          :player="uidToPlayer(uid)"
+          :roleth="1"
+        />
       </div>
 
     <div class="button-group">
@@ -68,10 +54,13 @@ export default {
       return this.$store.state.chat;
     },
     uidToPlayer() {
-      return this.$store.getters["player/uidToPlayer"];
+      return this.$store.getters["players/uidToPlayer"];
     },
     isRoomHost() {
       return this.$store.getters["chat/isRoomHost"];
+    },
+    isApplying() {
+      return this.$store.getters["chat/isApplying"];
     },
     // myRoomId getter
     myRoomId() {
@@ -81,7 +70,8 @@ export default {
     // 当前房主名字
     roomHostName() {
       if (!this.myRoomId) return "未知用户";
-      const player = this.$store.getters["player/uidToPlayer"](myRoomId())
+      console.log("uid is: "+this.myRoomId)
+      const player = this.$store.getters["players/uidToPlayer"](this.myRoomId)
       if (player) return player.name
       return "未知玩家";
     },
@@ -108,7 +98,7 @@ export default {
             "receiver": "host",
             "command": "chat/leaveChatChannel",
             "param": {
-              "userId": this.$store.getters["chat/myRoomId"]
+              "userId": this.$store.state.loginbackend.playerId
             },
           }
           this.$store.commit("session/sendCommand", command);
@@ -145,6 +135,21 @@ textarea {
   height: 30vh;
   max-width: 100%;
   margin: 5px 0;
+}
+
+.member-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); // 每个格子最小100px，自动填充
+  grid-gap: 12px;       // 格子间距
+  justify-items: center; // 水平居中
+  align-items: center;   // 垂直居中
+  width: 100%;
+  max-width: 30vh;     // 可选：限制最大宽度
+  min-width: 50vh;
+  max-height: 40vh;
+  min-height: 20vh;
+  margin: 0 auto;       // 容器居中
+  padding: 10px;
 }
 
 </style>

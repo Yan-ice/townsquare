@@ -123,7 +123,7 @@ class MediasoupRoom {
         }
   
         this._handleNetworkQuality(isBadNetwork, analysis);
-        console.log("网络状态监测:", isBadNetwork, analysis);
+        //console.log("网络状态监测:", isBadNetwork, analysis);
       } catch (err) {
         console.warn("getStats error:", err);
       }
@@ -429,6 +429,7 @@ class MediasoupRoom {
   }
 
   async intoChannel(target_channel) {
+    if(!this.socket) return;
     if(this.currentChannel == target_channel){
       return;
     }
@@ -441,6 +442,7 @@ class MediasoupRoom {
   }
 
   async leaveChannel() {
+    if(!this.socket) return;
     if(!this.currentChannel){
       return;
     }
@@ -547,8 +549,8 @@ export default (store) => {
   const soup = new MediasoupRoom(store);
 
   soup.setUpdateCallback(() =>{
-      store.commit("chat/setNetworkPoor", mediasoupRoom.isNetworkPoor);
-      store.commit("chat/setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+      store.commit("chat/setNetworkPoor", soup.isNetworkPoor);
+      store.commit("chat/setPlayerIsSpeaking", soup.loud_keep > 0);
     }
   );
   
@@ -556,7 +558,7 @@ export default (store) => {
   store.subscribe(({ type, payload }, state) => {
     switch (type) {
       case "chat/joinRoom":
-        soup.joinRoom(payload.roomId, state.loginbackend.playerId, state.loginbackend.vocalServer);
+        soup.joinRoom(payload, state.loginbackend.playerId, state.loginbackend.vocalServer);
         soup.setMute(state.chat.is_mute);
         break;
       case "chat/leaveRoom":
@@ -565,8 +567,25 @@ export default (store) => {
       case "chat/processChatChannel":
       case "chat/applyChatChannel":
       case "chat/leaveChatChannel":
-        for (const [owner, members] of state.chat_rooms.entries()) {
-          if (members.includes(userId)) {
+        const openPrivateChatModal = () => {
+          if (!store.state.modals.privateChat) {
+            store.commit("toggleModal", "privateChat");
+          }
+        };
+        // 检查是否在申请列表
+        for (const owner in state.chat.chatAppliers) {
+          const appliers = state.chat.chatAppliers[owner];
+          if (appliers.includes(state.loginbackend.playerId)) {
+            openPrivateChatModal();
+            return;
+          }
+        }
+
+        // 检查是否在房间成员列表
+        for (const owner in state.chat.chatRooms) {
+          const members = state.chat.chatRooms[owner];
+          if (members.includes(state.loginbackend.playerId)) {
+            openPrivateChatModal();
             soup.intoChannel(owner);
             return;
           }

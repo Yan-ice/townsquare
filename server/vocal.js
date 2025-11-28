@@ -43,7 +43,7 @@ const CODECS = {
 
 const rooms = new Map(); 
 // roomId => 
-// { router, users: Map{userId, peers}, watchers: Map{userId, peers}, prepares: Map{userId, peers}}
+// { router, users: Map{userId, peers}, prepares: Map{userId, peers}}
 
 let worker;
 
@@ -75,68 +75,55 @@ function closeConnection(io, roomId, userId) {
             );
             room.users.delete(userId);
             room.prepares.delete(userId);
-            room.watchers.delete(userId);
             peer.socket.disconnect();
             console.log('Client disconnected:', userId);
         }
     }
 }
 
-function intoPrivate(roomId, userId, targetId) {
+function updatePrivateState(roomId) {
+  const room = rooms.get(roomId);
+  channels = new Map();
+  if(room) {
+    room.users.forEach((user) => {
+      const channel = user.privateTarget;
+      if(!channels.contains(channel)){
+        channels.set(channel, []);
+      }
+      channels[channel].push(user.userId);
+    })
+  }
+
+  channels.forEach((channel)=>{
+    //for all user in channel, enable its consumer to all members.
+    channel.forEach((userId) => {
+      peer = room.users.get(userId);
+      peer.consumers.forEach(consumer => {
+        if(consumer.target != peer.userId && channel.contains(consumer.target)) {
+          consumer.resume();
+        }else{
+          consumer.pause();  // 关闭self的Consumer
+        }
+      });
+    })
+  });
+
+}
+function intoPrivate(roomId, userId, channelId) {
     const room = rooms.get(roomId);
     if(room) {
-        const peer = room.users.get(userId);
-        if(peer) {
-            console.log('Client into Private:', userId);
-            peer.consumers.forEach(consumer => {
-              consumer.pause();  // 关闭self的Consumer
-            });
-
-            room.users.forEach(otherPeer => {
-              if (otherPeer.id !== peer.id) {
-                otherPeer.consumers.forEach(consumer => {
-                    if (consumer.target === userId) {
-                        consumer.pause(); // 关闭关联的Consumer
-                    }
-                });
-              }
-            }
-            );
-
-            peer.inprivate = true;
-            peer.privateTarget = targetId;
-        }
+      const peer = room.users.get(userId);
+      peer.privateTarget = channelId;
+      updatePrivateState();
     }
 }
-
 function leavePrivate(roomId, userId) {
-    const room = rooms.get(roomId);
-    if(room) {
-        const peer = room.users.get(userId);
-        if(peer) {
-            peer.inprivate = false;
-            peer.privateTarget = 0;
-            console.log('Client leave Private:', peer.id);
-            // io.to(peer.id).emit("closedByRemote");
-            
-            peer.consumers.forEach(consumer => {
-              if(!room.users.get(consumer.target).inprivate) {
-                consumer.resume();
-              }
-            });
-
-            room.users.forEach(otherPeer => {
-              if (otherPeer.id !== peer.id && !otherPeer.inprivate) {
-                otherPeer.consumers.forEach(consumer => {
-                    if (consumer.target === userId) {
-                        consumer.resume(); // 关闭关联的Consumer
-                    }
-                });
-              }
-            }
-            );
-        }
-    }
+  const room = rooms.get(roomId);
+  if(room) {
+    const peer = room.users.get(userId);
+    peer.privateTarget = '__default__';
+    updatePrivateState();
+  }
 }
 
 function findProducerId(roomId, userId) {
@@ -158,7 +145,12 @@ io.on("connection", (socket) => {
 
     if (!rooms.has(roomId)) {
       const router = await worker.createRouter({ mediaCodecs: [ CODECS ] });
-      rooms.set(roomId, { router, users: new Map(), watchers: new Map(), prepares: new Map()});
+      rooms.set(roomId, 
+        { router, 
+          users: new Map(), 
+          prepares: new Map()
+        } //new room
+      );
     }else{
       closeConnection(io, roomId, userId);
     }
@@ -183,7 +175,7 @@ io.on("connection", (socket) => {
       producer: null,
       consumers: [],
       inprivate: false,
-      privateTarget: 0,
+      privateTarget: '__default__',
       socket: socket
     };
 
@@ -222,10 +214,16 @@ io.on("connection", (socket) => {
 
     const room = rooms.get(socket.data.roomId);
     const prepare_peer = room.prepares.get(socket.data.userId);
+    if(!prepare_peer) {
+      closeConnection(io, socket.data.roomId, socket.data.userId);
+      callback({ id: 0 });
+      return;
+    }
     prepare_peer.rtpCapabilities = rtpCapabilities;
 
     if (prepare_peer.isWatch) {
-      room.watchers.set(socket.data.userId, prepare_peer);
+      prepare_peer.producer = null;
+      room.users.set(socket.data.userId, prepare_peer);
       room.prepares.delete(socket.data.userId);
     }else{
       // 当客户端调用 sendTransport.produce 时，服务端创建 Producer, 这是玩家或说书人。
@@ -258,11 +256,6 @@ io.on("connection", (socket) => {
             io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
           }
         }
-        for (let [otherId, otherPeer] of room.watchers.entries()) {
-            if (otherId !== socket.data.userId) {
-              io.to(otherPeer.id).emit("newUser", { userId: socket.data.userId, socketId: socket.id });
-            }
-        }
 
         callback({ id: prepare_peer.producer.id });
       });
@@ -275,9 +268,6 @@ io.on("connection", (socket) => {
 
       var peer = room.users.get(socket.data.userId);
 
-      if(!peer) {
-        peer = room.watchers.get(socket.data.userId);
-      }
       if(!peer) {
         console.log("error: ",socket.data.userId,"not prepared.");
         return;
@@ -307,68 +297,30 @@ io.on("connection", (socket) => {
       });
     });
 
-    socket.on("into_private", async ({ target_user_id }, callback) => {
+    socket.on("into_channel", async ({ channel_id }, callback) => {
       const peer = room.users.get(socket.data.userId);
       if(!peer) {
         console.log("error: ",socket.data.userId,"not prepared.");
         return;
       }
-      
-      if (target_user_id) {
-        intoPrivate(socket.data.roomId, socket.data.userId, target_user_id);
-
-        console.log(socket.data.userId+" enable connection to "+target_user_id);
-        peer.consumers.forEach((consumer)=>
-          {
-            if(consumer.target == target_user_id) {
-              consumer.resume();
-            }
-          }
-        );
-        room.users.get(target_user_id).consumers.forEach((consumer)=>
-          {
-            if(consumer.target == socket.data.userId) {
-              consumer.resume();
-            }
-          }
-        );
+      if (channel_id) {
+        intoPrivate(socket.data.roomId, socket.data.userId, channel_id);
+        console.log(socket.data.userId+" into private room "+channel_id);
       }
       
     });
 
-    socket.on("leave_private", async ({}, callback) => {
-      console.log(socket.data.userId, "leave private");
+    socket.on("leave_channel", async ({}, callback) => {
+      console.log(socket.data.userId, "leave channel");
       const peer = room.users.get(socket.data.userId);
       if(!peer) {
         console.log("error: ",socket.data.userId,"not prepared.");
         return;
       }
       leavePrivate(socket.data.roomId, socket.data.userId);
+      console.log(socket.data.userId+" leave private room "+channel_id);
     });
 
-    socket.on("follow_private", async ({ target_user_id1, target_user_id2 }, callback) => {
-      const peer = room.users.get(socket.data.userId);
-      if(!peer) {
-        console.log("error: ",socket.data.userId,"not prepared.");
-        return;
-      }
-      if(!target_peer || !target_peer.inprivate) {
-        console.log("error: ",target_user_id,"not in private (or not exist).");
-      }
-
-        intoPrivate(io, socket.data.roomId, socket.data.userId, target_user_id);
-
-        peer.consumers.forEach((meconsumer)=>
-          {
-            if(meconsumer.target == target_user_id1) {
-              consumer.resume();
-            }
-            if(meconsumer.target == target_user_id2) {
-              consumer.resume();
-            }
-          }
-        );
-    });
     // 给客户端返回所有初始化信息
     callback({
       existingUsers: Array.from(room.users.keys().filter((id)=>{return id!=socket.data.userId;})),

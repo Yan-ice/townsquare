@@ -301,6 +301,7 @@ class LiveSession {
             my_alert("提示：你处于观战模式。如要进行游戏，请退出房间重新进入。");
 
           }else if (params == 'leave'){
+            
             this._store.commit("loginbackend/setSessionId", '');
             this._store.commit("chat/leaveRoom");
           }
@@ -1253,9 +1254,9 @@ export default (store) => {
       case "players/move":
       case "players/remove":
       case "session/clearVoteHistory":
-      case "chat/applyChannel":
-      case "chat/processChannel":
-      case "chat/leaveChannel":
+      case "chat/applyChatChannel":
+      case "chat/processChatChannel":
+      case "chat/leaveChatChannel":
         session.requestSync(type, payload);
         break;
       case "session/sendCommand":

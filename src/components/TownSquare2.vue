@@ -418,18 +418,10 @@ export default {
   left: 25px;
   width: 14vh;
   height: 14vh;
-    :hover {
-      z-index: 25 !important;
-    }
 
     > .player {
       margin-left: -50%;
       width: 100%;
-      pointer-events: all;
-    }
-    > .reminder {
-      margin-left: -25%;
-      width: 50%;
       pointer-events: all;
     }
 }
