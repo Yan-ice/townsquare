@@ -318,7 +318,7 @@ io.on("connection", (socket) => {
         return;
       }
       leavePrivate(socket.data.roomId, socket.data.userId);
-      console.log(socket.data.userId+" leave private room "+channel_id);
+      console.log(socket.data.userId+" leave private room.");
     });
 
     // 给客户端返回所有初始化信息
