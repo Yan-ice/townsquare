@@ -57,7 +57,8 @@ const faIcons = [
   "CommentDots",
   "Microphone",
   "MicrophoneSlash",
-  "Key"
+  "Key",
+  "Phone"
 ];
 const fabIcons = ["Github", "Discord"];
 library.add(

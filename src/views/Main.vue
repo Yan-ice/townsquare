@@ -141,7 +141,8 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
     background: url("@/assets/background.jpg") center center;
     background-size: cover;
     color: white;
-    height: 100%;
+    height: 100svh;
+    width: 100svw;
     font-family: "Roboto Condensed", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

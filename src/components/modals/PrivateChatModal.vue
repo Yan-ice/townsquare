@@ -1,43 +1,127 @@
 <template>
-  <Modal :closable=false v-if="modals.privateChat" @close="endPrivChat">
-  <h3>你正在尝试与 {{ this.$store.state.session.private_chat_target }} 私聊。</h3>
-  <br>
-  <h1>状态：{{ this.$store.state.session.private_chat_connected ? '私聊进行中' : '对方未接受' }}</h1>
-  <!-- <h1>[{{ this.$store.state.session.private_chat_connected ? '已建立私聊频道' : '仍在公聊频道中' }}]</h1>
-   -->
-  <p>{{ !this.$store.state.session.private_chat_connected ? '同时让对方向你发起私聊，即可建立私聊连接。' : '如果你关闭这个窗口，你将结束私聊并回到公聊。' }}</p>
-  
+  <Modal :closable="false" v-if="modals.privateChat" @close="endPrivChat">
 
-  <div class="button-group">
-    <div v-if="loginbackend.isMute" class="button demon" @click="toggleMute">
+    <h3>
+      你正在 {{ roomHostName }} 的私聊房间。
+    </h3>
+    <h3 v-if="isRoomHost">
+      点击申请者的名字，即可同意其参与你们的私聊。
+    </h3>
+    <br>
+
+      <div class="member-list">
+        <!-- 1. 渲染真正的成员 -->
+        <template v-for="uid in myRoomMember">
+          <PlayerShow
+            v-if="uidToPlayer(uid)"
+            :key="'member-' + uid"
+            :player="uidToPlayer(uid)"
+            :roleth="1"
+            :darken="false"
+          />
+        </template>
+
+        <!-- 2. 渲染申请者（灰暗） -->
+        <template v-for="uid in myRoomApplier">
+          <PlayerShow
+            v-if="uidToPlayer(uid)"
+            :key="'applier-' + uid"
+            :player="uidToPlayer(uid)"
+            :roleth="1"
+            :darken="true"
+          />
+        </template>
+
+      </div>
+
+    <div class="button-group">
+
+      <div v-if="chat.isMute" class="button demon" @click="toggleMute">
         <font-awesome-icon icon="volume-up" /> 开启麦克风
-    </div>
-    <div v-if="!loginbackend.isMute" class="button demon" @click="toggleMute">
+      </div>
+
+      <div v-if="!chat.isMute" class="button demon" @click="toggleMute">
         <font-awesome-icon icon="volume-mute" /> 关闭麦克风
+      </div>
+
+      <div class="button demon" @click="endPrivChat">
+        <font-awesome-icon icon="cog" /> 离开私聊房间
+      </div>
+
     </div>
-    <div class="button demon" @click="endPrivChat">
-        <font-awesome-icon icon="cog" /> 结束私聊
-    </div>
-  </div>
+
   </Modal>
 </template>
 
 <script>
 import { mapMutations, mapState } from "vuex";
 import Modal from "./Modal";
+import PlayerShow from "../PlayerShow.vue";
 export default {
-  components: { Modal },
+  components: { 
+    Modal,
+    PlayerShow
+  },
   computed: {
-    ...mapState(["modals", "fabled", "grimoire", "loginbackend"]),
+    ...mapState(["modals", "fabled", "grimoire", "loginbackend", "chat"]),
+    chat() {
+      return this.$store.state.chat;
+    },
+    uidToPlayer() {
+      return this.$store.getters["player/uidToPlayer"];
+    },
+    isRoomHost() {
+      return this.$store.getters["chat/isRoomHost"];
+    },
+    // myRoomId getter
+    myRoomId() {
+      return this.$store.getters["chat/myRoomId"];
+    },
+
+    // 当前房主名字
+    roomHostName() {
+      if (!this.myRoomId) return "未知用户";
+      const player = this.$store.getters["player/uidToPlayer"](myRoomId())
+      if (player) return player.name
+      return "未知玩家";
+    },
+
+    // 成员列表
+    myRoomMember() {
+      if (!this.myRoomId) return [];
+      const v = this.$store.getters["chat/myRoomMember"];
+      return v || [];
+    },
+
+    // 申请者列表
+    myRoomApplier() {
+      if (!this.myRoomId) return [];
+      const v = this.$store.getters["chat/myRoomApplier"];
+      return v || [];
+    },
   },
   methods: {
     endPrivChat() {
       this.$store.commit("toggleModal", "");
-      this.$store.commit("session/privateChatLeave");
+      let command = {
+            "header": "request",
+            "receiver": "host",
+            "command": "chat/leaveChatChannel",
+            "param": {
+              "userId": this.$store.getters["chat/myRoomId"]
+            },
+          }
+          this.$store.commit("session/sendCommand", command);
     },
     toggleMute() {
-      this.$store.commit("loginbackend/toggleMute");
+      this.$store.commit("chat/toggleMute");
       // this.$store.commit("toggleModal", "");
+    },
+    // ✨ 预留接口：你自己实现 id → name 的逻辑
+    getNameById(uid) {
+      // 示例写法，你未来替换成真实逻辑即可
+      // 例如：return this.$store.state.players[uid].name;
+      return "用户 " + uid;
     },
     ...mapMutations(["toggleModal"]),
   },

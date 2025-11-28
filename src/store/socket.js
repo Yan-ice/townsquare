@@ -1,4 +1,3 @@
-import mediasoupRoom from './mediabackend.js';
 import axios from "axios";
 const CommandPacket = require('./packet.js');
 
@@ -210,6 +209,9 @@ class LiveSession {
       case 'require':
         packet.forEachCommand(this._handleRequire.bind(this)); //HOST can require anyone.
         return;
+      case 'chat':
+        packet.forEachCommand(this._handleChat.bind(this)); 
+        return;
       case 'sync':
         packet.forEachCommand(this._handleSync.bind(this)); //HOST sync commits to all PLAYER through this.
         return;
@@ -240,10 +242,6 @@ class LiveSession {
         
   }
 
-  async mediaCallback() {
-    this._store.commit("loginbackend/setNetworkPoor", mediasoupRoom.isNetworkPoor);
-    this._store.commit("loginbackend/setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
-  }
   async _handleSession(packet, command, params) {
       switch (command) {
         case 'mdict':
@@ -262,10 +260,7 @@ class LiveSession {
 
             if(this._mdict) {
               my_alert("提示：该房间开启了魔典内置语音。请允许魔典使用麦克风权限。");
-              await mediasoupRoom.joinRoom(packet.session, 
-                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
-              mediasoupRoom.setMute(this._store.state.isMute);
-              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
+              this._store.commit("chat/joinRoom", packet.session);
             }
             
           }else if (params == 'play'){
@@ -287,11 +282,7 @@ class LiveSession {
             this._sendPacket(needlog);
 
             if(this._mdict) {
-              my_alert("提示：该房间开启了魔典内置语音。请允许魔典使用麦克风权限。");
-              await mediasoupRoom.joinRoom(packet.session, 
-                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
-              mediasoupRoom.setMute(this._store.state.isMute);
-              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
+              this._store.commit("chat/joinRoom", packet.session);
             }
 
           }else if (params == 'watch') {
@@ -305,47 +296,58 @@ class LiveSession {
                 this._store.state.loginbackend.playerId,
             );
             if(this._mdict) {
-              await mediasoupRoom.watchRoom(packet.session, 
-                this._store.state.loginbackend.playerId, this._store.state.loginbackend.vocalServer);
-              mediasoupRoom.setMute(this._store.state.isMute);
-              mediasoupRoom.setUpdateCallback(this.mediaCallback.bind(this));
+              this._store.commit("chat/joinRoom", packet.session);
             }
             my_alert("提示：你处于观战模式。如要进行游戏，请退出房间重新进入。");
 
           }else if (params == 'leave'){
             this._store.commit("loginbackend/setSessionId", '');
-            try {
-                  await mediasoupRoom.leaveRoom();
-              } catch (e) {
-                  console.warn("leaveRoom error:", e);
-              }
+            this._store.commit("chat/leaveRoom");
           }
           break;
         case 'reset':
           this._store.commit("players/clear");
           break;
-        case 'private_chat':
-          if(params) {
-            mediasoupRoom.startPrivateChat(params);
-            this._store.commit("session/setPrivateChatConnected", true);
-          }else{
-            mediasoupRoom.stopPrivateChat();
-            this._store.commit("session/setPrivateChatConnected", false);
-          }
-          break;
-        case 'follow_chat':
-            if(params && params.length >= 2) {
-              mediasoupRoom.followPrivateChat(params[0], params[1]);
-              this._store.commit("session/setPrivateChatConnected", true);
-            }else{
-              mediasoupRoom.stopPrivateChat();
-              this._store.commit("session/setPrivateChatConnected", false);
-            }
-            break;
+          
         case 'info':
           my_alert(params);
           break;
       }
+  }
+
+  async _handleChat(packet, command, params) {
+    switch(command) {
+      case 'apply_chat':
+        break;
+      case 'process_application':
+        break;
+      case 'enter_chat':
+        if(params) {
+          mediasoupRoom.startPrivateChat(params);
+          this._store.commit("session/setPrivateChatConnected", true);
+        }else{
+          mediasoupRoom.stopPrivateChat();
+          this._store.commit("session/setPrivateChatConnected", false);
+        }
+        break;
+      case 'leave_chat':
+        mediasoupRoom.stopPrivateChat();
+        this._store.commit("session/setPrivateChatConnected", false);
+        break;
+      case 'update_member': // params格式： {applying: [,], chating: [,]}
+        //TODO
+        break;
+
+      // case 'follow_chat':
+      //     if(params && params.length >= 2) {
+      //       mediasoupRoom.followPrivateChat(params[0], params[1]);
+      //       this._store.commit("session/setPrivateChatConnected", true);
+      //     }else{
+      //       mediasoupRoom.stopPrivateChat();
+      //       this._store.commit("session/setPrivateChatConnected", false);
+      //     }
+      //     break;
+    }
   }
   /**
    * Yan_ice: mark.
@@ -1251,6 +1253,9 @@ export default (store) => {
       case "players/move":
       case "players/remove":
       case "session/clearVoteHistory":
+      case "chat/applyChannel":
+      case "chat/processChannel":
+      case "chat/leaveChannel":
         session.requestSync(type, payload);
         break;
       case "session/sendCommand":

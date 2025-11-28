@@ -5,6 +5,7 @@ import loginbackend from "./loginbackend";
 import persistence from "./persistence";
 import players from "./modules/players";
 import session from "./modules/session";
+import chat from "./modules/chat";
 import showinfo from "./showinfo";
 import countdown from "./modules/countdown";
 import editionJSON from "../editions.json";
@@ -98,10 +99,12 @@ const customRole = {
   isCustom: true,
 };
 
+
 export default new Vuex.Store({
   modules: {
     players,
     session,
+    chat,
     loginbackend,
     countdown,
     showinfo

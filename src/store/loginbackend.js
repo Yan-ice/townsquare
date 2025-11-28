@@ -8,10 +8,7 @@ const state = () => ({
     pwd: '2333', 
     canStoryteller: false,
     canVocalStoryteller: false,
-    isSpeaking: false,
-    isMute: true,
     isMdict: false, //使用内置语音
-    networkPoor: false,
     backendServer: null,
     vocalServer: null,
     selfNotes: '',
@@ -30,8 +27,6 @@ const mutations = {
     setUsername: set("username"),
     setCanStoryteller: set("canStoryteller"),
     setNotes: set("selfNotes"),
-    setPlayerIsSpeaking: set("isSpeaking"),
-    setNetworkPoor: set("networkPoor"),
     setMdict(state, val) {
       if(val){
         state.isMdict = true;
@@ -44,10 +39,6 @@ const mutations = {
     },
     tellMes(state, payload) { //listened by socket
       console.log("\n[你 -> "+payload.receiver+"] "+payload.message);
-    },
-    toggleMute(state) {
-      state.isMute = !state.isMute;
-      mediasoupRoom.setMute(state.isMute);
     },
 
     resetServerURL(state) {

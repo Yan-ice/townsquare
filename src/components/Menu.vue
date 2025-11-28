@@ -16,18 +16,18 @@
     <span
       class="session"
       :class="{
-        spectator: !loginbackend.isMute,
+        spectator: !chat.isMute,
         reconnecting: session.isReconnecting,
       }"
       v-if="loginbackend.sessionId && loginbackend.isMdict"
       @click="toggleMute"
-      :title="`${(loginbackend.isMute || loginbackend.networkPoor) ? 'muted' : 'sound'}`"
+      :title="`${(chat.isMute || chat.networkPoor) ? 'muted' : 'sound'}`"
     >
 
-    <font-awesome-icon v-if = "loginbackend.networkPoor" icon="minus-circle" />
-    <font-awesome-icon v-else-if = "loginbackend.isMute" icon="microphone-slash" />
+    <font-awesome-icon v-if = "chat.networkPoor" icon="minus-circle" />
+    <font-awesome-icon v-else-if = "chat.isMute" icon="microphone-slash" />
     <font-awesome-icon v-else icon="microphone" />
-    {{ loginbackend.networkPoor ? '警告:当前网络质量较差' : (session.isWatcher ? '旁观模式(无法开启麦克风)': (loginbackend.isMute ? '麦克风:已关闭(点击切换)' : '麦克风:开启中(点击切换)')) }}
+    {{ chat.networkPoor ? '警告:当前网络质量较差' : (session.isWatcher ? '旁观模式(无法开启麦克风)': (chat.isMute ? '麦克风:已关闭(点击切换)' : '麦克风:开启中(点击切换)')) }}
 
     </span>
 
@@ -236,7 +236,7 @@ import { mapMutations, mapState } from "vuex";
 
 export default {
   computed: {
-    ...mapState(["grimoire", "session","loginbackend", "edition"]),
+    ...mapState(["grimoire", "session", "loginbackend", "edition", "chat"]),
     ...mapState("players", ["players"]),
     ...mapState("loginbackend",["sessionId"]),
     isOfflineRoom() {
@@ -303,7 +303,7 @@ export default {
       this.$store.commit("toggleMaskGrimoire");
     },
     toggleMute() {
-      this.$store.commit("loginbackend/toggleMute");
+      this.$store.commit("chat/toggleMute");
     },
     toggleOpenTimer() {
       this.$store.commit("session/setOpenTimer", !this.session.openTimer);

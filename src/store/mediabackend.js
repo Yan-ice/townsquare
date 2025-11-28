@@ -18,6 +18,9 @@ class MediasoupRoom {
 
     this.isMute = true;
     this.isNetworkPoor = false;
+
+    this.currentChannel = null;
+
     // 音量检测相关
     this.audioContext = null;
     this.analyser = null;
@@ -243,6 +246,7 @@ class MediasoupRoom {
       this.userId = '';
       this.sendTransport = null;
       this.recvTransport = null;
+      this.currentChannel = null;
     });
 
     this.socket.on("disconnect", () => {
@@ -251,6 +255,7 @@ class MediasoupRoom {
       this.joined = false;
       this.sendTransport = null;
       this.recvTransport = null;
+      this.currentChannel = null;
     });
 
     const {
@@ -351,6 +356,7 @@ class MediasoupRoom {
       this.userId = '';
       this.sendTransport = null;
       this.recvTransport = null;
+      this.currentChannel = null;
     });
 
     this.socket.on("disconnect", () => {
@@ -359,6 +365,7 @@ class MediasoupRoom {
       this.joined = false;
       this.sendTransport = null;
       this.recvTransport = null;
+      this.currentChannel = null;
     });
 
     const {
@@ -382,20 +389,6 @@ class MediasoupRoom {
       roomId,
       rtpCapabilities: this.device.rtpCapabilities,
     });
-
-    // 限制最大码率
-    // this.producer = await this.sendTransport.produce({
-    //   track,
-    //   encodings: [
-    //     {
-    //       maxBitrate: 24000, // 限制最大码率为 24kbps
-    //     },
-    //   ],
-    //   codecOptions: {
-    //     opusDtx: true,      // ✅ 启用 DTX（静音时不发送）
-    //     opusStereo: false,  // 可选：单声道，减少带宽
-    //   },
-    // });
 
     this.startNetworkMonitor();
 
@@ -435,31 +428,29 @@ class MediasoupRoom {
     });
   }
 
-  async startPrivateChat(target_user_id) {
-    this.socket.emit("into_private", {
-      target_user_id
+  async intoChannel(target_channel) {
+    if(this.currentChannel == target_channel){
+      return;
+    }
+    this.currentChannel = target_channel;
+    this.socket.emit("into_channel", {
+      target_channel
     }, async () =>{
       //Not implemented yet.
     });
   }
 
-  async stopPrivateChat() {
-    this.socket.emit("leave_private", {
+  async leaveChannel() {
+    if(!this.currentChannel){
+      return;
+    }
+    this.currentChannel = null;
+    this.socket.emit("leave_channel", {
       
     }, async () =>{
       //Not implemented yet.
     });
   }
-
-  async followPrivateChat(target_user_id1, target_user_id2) {
-    this.socket.emit("follow_private", {
-      target_user_id1,
-      target_user_id2
-    }, async () =>{
-      //Not implemented yet.
-    });
-  }
-
 
   async leaveRoom() {
     
@@ -546,6 +537,47 @@ class MediasoupRoom {
   }
 }
 
-const mediasoupRoom = new MediasoupRoom();
+// const mediasoupRoom = new MediasoupRoom();
 
-export default mediasoupRoom;
+// export default mediasoupRoom;
+
+
+export default (store) => {
+  // setup
+  const soup = new MediasoupRoom(store);
+
+  soup.setUpdateCallback(() =>{
+      store.commit("chat/setNetworkPoor", mediasoupRoom.isNetworkPoor);
+      store.commit("chat/setPlayerIsSpeaking", mediasoupRoom.loud_keep > 0);
+    }
+  );
+  
+  // listen to mutations
+  store.subscribe(({ type, payload }, state) => {
+    switch (type) {
+      case "chat/joinRoom":
+        soup.joinRoom(payload.roomId, state.loginbackend.playerId, state.loginbackend.vocalServer);
+        soup.setMute(state.chat.is_mute);
+        break;
+      case "chat/leaveRoom":
+        soup.leaveRoom();
+        break;
+      case "chat/processChatChannel":
+      case "chat/applyChatChannel":
+      case "chat/leaveChatChannel":
+        for (const [owner, members] of state.chat_rooms.entries()) {
+          if (members.includes(userId)) {
+            soup.intoChannel(owner);
+            return;
+          }
+        }
+        soup.leaveChannel();
+        break;
+      case "chat/toggleMute":    
+      case "chat/setMute":
+        soup.setMute(state.chat.is_mute);
+        break;
+    } 
+  });
+
+};

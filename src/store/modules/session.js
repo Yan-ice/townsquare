@@ -31,9 +31,7 @@ const state = () => ({
   markedPlayer: -1,
   isVoteHistoryAllowed: true,
   isRolesDistributed: false,
-  send_packet: null,
-  private_chat_target: '',
-  private_chat_connected: false,
+  send_packet: null
 });
 
 const getters = {};
@@ -112,19 +110,7 @@ const mutations = {
   voteSync: handleVote,
   lockVote(state, lock) {
     state.lockedVote = lock !== undefined ? lock : state.lockedVote + 1;
-  },
-  followChatRequest(state, payload) { //listened by socket
-    state.private_chat_target = payload.username;
-  },
-  privateChatRequest(state, payload) { //listened by socket
-    state.private_chat_target = payload.username;
-  },
-  privateChatLeave(state) { //listened by socket
-    state.private_chat_target = '';
-  },
-  setPrivateChatConnected(state, connected) { //listened by socket  
-    state.private_chat_connected = connected;
-  },
+  }
 };
 
 export default {

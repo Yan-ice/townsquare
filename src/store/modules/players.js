@@ -89,7 +89,9 @@ const getters = {
     }
     return state.players[index];
   },
-
+  uidToPlayer: (state) => (uid) => {
+    return state.players.find(player => player.id === uid) || null;
+  },
   nonTravelers({ players }) {
     const nonTravelers = players.filter(
       (player) => player.role.team !== "traveler",

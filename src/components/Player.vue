@@ -57,45 +57,53 @@
       <!-- For the sub token. -->
 
       <!-- Overlay icons -->
-      <div class="overlay" v-if="!player.isST">
-
-        <div class="mask-icon"
-          v-if="isDisplayMask">
-        </div>
-        
-        <font-awesome-icon
-          icon="hand-paper"
-          class="vote"
-          title="Hand UP"
-          @click="vote()"
-        />
-        <font-awesome-icon
-          icon="times"
-          class="vote"
-          title="Hand DOWN"
-          @click="vote()"
-        />
-        <font-awesome-icon
-          icon="times-circle"
-          class="cancel"
-          title="Cancel"
-          @click="cancel()"
-        />
-        <font-awesome-icon
-          icon="exchange-alt"
-          class="swap"
-          @click="swapPlayer(player)"
-          title="Swap seats with this player"
-        />
-        <font-awesome-icon
-          icon="hand-point-right"
-          class="nominate"
-          @click="nominatePlayer(player)"
-          title="Nominate this player"
-        />
-        <div class="marked">
-          <font-awesome-icon icon="skull" />
-        </div>
+      <div class="overlay">
+        <template v-if="playerHosting">
+          <font-awesome-icon
+            icon="phone"
+            class="hostchat"
+            @click="joinChatRoom(player)"
+            title="Join his(her) chat"
+          />
+        </template>
+        <template v-else-if="!player.isST">
+          <div class="mask-icon"
+            v-if="isDisplayMask">
+          </div>
+          <font-awesome-icon
+            icon="hand-paper"
+            class="vote"
+            title="Hand UP"
+            @click="vote()"
+          />
+          <font-awesome-icon
+            icon="times"
+            class="vote"
+            title="Hand DOWN"
+            @click="vote()"
+          />
+          <font-awesome-icon
+            icon="times-circle"
+            class="cancel"
+            title="Cancel"
+            @click="cancel()"
+          />
+          <font-awesome-icon
+            icon="exchange-alt"
+            class="swap"
+            @click="swapPlayer(player)"
+            title="Swap seats with this player"
+          />
+          <font-awesome-icon
+            icon="hand-point-right"
+            class="nominate"
+            @click="nominatePlayer(player)"
+            title="Nominate this player"
+          />
+          <div class="marked">
+            <font-awesome-icon icon="skull" />
+          </div>
+        </template>
       </div>
 
       <!-- Claimed seat icon -->
@@ -197,7 +205,7 @@
                 <font-awesome-icon icon="book-dead" />
                 发送私信
             </li>
-            <template v-if="loginbackend.isMdict">
+            <template v-if="loginbackend.isMdict && player.id == loginbackend.playerId">
               <li @click="privateChat()" :class="{ disabled: session.lockedVote }">
                 <font-awesome-icon icon="volume-up" />
                 发起私聊
@@ -334,6 +342,11 @@ export default {
         firstNight: order['first' + prefix] || null,
         otherNight: order['other' + prefix] || null,
       };
+    },
+    isHostingChat() {
+      const uid = this.player.id;
+      const hostroom = this.$store.state.chat.chatRooms.get(uid);
+      return hostroom?.includes(uid) ?? false;
     }
   },
   data() {
@@ -357,11 +370,31 @@ export default {
       this.$store.commit("toggleModal", "message");
     },
     privateChat() {
-      this.$store.commit("session/privateChatRequest", {targetId: this.player.id, username: this.player.name});
+      let command = {
+        "header": "request",
+        "receiver": "host",
+        "command": "chat/applyChatChannel",
+        "param": {
+          userId: this.player.id,
+          roomId: this.player.id
+        },
+      }
+      this.$store.commit("session/sendCommand", command);
+      //this.$store.commit("chat/privateChatRequest", {targetId: this.player.id, username: this.player.name});
     },
-    listenPrivateChat() {
-      if (this.session.isSpectator) return;
-      this.$store.commit("session/followChatRequest", {targetId: this.player.id, username: this.player.name});
+    joinChatRoom(player) {
+      if(player) {
+        let command = {
+          "header": "request",
+          "receiver": "host",
+          "command": "chat/applyChatChannel",
+          "param": {
+            userId: this.$store.loginbackend.playerId,
+            roomId: this.player.id
+          },
+        }
+        this.$store.commit("session/sendCommand", command);
+      }
     },
     watchGrimoire() {
       my_alert("功能正在开发中～");
@@ -697,6 +730,14 @@ export default {
     &.fa-times * {
       fill: url(#townsfolk);
     }
+  }
+  &.hostroom {
+    width: 60%;
+    height: 60%;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 200ms;
+    transform: scale(0.2);
   }
 }
 
