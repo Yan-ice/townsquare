@@ -87,7 +87,7 @@ function updatePrivateState(roomId) {
   if(room) {
     room.users.forEach((user) => {
       const channel = user.privateTarget;
-      if(!channels.contains(channel)){
+      if(!channels.includes(channel)){
         channels.set(channel, []);
       }
       channels[channel].push(user.userId);
@@ -102,8 +102,8 @@ function updatePrivateState(roomId) {
       console.log("checking user ", usedId);
       console.log("his channel:", channel);
       peer.consumers.forEach(consumer => {
-        console.log("  consumer target = ", consumer.target, channel.contains(consumer.target));
-        if(consumer.target != peer.userId && channel.contains(consumer.target)) {
+        console.log("  consumer target = ", consumer.target, channel.includes(consumer.target));
+        if(consumer.target != peer.userId && channel.includes(consumer.target)) {
           consumer.resume();
         }else{
           consumer.pause();  // 关闭self的Consumer
