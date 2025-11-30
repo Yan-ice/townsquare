@@ -334,7 +334,7 @@ io.on("connection", (socket) => {
         consumer.pause();
       }//如果你正在私聊，初始即暂停监听新玩家。
 
-      targetusr = findUser(socket.data.roomId), targetuserId);
+      targetusr = findUser(socket.data.roomId, targetuserId);
       if(targetusr.privateTarget != "__default__") {
         consumer.pause();
       }//如果目标正在私聊，初始即暂停监听它。
