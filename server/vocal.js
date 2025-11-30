@@ -102,13 +102,14 @@ function updatePrivateState(roomId) {
 
   // 1) 按 privateTarget 分组
   for (const user of room.users) {
-    const channelId = user.privateTarget;
-    if (!channelId) continue; // 没有私聊目标则跳过
+    var channelId = user.privateTarget;
+    if (!channelId) channelId = "__default__"; // 没有私聊目标则跳过
 
     if (!channels.has(channelId)) channels.set(channelId, []);
     channels.get(channelId).push(user.userId);
   }
-
+  console.log("checking room:");
+  console.log(roomId, room.users, channels);
   console.log("new room state (channels):");
   // 2) 对每个 channel，遍历其成员并调整 consumer 状态
   channels.forEach((members, channelId) => {
@@ -140,9 +141,6 @@ function updatePrivateState(roomId) {
       }
     }
   });
-
-  // 可选：返回 channels 供调试/外部使用
-  return channels;
 }
 
 function intoPrivate(roomId, userId, channelId) {
@@ -171,6 +169,14 @@ function findProducerId(roomId, userId) {
     }
   }
   return 0
+}
+function findUser(roomId, userId) {
+  const room = rooms.get(roomId);
+  if(room) {
+    const peer = room.users.get(userId);
+    return peer;
+  }
+  return null;
 }
 
 io.on("connection", (socket) => {
@@ -322,7 +328,18 @@ io.on("connection", (socket) => {
       });
 
       consumer.target = targetuserId;
+      
 
+      if (peer.privateTarget != "__default__") {
+        consumer.pause();
+      }//如果你正在私聊，初始即暂停监听新玩家。
+
+      targetusr = findUser(socket.data.roomId), targetuserId);
+      if(targetusr.privateTarget != "__default__") {
+        consumer.pause();
+      }//如果目标正在私聊，初始即暂停监听它。
+
+      user = rooms.get(socket.data.roomId).users
       peer.consumers.push(consumer);
 
       callback({
