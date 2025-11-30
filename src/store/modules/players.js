@@ -17,7 +17,6 @@ const state = () => ({
     privateChat: false,
     isOnline: true,
     hasUnreadMessage: false,
-    messageLogWithHim: '',
     isST: true
   },
   players: [],
@@ -50,6 +49,15 @@ function findIndex(state, player) {
     return index;
 }
 
+function indexToPlayer(state, index) {
+  if(index == -1) {
+    return null;
+  }
+  if(index == 100) {
+    return state.storyteller;
+  }
+  return state.players[index];
+}
 
 
 const getters = {
@@ -170,34 +178,6 @@ const actions = {
         player.talkingTimer = null;
       }, 1500);
     }
-  },
-  privatechat({ commit }, { idx, value }) {
-    commit('setPrivateChat', { idx, flag: value });
-  },
-
-  receiveMes({ commit }, payload){
-    commit('updateMes', {
-      sender: payload.sender,
-      tellerName: '', //'' means tellname is the name of sender.
-      message: payload.message
-    });
-  },
-  syncMesTo({ state, commit }, sender) { //no record, want to fetch from other people.
-    const index = findIndex(state, sender);
-    if(index == -1) {
-      console.log("who wants sync??");
-      return;
-    }
-    const player =
-      index === 100 ? state.storyteller : state.players[index];
-
-    const mes = player.messageLogWithHim ? player.messageLogWithHim : "[游戏开始]\n"
-    commit("loginbackend/tellMes", {
-      receiver: sender,
-      message: "___restore___" + mes,
-      rawFormat: true,
-    }, { root: true }); // root: true 是关键，跨模块 commit
-    
   }
 };
 
@@ -217,8 +197,7 @@ const mutations = {
       privateChat: false,
       isOnline: true,
       isDead: false,
-      hasUnreadMessage: false,
-      messageLogWithHim: ''
+      hasUnreadMessage: false
     });
   },
 
@@ -241,43 +220,7 @@ const mutations = {
     });
     state.bluffs = [];
   },
-  updateMes(state, {sender, tellerName, message}) {
-    const index = findIndex(state, sender);
-    if(index == -1) {
-      return;
-    }
-    let player = state.storyteller;
-    if(index != 100) {
-      player = state.players[index];
-    }
-    if(tellerName == '') {
-      tellerName = player.name;
-    }
-    if (message.startsWith("___restore___")) {
-      message = message.replace("___restore___", "");
-      Vue.set(player, 'messageLogWithHim', message);
-    } else {
-      Vue.set(player, 'messageLogWithHim', player.messageLogWithHim + "\n["+tellerName+ "] "+message);
-      Vue.set(player, 'hasUnreadMessage', true);
-    }
-    
-  },
 
-  checkMes(state, {sender}) {
-    const index = findIndex(state, sender);
-    if(index == -1) {
-      return;
-    }
-    
-    if(index != 100) {
-      const player = state.players[index];
-      Vue.set(player, 'hasUnreadMessage', false);
-    }else{
-      const player = state.storyteller;
-      Vue.set(player, 'hasUnreadMessage', false);
-    }
-    
-  },
   /**
   The update mutation also has a property for isFromSockets
   this property can be addded to payload object for any mutations
@@ -305,13 +248,15 @@ const mutations = {
   },
 
   setTalking(state, { idx, flag }) {
-    const player = state.players[idx];
+    const player = indexToPlayer(state, idx);
+    if (!player) return;
     // 用 Vue.set 保证响应式
     Vue.set(player, 'isTalkingFlag', flag);
   },
 
   setPrivateChat(state, { idx, flag }) {
-    const player = state.players[idx];
+    const player = indexToPlayer(state, idx);
+    if (!player) return;
     // 用 Vue.set 保证响应式
     Vue.set(player, 'privateChat', flag);
   },
@@ -332,7 +277,8 @@ const mutations = {
   },
   speak(state, { idx, value }) {
     if (value) {
-      const player = state.players[idx];
+      const player = indexToPlayer(state, idx);
+      if (!player) return;
 
       if (player.talkingTimer) {
         clearTimeout(player.talkingTimer);

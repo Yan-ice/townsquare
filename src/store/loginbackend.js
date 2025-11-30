@@ -11,8 +11,7 @@ const state = () => ({
     isMdict: false, //使用内置语音
     backendServer: null,
     vocalServer: null,
-    selfNotes: '',
-    currentChatIndex: -1
+    selfNotes: ''
 });
 
 // mutations helper functions
@@ -33,12 +32,6 @@ const mutations = {
       }else{
         state.isMdict = false;
       }
-    },
-    setCurrentChatIndex(state, val) {
-      state.currentChatIndex = val;
-    },
-    tellMes(state, payload) { //listened by socket
-      console.log("\n[你 -> "+payload.receiver+"] "+payload.message);
     },
 
     resetServerURL(state) {

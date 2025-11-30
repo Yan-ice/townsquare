@@ -130,11 +130,11 @@ export default {
 @import "../../vars.scss";
 
 .scroll-wrapper {
-  max-height: 300px; /* 或你想要的高度 */
+  min-height: 300px; /* 或你想要的高度 */
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px; /* 避免滚动条遮住内容 */
-  max-height: 70vh;
+  max-height: 65vh;
   border: 1px solid #ccc; /* 可选：美观边框 */
   border-radius: 6px;
 }
@@ -148,7 +148,9 @@ export default {
 
 ul.tokens li {
   border-radius: 50%;
-  width: 9vw;
+  width: 9vw;        /* 或者 10~15vw，取决于布局 */
+  max-width: 150px;   /* 限制最大值 */
+  min-width: 75px;    /* 限制最小值 */
   margin: 1%;
   transition: transform 500ms ease;
 

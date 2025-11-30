@@ -487,31 +487,6 @@ function analyse_room_command(packet, cmd, param) {
   }
 }
 
-function analyse_chat_command(packet, cmd, param) {
-  const sender_player = online_players[packet.sender];
-
-  if(!sender_player) {
-      console.log("[ERROR] Login first.");
-      return;
-  }
-  const room = channels[packet.session];
-
-  if(!room) return;
-
-  switch (cmd) {
-    case 'enter_chat':
-      if(param == sender_player.userId) { // 房间主人
-        const a = new CommandPacket("sessionset");
-        a.addCommand("chat", param);
-        sender_player.socket.send(a.serialize());
-        online_players[request[1]].socket.send(a.serialize());
-      }
-      //when join, param T/F shows whether Mdict (enable vocal)
-      break;
-    case 'leave_chat':
-      
-  }
-}
 function analyse_login_command(packet, cmd, param) {
   const loginData = param;
   switch (cmd) {
@@ -614,9 +589,6 @@ wss.on("connection", function connection(ws, req) {
           packet.forEachCommand(analyse_room_command);
           break;
 
-        case "chat": //related to private chat
-          packet.forEachCommand(analyse_chat_command);
-          break;
         case "sync":
           if(!channels[packet.session]) return;
           if(packet.sender == channels[packet.session].host.token){

@@ -94,7 +94,6 @@ export default {
 
       const anyModalOpen = Object.values(this.$store.state.modals).some(Boolean);
       if (anyModalOpen) {
-        console.log("has model open:" + Object.values(this.$store.state.modals));
         return;
       }
 
@@ -120,11 +119,10 @@ export default {
       }
     },
     updateViewportUnits() {
-      // 设置动态可视高度和宽度
-      const vh = window.innerHeight * 0.01;
-      const vw = window.innerWidth * 0.01;
-      document.documentElement.style.setProperty('--svh', `${vh}px`);
-      document.documentElement.style.setProperty('--svw', `${vw}px`);
+      const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const width = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--svh', `${height}px`);
+      document.documentElement.style.setProperty('--svw', `${width}px`);
     }
   },
   mounted() {
@@ -143,8 +141,8 @@ export default {
 <style lang="scss">
 
 #app {
-    width: calc(var(--svw, 1vw) * 100);
-    height: calc(var(--svh, 1vh) * 100);
+    height: var(--svh); /* 实际可视高度，不会被导航栏吞 */
+    width: 100%;
     background-position: center center;
     background-size: cover;
     display: flex;

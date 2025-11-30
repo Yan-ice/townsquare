@@ -58,15 +58,7 @@
 
       <!-- Overlay icons -->
       <div class="overlay">
-        <template v-if="isHostingChat">
-          <font-awesome-icon
-            icon="phone"
-            class="hostchat"
-            @click="joinChatRoom(player)"
-            title="Join his(her) chat"
-          />
-        </template>
-        <template v-else-if="!player.isST">
+        <template v-if="!player.isST">
           <div class="mask-icon"
             v-if="isDisplayMask">
           </div>
@@ -104,6 +96,22 @@
             <font-awesome-icon icon="skull" />
           </div>
         </template>
+        <template v-if="player.hasUnreadMessage">
+          <font-awesome-icon
+            icon="comment-dots"
+            class="readmessage"
+            @click="readMessage()"
+            title="Read message"
+          />
+        </template>
+        <template v-else-if="isHostingChat">
+          <font-awesome-icon
+            icon="phone"
+            class="hostchat"
+            @click="joinChatRoom(player)"
+            title="Join his(her) chat"
+          />
+        </template>
       </div>
 
       <!-- Claimed seat icon -->
@@ -117,18 +125,17 @@
         <font-awesome-icon icon="user" class="seat" />
       </template>
 
-      <template v-else-if="player.hasUnreadMessage">
-        <!-- message not read. -->
+      <!-- <template v-else-if="player.hasUnreadMessage">
         <font-awesome-icon icon="comment-dots" class="seat" 
           @click="readMessage()"/>
-      </template>
+      </template> -->
 
       <template v-else-if="!player.isOnline">
         <font-awesome-icon icon="minus-circle" class="seat" />
       </template>
 
       <template v-else-if="player.privateChat">
-        <font-awesome-icon icon="question" class="seat" />
+        <font-awesome-icon icon="phone" class="seat" />
       </template>
 
       <template v-else>
@@ -359,16 +366,11 @@ export default {
   },
   methods: {
     tellPlayer() {
-      this.$store.commit("loginbackend/setCurrentChatIndex", this.index);
+      this.$store.commit("chat/setCurrentMessagingId", this.player.id);
       this.$store.commit("toggleModal", "message");
-      // const messag = prompt("输入给 "+this.player.name+" 发的私信消息：");
-      // if (messag) {
-      //   this.$store.commit("loginbackend/tellMes",{receiver: this.player.id, message: messag});
-      // }
-      
     },
     readMessage() {
-      this.$store.commit("loginbackend/setCurrentChatIndex", this.index);
+      this.$store.commit("chat/setCurrentMessagingId", this.player.id);
       this.$store.commit("toggleModal", "message");
     },
     privateChat() {
@@ -748,7 +750,8 @@ export default {
       fill: url(#townsfolk);
     }
   }
-  &.hostchat {
+  &.hostchat,
+  &.readmessage {
     width: 45%;
     height: 52%;
     pointer-events: all;

@@ -209,9 +209,6 @@ class LiveSession {
       case 'require':
         packet.forEachCommand(this._handleRequire.bind(this)); //HOST can require anyone.
         return;
-      case 'chat':
-        packet.forEachCommand(this._handleChat.bind(this)); 
-        return;
       case 'sync':
         packet.forEachCommand(this._handleSync.bind(this)); //HOST sync commits to all PLAYER through this.
         return;
@@ -262,6 +259,10 @@ class LiveSession {
               my_alert("提示：该房间开启了魔典内置语音。请允许魔典使用麦克风权限。");
               this._store.commit("chat/joinRoom", packet.session);
             }
+
+            const needlog = new CommandPacket("boardcast");
+            needlog.addCommand("retrieveMessageLog");
+            this._sendPacket(needlog);
             
           }else if (params == 'play'){
             this._isSpectator = true;
@@ -317,40 +318,6 @@ class LiveSession {
       }
   }
 
-  async _handleChat(packet, command, params) {
-    switch(command) {
-      case 'apply_chat':
-        break;
-      case 'process_application':
-        break;
-      case 'enter_chat':
-        if(params) {
-          mediasoupRoom.startPrivateChat(params);
-          this._store.commit("session/setPrivateChatConnected", true);
-        }else{
-          mediasoupRoom.stopPrivateChat();
-          this._store.commit("session/setPrivateChatConnected", false);
-        }
-        break;
-      case 'leave_chat':
-        mediasoupRoom.stopPrivateChat();
-        this._store.commit("session/setPrivateChatConnected", false);
-        break;
-      case 'update_member': // params格式： {applying: [,], chating: [,]}
-        //TODO
-        break;
-
-      // case 'follow_chat':
-      //     if(params && params.length >= 2) {
-      //       mediasoupRoom.followPrivateChat(params[0], params[1]);
-      //       this._store.commit("session/setPrivateChatConnected", true);
-      //     }else{
-      //       mediasoupRoom.stopPrivateChat();
-      //       this._store.commit("session/setPrivateChatConnected", false);
-      //     }
-      //     break;
-    }
-  }
   /**
    * Yan_ice: mark.
    * Handle an incoming socket message.
@@ -546,11 +513,10 @@ class LiveSession {
         }
         break;
       case "tellmes":
-        this._store.dispatch("players/receiveMes", {sender: packet.sender, message: params});
-        //this._store.commit("loginbackend/receiveMes", {sender: packet.sender, receiver: packet.receiver, message: params});
+        this._store.dispatch("chat/updateMes", {sender: packet.sender, message: params});
         break;
       case "retrieveMessageLog":
-        this._store.dispatch("players/syncMesTo", packet.sender);
+        this._store.dispatch("chat/syncMesTo", packet.sender);
         break;
     }
   }
@@ -1109,14 +1075,6 @@ class LiveSession {
     }
   }
 
-  setPrivateChat(isPrivateChat) { // todo: send privchat to host
-    const players = this._store.state.players.players;
-    for(let a = 0;a<players.length;a++){
-      if(players[a].id == this._store.state.loginbackend.playerId) {
-        this._sendDirect("host", "privatechat", [a, isPrivateChat]);
-      }
-    }
-  }
   /**
    * Update vote lock and the locked vote, if it differs. Player only
    * @param lock
@@ -1275,10 +1233,7 @@ export default (store) => {
       case "loginbackend/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host
         break;
-      case "session/setPrivateChatConnected":
-        session.setPrivateChat(payload); //from player to host
-        break
-      case "loginbackend/tellMes":
+      case "chat/tellMes":
         session.tell(payload.receiver, payload.message);
         break;
       case "session/voteSync":

@@ -1,5 +1,5 @@
 <template>
-    <div style="width: 100vw; height: 100vh;">
+    <div class="app-root">
       <TimerCircle />
       <TownSquare2 />
       <Menu ref="menu"></Menu>
@@ -110,12 +110,42 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
         }
       },
     },
+    mounted() {
+      const update = () => {
+        const vh = window.visualViewport
+          ? window.visualViewport.height
+          : window.innerHeight;
+        document.documentElement.style.setProperty("--svh", `${vh}px`);
+      };
+
+      update();
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", update);
+        window.visualViewport.addEventListener("scroll", update);
+      }
+      window.addEventListener("resize", update);
+    },
+    beforeDestroy() {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", this.updateViewportUnits);
+        window.visualViewport.removeEventListener("scroll", this.updateViewportUnits);
+      }
+      window.removeEventListener("resize", this.updateViewportUnits);
+    },
   };
   </script>
   
   <style lang="scss">
   @import "@/vars";
   
+  .app-root {
+    width: 100%;
+    height: var(--svh);   /* 真正的可视高度 */
+    position: relative;   /* 为绝对定位子元素提供基准 */
+    overflow: hidden;
+  }
+
   @font-face {
     font-family: "Papyrus";
     src: url("@/assets/fonts/papyrus.eot"); /* IE9*/
@@ -141,7 +171,8 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
     background: url("@/assets/background.jpg") center center;
     background-size: cover;
     color: white;
-    height: 100%;
+    height: auto;
+    min-height: var(--svh);
     font-family: "Roboto Condensed", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

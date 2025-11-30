@@ -144,6 +144,17 @@ export default {
       if (this.session.isSpectator) return;
       this.$store.commit("players/setFabled", { index });
     },
+
+    /***  ======= 核心：更新真实可视高度 ======= ***/
+    updateViewportUnits() {
+      const vh = window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
+
+      document.documentElement.style.setProperty("--svh", `${vh}px`);
+    },
+    /*** ===================================== ***/
+
     handleTrigger(playerIndex, [method, params]) {
       if (typeof this[method] === "function") {
         this[method](playerIndex, params);
@@ -180,13 +191,11 @@ export default {
         const { nomination } = this.session;
         if (nomination) {
           if (nomination.includes(playerIndex)) {
-            // abort vote if removed player is either nominator or nominee
             this.$store.commit("session/nomination");
           } else if (
             nomination[0] > playerIndex ||
             nomination[1] > playerIndex
           ) {
-            // update nomination array if removed player has lower index
             this.$store.commit("session/setNomination", [
               nomination[0] > playerIndex ? nomination[0] - 1 : nomination[0],
               nomination[1] > playerIndex ? nomination[1] - 1 : nomination[1],
@@ -204,7 +213,6 @@ export default {
         this.swap = from;
       } else {
         if (this.session.nomination) {
-          // update nomination if one of the involved players is swapped
           const swapTo = this.players.indexOf(to);
           const updatedNomination = this.session.nomination.map((nom) => {
             if (nom === this.swap) return swapTo;
@@ -232,7 +240,6 @@ export default {
         this.move = from;
       } else {
         if (this.session.nomination) {
-          // update nomination if it is affected by the move
           const moveTo = this.players.indexOf(to);
           const updatedNomination = this.session.nomination.map((nom) => {
             if (nom === this.move) return moveTo;
@@ -273,22 +280,34 @@ export default {
       this.nominate = -1;
     },
   },
+
+  /*** ===== 生命周期：自动绑定 VisualViewport 更新 ===== ***/
+  mounted() {
+    const update = () => this.updateViewportUnits();
+    update();
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", update);
+      window.visualViewport.addEventListener("scroll", update);
+    }
+    window.addEventListener("resize", update);
+  },
+  beforeDestroy() {
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", this.updateViewportUnits);
+      window.visualViewport.removeEventListener("scroll", this.updateViewportUnits);
+    }
+    window.removeEventListener("resize", this.updateViewportUnits);
+  },
+  /*** ===================================================== **/
+
 };
 </script>
+
 
 <style lang="scss">
 @use "sass:math";
 @import "../vars.scss";
-
-#townsquare {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-}
 
 .circle {
   padding: 0;
@@ -408,6 +427,17 @@ export default {
       @include on-circle($i, $g);
     }
   }
+}
+
+
+#townsquare {
+  width: 100%;
+  height: var(--svh);
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
 }
 
 

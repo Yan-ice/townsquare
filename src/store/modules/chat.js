@@ -2,12 +2,35 @@
 import Vue from "vue";
 
 const state = () => ({
+    messageLogs: {},     // otherId -> messages 
+    currentMessagingId: null,
     chatAppliers: {},  // ownerId -> array of users
     chatRooms: {},     // ownerId -> array of users  
     isMute: false, 
     networkPoor: false,
     isSpeaking: false
 });
+
+function setMessage(state, userId, mes) {
+    // Vue.set 确保响应式
+    Vue.set(state.messageLogs, userId, mes+'\n');
+  }
+  
+  function appendMessage(state, userId, mes) {
+    if (!(userId in state.messageLogs)) {
+      // 初始化为空字符串，同时响应式
+      Vue.set(state.messageLogs, userId, '');
+    }
+    // 追加消息
+    Vue.set(state.messageLogs, userId, state.messageLogs[userId] + mes + '\n');
+  }
+
+function readMessage(state, userId) {
+    if (!(userId in state.messageLogs)) {
+        state.messageLogs[userId] = '';
+    }
+    return state.messageLogs[userId];
+}
 
 // helper 查找用户所在房间（返回 ownerId 或 null）
 function findChannel(state, userId) {
@@ -64,12 +87,16 @@ const set = (key) => (state, val) => {
 };
 
 const mutations = {
+    tellMes(state, payload) { //listened by socket
+        console.log("[你 -> "+payload.receiver+"] "+payload.message);
+    },
+
     joinRoom(state, { roomId }) { //subscribed
         state.isMute = true;
     },
 
     leaveRoom(state) { }, //subscribed
-
+    setCurrentMessagingId: set("currentMessagingId"),
     setMute: set("isMute"),
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
@@ -136,9 +163,49 @@ const mutations = {
     },
 };
 
+
+const actions = {
+    checkMes({ commit }, { sender }) {  
+      commit("players/update", {
+        player: sender,
+        property: "hasUnreadMessage",
+        value: false,
+      }, {root: true});
+    },
+  
+    updateMes({ commit, state }, { sender, message }) {
+  
+      if (message.startsWith("___restore___")) {
+        message = message.replace("___restore___", "");
+        // 使用 Vue.set 保证响应式
+        setMessage(state, sender, message);
+      } else {
+  
+        // 添加消息到 state.messageLogs
+        appendMessage(state, sender, message);
+  
+        commit("players/update", {
+          player: sender,
+          property: "hasUnreadMessage",
+          value: true,
+        }, {root: true});
+      }
+    },
+    syncMesTo({ state, commit }, receiver) { //no record, want to fetch from other people.
+
+        const mes = state.messageLogs[receiver] ? state.messageLogs[receiver] : "[游戏开始]\n";
+        commit("tellMes", {
+          receiver: receiver,
+          message: "___restore___" + mes,
+          rawFormat: true,
+        }); 
+      }
+  };
+
 export default {
     namespaced: true,
     state,
     getters,
-    mutations
+    mutations,
+    actions
 };

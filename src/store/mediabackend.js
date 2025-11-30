@@ -582,14 +582,39 @@ export default (store) => {
           }
         }
 
+        const index = store.getters["players/playerToIndex"](state.loginbackend.playerId);
         // 检查是否在房间成员列表
         for (const owner in state.chat.chatRooms) {
           const members = state.chat.chatRooms[owner];
           if (members.includes(state.loginbackend.playerId)) {
             openPrivateChatModal();
             soup.intoChannel(owner);
+            if (index) {
+              let command = {
+                "header": "request",
+                "receiver": "host",
+                "command": "players/setPrivateChat",
+                "param": {
+                  idx: index,
+                  flag: true
+                },
+              }
+              store.commit("session/sendCommand", command);
+            }
             return;
           }
+        }
+        if (index) {
+          let command = {
+            "header": "request",
+            "receiver": "host",
+            "command": "players/setPrivateChat",
+            "param": {
+              idx: index,
+              flag: false
+            },
+          }
+          store.commit("session/sendCommand", command);
         }
         soup.leaveChannel();
         break;

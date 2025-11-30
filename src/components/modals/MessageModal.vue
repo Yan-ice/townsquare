@@ -1,8 +1,8 @@
 <template>
   <Modal v-if="modals.message" @close="closeWin">
-  <h3>与 {{playerByIndex(currentChatIndex).name}} 的聊天</h3>
+  <h3>与 {{playerByUid(currentMessagingId).name}} 的聊天</h3>
   <textarea
-      v-model="playerByIndex(currentChatIndex).messageLogWithHim" readonly
+      v-model="messages" readonly
   ></textarea>
   <div class="chat-input">
       <input
@@ -35,25 +35,28 @@ export default {
     };
   },
   computed: {
-    ...mapState(["modals", "loginbackend", "players"]),
-    currentChatIndex() {
-      return this.loginbackend.currentChatIndex;
+    ...mapState(["modals", "loginbackend", "players", "chat"]),
+    currentMessagingId() {
+      return this.chat.currentMessagingId;
     },
-    playerByIndex() {
-      return (index) => this.$store.getters["players/indexToPlayer"](index);
+    playerByUid() {
+      return (uid) => this.$store.getters["players/uidToPlayer"](uid);
+    },
+    messages() {
+      return this.chat.messageLogs[this.currentMessagingId];
     }
   },
   methods: {
     closeWin() {
-      this.$store.commit("players/checkMes", {sender: this.currentChatIndex});
+      this.$store.dispatch("chat/checkMes", {sender: this.currentMessagingId});
       this.toggleModal('message');
     },
     sendMessage() {
       const content = this.inputMessage.trim();
       if (!content) return;
-      this.$store.commit("players/updateMes", {sender: this.playerByIndex(this.currentChatIndex).id, tellerName: this.loginbackend.username,  message: content});
-      this.$store.commit("loginbackend/tellMes", {receiver: this.playerByIndex(this.currentChatIndex).id, message: content});
-      
+      const updmes = "["+this.loginbackend.username+" -> "+this.playerByUid(this.currentMessagingId).name+"] "+content;
+      this.$store.dispatch("chat/updateMes", {sender: this.currentMessagingId, message: updmes});
+      this.$store.commit("chat/tellMes", {receiver: this.currentMessagingId, message: updmes});
       this.inputMessage = "";
     },
 
