@@ -118,7 +118,7 @@ function updatePrivateState(roomId) {
     for (const userId of members) {
 
       console.log(` checking user ${userId}, channel=${channelId}`);
-
+      const peer = findUser(roomId, userId);
       // 对该 peer 的每个 consumer：如果 consumer.target 在同一 channel 内且不是 self -> resume，否则 pause
       for (const consumer of peer.consumers) {
         const target = consumer.target;
