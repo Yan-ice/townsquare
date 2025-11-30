@@ -101,15 +101,15 @@ function updatePrivateState(roomId) {
   const channels = new Map();
 
   // 1) 按 privateTarget 分组
-  for (const user of room.users) {
+  for (const [userId, user] of room.users) {
     var channelId = user.privateTarget;
     if (!channelId) channelId = "__default__"; // 没有私聊目标则跳过
 
     if (!channels.has(channelId)) channels.set(channelId, []);
-    channels.get(channelId).push(user.userId);
+    channels.get(channelId).push(userId);
   }
   console.log("checking room:");
-  console.log(roomId, room.users, channels);
+  console.log(roomId, channels);
   console.log("new room state (channels):");
   // 2) 对每个 channel，遍历其成员并调整 consumer 状态
   channels.forEach((members, channelId) => {
@@ -117,8 +117,7 @@ function updatePrivateState(roomId) {
 
     for (const userId of members) {
 
-      const peer = room.users.find(u => u.userId === userId);
-      if (!peer) {
+      if (room.users.has(userId)) {
         console.warn(`[updatePrivateState] peer ${userId} not found in room ${roomId}`);
         continue;
       }
