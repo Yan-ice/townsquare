@@ -81,37 +81,70 @@ function closeConnection(io, roomId, userId) {
     }
 }
 
+/**
+ * 更新房间的私聊通道状态：根据 room.users[*].privateTarget 分组，
+ * 然后为每个 channel 内的用户启用他们对同 channel 内其他成员的 consumer，
+ * 对非同 channel 的 consumer 则 pause。
+ *
+ * 假设：
+ * - rooms 是一个 Map 或类似结构，rooms.get(roomId) 返回一个 room 对象
+ * - room.users 是一个数组，数组项形如 { userId, privateTarget, consumers: [{ target, pause, resume }, ...] }
+ */
 function updatePrivateState(roomId) {
   const room = rooms.get(roomId);
-  channels = new Map();
-  if(room) {
-    room.users.forEach((user) => {
-      const channel = user.privateTarget;
-      if(!channels.includes(channel)){
-        channels.set(channel, []);
-      }
-      channels[channel].push(user.userId);
-    })
+  if (!room) {
+    console.warn(`[updatePrivateState] room ${roomId} not found`);
+    return;
   }
 
-  console.log("new room state:");
-  channels.forEach((channel)=>{
-    //for all user in channel, enable its consumer to all members.
-    channel.forEach((userId) => {
-      peer = room.users.get(userId);
-      console.log("checking user ", usedId);
-      console.log("his channel:", channel);
-      peer.consumers.forEach(consumer => {
-        console.log("  consumer target = ", consumer.target, channel.includes(consumer.target));
-        if(consumer.target != peer.userId && channel.includes(consumer.target)) {
-          consumer.resume();
-        }else{
-          consumer.pause();  // 关闭self的Consumer
+  // channels: Map<channelId, Array<userId>>
+  const channels = new Map();
+
+  // 1) 按 privateTarget 分组
+  for (const user of room.users) {
+    const channelId = user.privateTarget;
+    if (!channelId) continue; // 没有私聊目标则跳过
+
+    if (!channels.has(channelId)) channels.set(channelId, []);
+    channels.get(channelId).push(user.userId);
+  }
+
+  console.log("new room state (channels):");
+  // 2) 对每个 channel，遍历其成员并调整 consumer 状态
+  channels.forEach((members, channelId) => {
+    console.log(` channel ${channelId}: members =`, members);
+
+    for (const userId of members) {
+
+      const peer = room.users.find(u => u.userId === userId);
+      if (!peer) {
+        console.warn(`[updatePrivateState] peer ${userId} not found in room ${roomId}`);
+        continue;
+      }
+      console.log(` checking user ${userId}, channel=${channelId}`);
+
+      // 对该 peer 的每个 consumer：如果 consumer.target 在同一 channel 内且不是 self -> resume，否则 pause
+      for (const consumer of peer.consumers) {
+        const target = consumer.target;
+        const shouldResume = target && target !== peer.userId && members.includes(target);
+
+        try {
+          if (shouldResume) {
+            consumer.resume();
+          } else {
+            consumer.pause();
+          }
+        } catch (err) {
+          console.error(`[updatePrivateState] error controlling consumer for peer ${userId}:`, err);
         }
-      });
-    })
+      }
+    }
   });
+
+  // 可选：返回 channels 供调试/外部使用
+  return channels;
 }
+
 function intoPrivate(roomId, userId, channelId) {
     const room = rooms.get(roomId);
     if(room) {
