@@ -117,10 +117,6 @@ function updatePrivateState(roomId) {
 
     for (const userId of members) {
 
-      if (room.users.has(userId)) {
-        console.warn(`[updatePrivateState] peer ${userId} not found in room ${roomId}`);
-        continue;
-      }
       console.log(` checking user ${userId}, channel=${channelId}`);
 
       // 对该 peer 的每个 consumer：如果 consumer.target 在同一 channel 内且不是 self -> resume，否则 pause
