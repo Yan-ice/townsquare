@@ -117,7 +117,7 @@ function intoPrivate(roomId, userId, channelId) {
     if(room) {
       const peer = room.users.get(userId);
       peer.privateTarget = channelId;
-      updatePrivateState();
+      updatePrivateState(roomId);
     }
 }
 function leavePrivate(roomId, userId) {
@@ -125,7 +125,7 @@ function leavePrivate(roomId, userId) {
   if(room) {
     const peer = room.users.get(userId);
     peer.privateTarget = '__default__';
-    updatePrivateState();
+    updatePrivateState(roomId);
   }
 }
 
