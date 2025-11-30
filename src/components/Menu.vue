@@ -91,30 +91,6 @@
             背景图片
             <em><font-awesome-icon icon="image" /></em>
           </li>
-          <!-- <li v-if="!edition.isOfficial" @click="imageOptIn">
-            <small>Show Custom Images</small>
-            <em
-              ><font-awesome-icon
-                :icon="[
-                  'fas',
-                  grimoire.isImageOptIn ? 'check-square' : 'square',
-                ]"
-            /></em>
-          </li> -->
-          <!-- <li @click="toggleStatic">
-            Disable Animations
-            <em
-              ><font-awesome-icon
-                :icon="['fas', grimoire.isStatic ? 'check-square' : 'square']"
-            /></em>
-          </li> -->
-          <!-- <li @click="toggleMuted">
-            Mute Sounds
-            <em
-              ><font-awesome-icon
-                :icon="['fas', grimoire.isMuted ? 'volume-mute' : 'volume-up']"
-            /></em>
-          </li> -->
         </template>
 
         <template v-if="tab === 'session'">

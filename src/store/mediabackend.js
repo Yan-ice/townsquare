@@ -39,7 +39,7 @@ class MediasoupRoom {
   }
 
   setMute(mute) {
-
+    console.log("set mute: ", mute);
     if (!this.stream) return;
     this.isMute = mute;
 
@@ -430,12 +430,13 @@ class MediasoupRoom {
 
   async intoChannel(target_channel) {
     if(!this.socket) return;
+    console.log(this.currentChannel, target_channel);
     if(this.currentChannel == target_channel){
       return;
     }
     this.currentChannel = target_channel;
     this.socket.emit("into_channel", {
-      target_channel
+      channel_id: target_channel
     }, async () =>{
       //Not implemented yet.
     });
@@ -594,7 +595,7 @@ export default (store) => {
         break;
       case "chat/toggleMute":    
       case "chat/setMute":
-        soup.setMute(state.chat.is_mute);
+        soup.setMute(state.chat.isMute);
         break;
     } 
   });

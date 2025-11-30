@@ -308,6 +308,7 @@ class LiveSession {
           break;
         case 'reset':
           this._store.commit("players/clear");
+          //this._store.commit("")
           break;
           
         case 'info':

@@ -94,11 +94,15 @@ function updatePrivateState(roomId) {
     })
   }
 
+  console.log("new room state:");
   channels.forEach((channel)=>{
     //for all user in channel, enable its consumer to all members.
     channel.forEach((userId) => {
       peer = room.users.get(userId);
+      console.log("checking user ", usedId);
+      console.log("his channel:", channel);
       peer.consumers.forEach(consumer => {
+        console.log("  consumer target = ", consumer.target, channel.contains(consumer.target));
         if(consumer.target != peer.userId && channel.contains(consumer.target)) {
           consumer.resume();
         }else{
@@ -107,7 +111,6 @@ function updatePrivateState(roomId) {
       });
     })
   });
-
 }
 function intoPrivate(roomId, userId, channelId) {
     const room = rooms.get(roomId);

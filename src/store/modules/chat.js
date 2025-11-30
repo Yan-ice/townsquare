@@ -74,7 +74,8 @@ const mutations = {
     setPlayerIsSpeaking: set("isSpeaking"),
     setNetworkPoor: set("networkPoor"),
 
-    toggleMute(state) {
+    toggleMute(state) { //subscribed
+        console.log("chat.togglemute.")
         state.isMute = !state.isMute;
     },
 
