@@ -87,6 +87,10 @@
               />
             </em>
           </li>
+          <li @click="toggleImageOptIn">
+            显示/隐藏头像
+            <em><font-awesome-icon icon="image" /></em>
+          </li>
           <li @click="setBackground">
             背景图片
             <em><font-awesome-icon icon="image" /></em>
@@ -246,12 +250,8 @@ export default {
         }
       this.$store.commit("session/distributeRoles", true);
     },
-    async imageOptIn() {
-      const popup =
-        "你确定允许自定义图片吗？";
-      if (this.grimoire.isImageOptIn || await my_confirm(popup)) {
-        this.toggleImageOptIn();
-      }
+    async toggleImageOptIn() {
+      this.toggleImageOptIn();
     },
     async leaveSession() {
       if (await my_confirm("你确定想离开当前房间吗")) {

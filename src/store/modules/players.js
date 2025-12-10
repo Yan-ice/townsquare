@@ -177,6 +177,12 @@ const actions = {
         commit('setTalking', { idx, flag: false });
         player.talkingTimer = null;
       }, 1500);
+    } else {
+      if (player.talkingTimer) {
+        clearTimeout(player.talkingTimer);
+      }
+      player.talkingTimer = null;
+      commit('setTalking', { idx, flag: false });
     }
   }
 };

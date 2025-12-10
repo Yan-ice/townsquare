@@ -1,19 +1,26 @@
 
 <template>
   <div class="token" @click="setRole" :class="[role.id]">
-    
+      <span
+        class="token"
+        v-if="grimoire.isImageOptIn & playerid & !playerid.startsWith('52')"
+        :style="{
+          backgroundImage: `url(${'https://yanices.site/user/read_icon/'+playerid})`,
+          opacity: `${role.id ? 0.3 : 0.7}`
+        }"
+      ></span>
+
       <span
         class="icon"
         v-if="role.id"
         :style="{
           backgroundImage: `url(${
-            role.image && grimoire.isImageOptIn
+            role.image
               ? role.image
               : require('../assets/icons/' + (role.imageAlt || role.id) + '.png')
           })`,
         }"
       ></span>
-
     <span
       class="leaf-left"
       v-if="role.firstNight || role.firstNightReminder"
@@ -59,6 +66,7 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    playerid: String
   },
   computed: {
     reminderLeaves: function () {

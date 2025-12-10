@@ -1230,7 +1230,7 @@ export default (store) => {
         console.log("sendCommand", packet.serialize());
         session._sendPacket(packet);
         break;
-      case "loginbackend/setPlayerIsSpeaking":
+      case "chat/setPlayerIsSpeaking":
         session.setSpeaking(payload); //from player to host
         break;
       case "chat/tellMes":

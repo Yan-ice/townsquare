@@ -80,12 +80,6 @@ const actions = {
         },
       }
       commit("session/sendCommand", command1, {root: true});
-  
-      try {
-       await mediasoupRoom.leaveRoom();
-      } catch (e) {
-       console.warn("leaveRoom error:", e);
-      }
     }
 
   },
@@ -140,11 +134,6 @@ const actions = {
       },
     }
     commit("session/sendCommand", command1, {root: true});
-    try {
-      await mediasoupRoom.leaveRoom();
-    } catch (e) {
-      console.warn("leaveRoom error:", e);
-    }
 
     let command = {
       "header": "sessionset",

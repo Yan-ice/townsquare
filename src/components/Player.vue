@@ -27,6 +27,7 @@
       <div class="subtoken-wrapper" v-if="player.isST">
         <Token
           :role="player.role"
+          :playerid="player.id"
         />
       </div> 
 
@@ -50,6 +51,7 @@
 
         <Token
           :role="displayRole"
+          :playerid="player.id"
           @set-role="$emit('trigger', ['openRoleModal', roleth])"
         />
       </div>
@@ -263,7 +265,7 @@
           class="icon"
           :style="{
             backgroundImage: `url(${
-              reminder.image && grimoire.isImageOptIn
+              reminder.image
                 ? reminder.image
                 : require(
                     '../assets/icons/' +
@@ -549,6 +551,30 @@ export default {
 }
 
 /***** Player token *****/
+
+.iconview{
+  border-radius: 50%;
+  width: 100%;
+  /* 🌟 关键修正：设置高度为 0，并使用 padding-top 制造高度 🌟 */
+  height: 0;
+  padding-top: 100%; /* 高度 = 宽度 * 100% (即正方形) */
+  opacity: 0.5;
+  /* ------------------- 布局修正 ------------------- */
+  /* 当使用 padding-top 技巧时，子内容会被 padding 区域推出，
+     需要通过绝对定位将其拉回正中央。*/
+  position: relative;
+
+  background-size: 100%;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 250ms;
+
+  }
+
 
 .name.invisible {
   opacity: 0;

@@ -42,7 +42,7 @@
             v-if="role.id"
             :style="{
               backgroundImage: `url(${
-                role.image && grimoire.isImageOptIn
+                role.image
                   ? role.image
                   : require(
                       '../../assets/icons/' +
@@ -69,7 +69,7 @@
             v-if="role.id"
             :style="{
               backgroundImage: `url(${
-                role.image && grimoire.isImageOptIn
+                role.image
                   ? role.image
                   : require(
                       '../../assets/icons/' +

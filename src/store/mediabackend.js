@@ -27,7 +27,7 @@ class MediasoupRoom {
     this.microphoneSource = null;
     this.volume = 0;           // 实时音量 0~1
     this.loud_keep = 0;
-    this.volumeThreshold = 0.09;
+    this.volumeThreshold = 0.06;
     this.volumeCallback = this._volumeCallback.bind(this);
     this.volumeMonitorId = null;
 
@@ -69,7 +69,7 @@ class MediasoupRoom {
   
         let isBadNetwork = false;
         let analysis = {}; // 用于 log 打印和传递上下文
-  
+
         for (const [id, report] of stats.entries()) {
           // 发送端 RTP 状态
           if (report.type === "outbound-rtp" && report.kind === "audio") {
@@ -77,7 +77,7 @@ class MediasoupRoom {
               packetsSent = 0,
               retransmittedPacketsSent = 0,
               nackCount = 0,
-              targetBitrate = 24000
+              targetBitrate = 12000
             } = report;
   
             const lossRate = packetsSent > 0
@@ -91,7 +91,20 @@ class MediasoupRoom {
               targetBitrate
             };
   
-            if (lossRate > 0.1 || nackCount > 5 || targetBitrate < 14000) {
+            if (lossRate > 0.08) {
+              await this.producer.setRtpEncodingParameters({
+                maxBitrate: 8000   // 降成 12kbps 语音码率
+              });
+            } else if (lossRate < 0.02) {
+              await this.producer.setRtpEncodingParameters({
+                maxBitrate: 16000   // 20kbps 语音码率
+              });
+            }else {
+              await this.producer.setRtpEncodingParameters({
+                maxBitrate: 12000   // 16kbps 语音码率
+              });
+            }
+            if (lossRate > 0.12 || nackCount > 5) {
               isBadNetwork = true;
             }
           }
@@ -155,21 +168,21 @@ class MediasoupRoom {
   
   _volumeCallback(loud) {
     if(loud) {
-      if(this.loud_keep == 0) {
-        this.loud_keep = 60;
-          if(this.updateCallback){
+      if(this.loud_keep < 60) {
+        this.loud_keep = 120;
+        if(this.updateCallback){
             this.updateCallback();
-          }
+        }
       }
-      this.loud_keep = 60;
-    }
-    
-    if(this.loud_keep > 0) {
       this.loud_keep--;
-      if(this.loud_keep == 0){
-          if(this.updateCallback){
-            this.updateCallback();
-          }
+    } else {
+      if(this.loud_keep > 9) {
+        this.loud_keep = this.loud_keep - 2;
+        if(this.loud_keep < 10){
+            if(this.updateCallback){
+              this.updateCallback();
+            }
+        }
       }
     }
   }
@@ -300,15 +313,16 @@ class MediasoupRoom {
     // 限制最大码率
     this.producer = await this.sendTransport.produce({
       track,
-      encodings: [
-        {
-          maxBitrate: 24000, // 限制最大码率为 24kbps
-        },
-      ],
       codecOptions: {
-        opusDtx: true,      // ✅ 启用 DTX（静音时不发送）
-        opusStereo: false,  // 可选：单声道，减少带宽
-      },
+        opusMaxPlaybackRate: 48000,
+        opusStereo: false,
+        opusDtx: true,
+        opusFec: true,  // 开启冗余帧
+        opusPacketLossPerc: 10  // 让 OPUS 自适应丢包冗余
+      }
+    });
+    await this.producer.setRtpEncodingParameters({
+      maxBitrate: 12000   // 降成 20kbps 语音码率
     });
 
     this.startNetworkMonitor();
@@ -551,7 +565,7 @@ export default (store) => {
 
   soup.setUpdateCallback(() =>{
       store.commit("chat/setNetworkPoor", soup.isNetworkPoor);
-      store.commit("chat/setPlayerIsSpeaking", soup.loud_keep > 0);
+      store.commit("chat/setPlayerIsSpeaking", soup.loud_keep > 10);
     }
   );
   

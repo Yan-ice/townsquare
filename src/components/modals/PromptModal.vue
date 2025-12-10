@@ -77,8 +77,8 @@
       }
     },
     watch: {
-      "modals.showInfo"(val) {
-        if (val) {
+      "modals.prompt"(val) {
+        if(val) {
           this.resetData();   // 每次打开时清空 data
         }
       },
