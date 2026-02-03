@@ -34,12 +34,8 @@ export default {
     gamestate: function () {
       return JSON.stringify({
         bluffs: this.players.bluffs.map(({ id }) => id),
-        edition: this.edition.isOfficial
-          ? { id: this.edition.id }
-          : this.edition,
-        roles: this.edition.isOfficial
-          ? ""
-          : this.$store.getters.customRolesStripped,
+        edition: this.edition,
+        roles: this.$store.getters.customRolesStripped,
         fabled: this.players.fabled.map((fabled) =>
           fabled.isCustom ? fabled : { id: fabled.id },
         ),

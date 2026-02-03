@@ -371,7 +371,7 @@ io.on("connection", (socket) => {
 
     // 给客户端返回所有初始化信息
     callback({
-      existingUsers: Array.from(room.users.keys().filter((id)=>{return id!=socket.data.userId;})),
+      existingUsers: [...room.users.keys()].filter(id => id !== socket.data.userId),
     });
   });
 

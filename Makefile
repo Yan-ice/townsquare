@@ -1,8 +1,7 @@
 
 all:
 	npm run build NODE_ENV="production"
-	scp -r dist/ ubuntu@111.229.112.80:~
+	scp -r dist/ root@101.132.35.92:~
 
 setup:
 	npm install @capacitor/core @capacitor/cli
-

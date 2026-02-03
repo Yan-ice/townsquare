@@ -27,7 +27,7 @@
     ></li>
     <li></li>
     <li>
-      <span class="meta" v-if="!edition.isOfficial">
+      <span class="meta">
         {{ edition.name }} {{ edition.author ? "by " + edition.author : "" }}
       </span>
       <span>

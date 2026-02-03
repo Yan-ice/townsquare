@@ -36,10 +36,10 @@ export default {
   },
   methods: {
     async tryLoginWithSystemMe() {
-      this.$store.commit('loginbackend/setServerURL', 'yanices.site');
+      this.$store.commit('loginbackend/setServerURL', 'yanice.online');
       try {
         console.log("尝试统一认证登录");
-        const res = await axios.get("https://yanices.site/user/me");
+        const res = await axios.get("https://yanice.online/user/me");
         if (res.data.status === "success") {
           this.$store.commit('loginbackend/loginWithSystemMe', res.data);
           console.log("统一认证登录成功");
@@ -52,7 +52,7 @@ export default {
       this.$store.commit('loginbackend/loginWithStorage');
     },
     handlePlayerLogin() {
-      this.$store.commit('loginbackend/setServerURL', 'yanices.site');
+      this.$store.commit('loginbackend/setServerURL', 'yanice.online');
       this.$store.commit('loginbackend/setPlayerId', '');
       this.$store.commit('loginbackend/loginWithData', {
         username: this.playerUsername,
@@ -60,7 +60,7 @@ export default {
       });
     },
     redirectToLogin() {
-      window.location.href = 'https://yanices.site/user/';
+      window.location.href = 'https://yanice.online/user/';
     }
   }
 }

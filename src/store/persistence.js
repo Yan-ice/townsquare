@@ -13,41 +13,47 @@ module.exports = (store) => {
   if (localStorage.getItem("zoom")) {
     store.commit("setZoom", parseFloat(localStorage.getItem("zoom")));
   }
-  if (localStorage.roles !== undefined) {
-    store.commit("setCustomRoles", JSON.parse(localStorage.roles));
-    store.commit("setEdition", { id: "custom" });
-  }
-  if (localStorage.edition !== undefined) {
-    // this will initialize state.roles for official editions
-    store.commit("setEdition", JSON.parse(localStorage.edition));
-  }
-  if (localStorage.bluffs !== undefined) {
-    JSON.parse(localStorage.bluffs).forEach((role, index) => {
-      store.commit("players/setBluff", {
-        index,
-        role: store.state.roles.get(role) || {},
+
+  try{
+    if (localStorage.roles !== undefined) {
+      store.commit("setCustomRoles", JSON.parse(localStorage.roles));
+      store.commit("setEdition", { id: "custom" });
+    }
+    if (localStorage.edition !== undefined) {
+      // this will initialize state.roles for official editions
+      store.commit("setEdition", JSON.parse(localStorage.edition));
+    }
+    if (localStorage.bluffs !== undefined) {
+      JSON.parse(localStorage.bluffs).forEach((role, index) => {
+        store.commit("players/setBluff", {
+          index,
+          role: store.state.roles.get(role) || {},
+        });
       });
-    });
+    }
+    if (localStorage.fabled !== undefined) {
+      store.commit("players/setFabled", {
+        fabled: JSON.parse(localStorage.fabled).map(
+          (fabled) => store.state.fabled.get(fabled.id) || fabled,
+        ),
+      });
+    }
+    if (localStorage.players) {
+      store.commit(
+        "players/set",
+        JSON.parse(localStorage.players).map((player) => ({
+          ...player,
+          role:
+            store.state.roles.get(player.role) ||
+            store.getters.rolesJSONbyId.get(player.role) ||
+            {},
+        })),
+      );
+    }
+  }catch(e) {
+    console.log("魔典数据损坏，已放弃。");
   }
-  if (localStorage.fabled !== undefined) {
-    store.commit("players/setFabled", {
-      fabled: JSON.parse(localStorage.fabled).map(
-        (fabled) => store.state.fabled.get(fabled.id) || fabled,
-      ),
-    });
-  }
-  if (localStorage.players) {
-    store.commit(
-      "players/set",
-      JSON.parse(localStorage.players).map((player) => ({
-        ...player,
-        role:
-          store.state.roles.get(player.role) ||
-          store.getters.rolesJSONbyId.get(player.role) ||
-          {},
-      })),
-    );
-  }
+
 
   store.commit("loginbackend/setMdict", localStorage.isMdict);
 
@@ -110,9 +116,6 @@ module.exports = (store) => {
         break;
       case "setEdition":
         localStorage.setItem("edition", JSON.stringify(payload));
-        if (state.edition.isOfficial) {
-          localStorage.removeItem("roles");
-        }
         break;
       case "setCustomRoles":
         if (!payload.length) {

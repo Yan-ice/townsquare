@@ -3,9 +3,9 @@
   <div class="token" @click="setRole" :class="[role.id]">
       <span
         class="token"
-        v-if="grimoire.isImageOptIn & playerid & !playerid.startsWith('52')"
+        v-if="grimoire.isImageOptIn && playerid && !playerid.startsWith('52')"
         :style="{
-          backgroundImage: `url(${'https://yanices.site/user/read_icon/'+playerid})`,
+          backgroundImage: `url(${'https://yanice.online/user/read_icon/'+playerid})`,
           opacity: `${role.id ? 0.3 : 0.7}`
         }"
       ></span>
