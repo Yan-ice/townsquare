@@ -725,7 +725,7 @@ function mark_connection_lost(ws) {
       ws.terminate();
 
       room.paused = true;
-      const p = new CommandPacket("sessionset", session);
+      const p = new CommandPacket("sessionset", channel);
       p.addCommand("pause", true);
       routeTo(room, p, Router.ALL);
 
