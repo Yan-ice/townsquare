@@ -263,12 +263,16 @@ function set_joingame(client, session, player, mdict) {
         }
         return false;
       })) {
+
+        if(room.paused) {
+          const a = new CommandPacket("sessionset", session);
+          a.addCommand("info", "该房间暂停中（说书人处于离线状态），请等待说书人重新连接。");
+          client.send(a.serialize()); 
+          return;
+        }
         const a = new CommandPacket("sessionset", session);
         a.addCommand("mdict", room.mdict);
         a.addCommand("state", "play");
-        if(room.paused) {
-          a.addCommand("pause", true);
-        }
         client.send(a.serialize());  
         room.players.push(player);
 
@@ -727,7 +731,7 @@ function mark_connection_lost(ws) {
       room.paused = true;
       const p = new CommandPacket("sessionset", channel);
       p.addCommand("pause", true);
-      routeTo(room, p, Router.ALL);
+      routeTo(channel, p, Router.ALL);
 
       return;
     }
