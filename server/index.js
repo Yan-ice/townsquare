@@ -84,7 +84,6 @@ function set_online(client, token) {
     }
 
 
-
     client.userId = token;
     client.username = data['username'];
 
@@ -237,7 +236,7 @@ function set_joingame(client, session, player, mdict) {
         room.paused = false;
         const p = new CommandPacket("sessionset", session);
         p.addCommand("pause", false);
-        routeTo(room, p, Router.ALL);
+        routeTo(session, p, Router.ALL);
         return;
       }
 
