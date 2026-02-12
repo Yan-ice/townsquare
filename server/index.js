@@ -57,6 +57,7 @@ function next_offline_room() {
 
 const CommandPacket = require('./packet.js');
 const FlaskClient = require('./user_system'); // 路径根据你的文件位置调整
+const { ALL } = require("dns");
 
 const flaskClient = new FlaskClient();
 
@@ -81,6 +82,8 @@ function set_online(client, token) {
       'is_storyteller': data['is_storyteller'],
       'is_storyteller_vocal': data['is_storyteller_vocal']
     }
+
+
 
     client.userId = token;
     client.username = data['username'];
@@ -180,7 +183,8 @@ function set_joingame(client, session, player, mdict) {
            players: [],
            watchers: [],
            seat: [],
-           mdict: false
+           mdict: false,
+           paused: false
          }
          const a = new CommandPacket("sessionset", offlineid);
          a.addCommand("mdict", false);
@@ -207,7 +211,8 @@ function set_joingame(client, session, player, mdict) {
           players: [],
           watchers: [],
           seat: [],
-          mdict: mdict
+          mdict: mdict,
+          paused: false
         }
         const a = new CommandPacket("sessionset", session);
         a.addCommand("mdict", mdict);
@@ -227,6 +232,18 @@ function set_joingame(client, session, player, mdict) {
         const a = new CommandPacket("sessionset", session);
         a.addCommand("mdict", room.mdict);
         a.addCommand("state", "host");
+        client.send(a.serialize());  
+
+        room.paused = false;
+        const p = new CommandPacket("sessionset", session);
+        p.addCommand("pause", false);
+        routeTo(room, p, Router.ALL);
+        return;
+      }
+
+      if(room.paused) {
+        const a = new CommandPacket("sessionset", session);
+        a.addCommand("info", "该房间说书人处于离线状态，房间已暂停。请等待说书人重新上线。");
         client.send(a.serialize());  
         return;
       }
@@ -689,6 +706,31 @@ const interval = setInterval(
 
 function mark_connection_lost(ws) {
   for (const channel in channels) {
+    if (channels[channel].host['socket'].userId == ws.userId) {
+
+      room = channels[channel];
+      player = room.host;
+
+      console.log("storyteller disconnected:", ws.userId);
+
+      const chatlost = new CommandPacket("request");
+      chatlost.addCommand("chat/leaveChatChannel", {userId: player.token});
+      channels[channel].host['socket'].send(chatlost.serialize());
+
+      const packet = new CommandPacket("request");
+      packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: false});
+      channels[channel].host['socket'].send(packet.serialize());
+
+      ws.terminate();
+
+      room.paused = true;
+      const p = new CommandPacket("sessionset", session);
+      p.addCommand("pause", true);
+      routeTo(room, p, Router.ALL);
+
+      return;
+    }
+
     channels[channel].players.forEach((player)=>{
       if (player['socket'].userId == ws.userId) {
         console.log("player disconnected:", player.token);

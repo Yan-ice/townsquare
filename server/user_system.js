@@ -80,7 +80,9 @@ class FlaskClient {
     return {
       token: token,
       username: userInfo.username,
-      is_storyteller: userInfo.permission_storyteller,
+      // is_storyteller: userInfo.permission_storyteller,
+      is_storyteller: true,
+      // Yan_ice: give permission to all users.
       is_storyteller_vocal: userInfo.permission_storyteller_vocal,
       is_guest: false,
     };

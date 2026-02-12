@@ -19,8 +19,8 @@
             v-if="$store.state.loginbackend.canStoryteller"
             class="observer-checkbox blackp"
           >
-            <input v-model="isMdict" type="checkbox" />
-            开启内置语音
+            <input v-model="isMdict" type="checkbox" enabled="$store.state.loginbackend.canVocalStoryteller"/>
+            开启内置语音（需要权限）
           </label>
         </form>
       </div>
@@ -29,13 +29,14 @@
       <div class="right-panel">
         <h2 class="title"> 线下说书 </h2>
         <form @submit.prevent="handleOfflineRoom" class="login-form">
-
         <button type="submit">
           创建离线房间
         </button>
         <p class="title blackp">（线下说书专用）</p>
+        <p class="title blackp">如果您希望线上说书，请注册账号。</p>
         </form>
       </div>
+
     </div>
 
     <!-- 底部：退出和提示 -->
@@ -79,11 +80,10 @@ export default {
         this.$store.dispatch("loginbackend/joinSession", {sessionId: this.room, mdict: this.isMdict});
       }
       
-      //this.$store.commit('loginbackend/setSessionId', this.room);
     },
     handleOfflineRoom() {
         this.$store.commit("session/setWatcher", false);
-        this.$store.dispatch("loginbackend/joinSession", {sessionId: "__offline__", mdict: this.isMdict});
+        this.$store.dispatch("loginbackend/joinSession", {sessionId: "__offline__", mdict: false});
     },
 
     logout() {
