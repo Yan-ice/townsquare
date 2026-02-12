@@ -8,8 +8,8 @@ const mediasoup = require('mediasoup');
 const app = express();
 
 const options = {
-  key: fs.readFileSync('/home/ubuntu/cert/privkey.pem'),
-  cert: fs.readFileSync('/home/ubuntu/cert/cert.pem'),
+  cert: fs.readFileSync("/etc/letsencrypt/live/yanice.online/cert.pem"),
+  key: fs.readFileSync("/etc/letsencrypt/live/yanice.online/privkey.pem"),
 };
 
 const server = https.createServer(options, app);

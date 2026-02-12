@@ -17,8 +17,8 @@ const MAX_MISSED_PINGS = 6;         // 允许连续丢失 5 次 ping
 const options = {};
 
 if (process.env.NODE_ENV !== "development") {
-  options.cert = fs.readFileSync("/home/ubuntu/cert/cert.pem");
-  options.key = fs.readFileSync("/home/ubuntu/cert/privkey.pem");
+  options.cert = fs.readFileSync("/etc/letsencrypt/live/yanice.online/cert.pem");
+  options.key = fs.readFileSync("/etc/letsencrypt/live/yanice.online/privkey.pem");
 }
 
 const server = https.createServer(options);
@@ -244,18 +244,14 @@ function set_joingame(client, session, player, mdict) {
       if(!room.players.some((pl)=> {
         if(pl.token == player.token) {
 
-            if(room.paused) {
-              const p = new CommandPacket("sessionset", session);
-              p.addCommand("pause", true);
-              client.send(p.serialize())
-              return;
-            }
-
               pl.username = player.username;
               pl.socket = player.socket;
               const a = new CommandPacket("sessionset", session);
               a.addCommand("mdict", room.mdict);
               a.addCommand("state", "play");
+              if(room.paused) {
+                a.addCommand("pause", true);
+              }
               client.send(a.serialize());  
 
               const packet = new CommandPacket("request");
@@ -270,6 +266,9 @@ function set_joingame(client, session, player, mdict) {
         const a = new CommandPacket("sessionset", session);
         a.addCommand("mdict", room.mdict);
         a.addCommand("state", "play");
+        if(room.paused) {
+          a.addCommand("pause", true);
+        }
         client.send(a.serialize());  
         room.players.push(player);
 
