@@ -15,6 +15,7 @@
       <GameStateModal />
       <PromptModal />
       <OfflineShowInfoModal />
+      <PauseModal />
       <Gradients />
     </div>
       
@@ -42,6 +43,7 @@
   import NoteModal from "../components/modals/NoteModal";
   import TimerCircle from "@/components/TimerCircle.vue";
 import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue";
+import PauseModal from "../components/modals/PauseModal.vue";
 
   export default {
     components: {
@@ -61,6 +63,7 @@ import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue"
       NoteModal,
       PromptModal,
       OfflineShowInfoModal,
+      PauseModal,
       Gradients,
       TimerCircle,
     },

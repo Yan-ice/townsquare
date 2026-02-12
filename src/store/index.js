@@ -146,6 +146,7 @@ export default new Vuex.Store({
       prompt: false,
       notes: false,
       showInfo: false,
+      pause: false,
     },
     edition: editionJSONbyId.get("custom"),
     roles: getRolesByEdition(),

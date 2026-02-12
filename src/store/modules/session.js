@@ -31,7 +31,8 @@ const state = () => ({
   markedPlayer: -1,
   isVoteHistoryAllowed: true,
   isRolesDistributed: false,
-  send_packet: null
+  send_packet: null,
+  paused: false
 });
 
 const getters = {};
@@ -64,6 +65,7 @@ const mutations = {
   sendCommand(state, packet) {
     state.send_packet = packet;
   },
+  setPaused: set("paused"),
   nomination(
     state,
     { nomination, votes, votingSpeed, lockedVote, isVoteInProgress } = {},

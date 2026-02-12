@@ -72,6 +72,7 @@ export default {
   methods: {
     handleSubmit() {
       //this.$store.commit('loginbackend/setMdict', this.isMdict);
+      this.$store.commit("session/setPaused", false);
       if(this.isObserver) {
         this.$store.commit("session/setWatcher", true);
         this.$store.dispatch("loginbackend/observeSession", {sessionId: this.room});
@@ -82,6 +83,7 @@ export default {
       
     },
     handleOfflineRoom() {
+      this.$store.commit("session/setPaused", false);
         this.$store.commit("session/setWatcher", false);
         this.$store.dispatch("loginbackend/joinSession", {sessionId: "__offline__", mdict: false});
     },

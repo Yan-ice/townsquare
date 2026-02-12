@@ -241,15 +241,16 @@ function set_joingame(client, session, player, mdict) {
         return;
       }
 
-      if(room.paused) {
-        const a = new CommandPacket("sessionset", session);
-        a.addCommand("info", "该房间说书人处于离线状态，房间已暂停。请等待说书人重新上线。");
-        client.send(a.serialize());  
-        return;
-      }
-
       if(!room.players.some((pl)=> {
         if(pl.token == player.token) {
+
+            if(room.paused) {
+              const p = new CommandPacket("sessionset", session);
+              p.addCommand("pause", true);
+              client.send(p.serialize())
+              return;
+            }
+
               pl.username = player.username;
               pl.socket = player.socket;
               const a = new CommandPacket("sessionset", session);
@@ -261,6 +262,7 @@ function set_joingame(client, session, player, mdict) {
               packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: true});
               room.host['socket'].send(packet.serialize());
               //note online state.
+
               return true;
         }
         return false;

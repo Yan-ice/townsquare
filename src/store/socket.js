@@ -315,6 +315,16 @@ class LiveSession {
         case 'info':
           my_alert(params);
           break;
+        case 'pause':
+          this._store.commit("session/setPaused", params);
+          if(!params) {
+            this._sendDirect(
+              "host",
+              "getGamestate",
+              this._store.state.loginbackend.playerId,
+            );
+          }
+          break;
       }
   }
 
