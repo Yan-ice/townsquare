@@ -8,6 +8,7 @@ const state = () => ({
     pwd: '2333', 
     canStoryteller: false,
     canVocalStoryteller: false,
+    isWaltzOnly: false,
     isMdict: false, //使用内置语音
     backendServer: null,
     vocalServer: null,

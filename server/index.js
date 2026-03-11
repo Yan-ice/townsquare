@@ -146,9 +146,13 @@ function set_leavegame(client, session, player) {
           delete channels[session];
           return;
         }else{
-          let require_command = new CommandPacket("require", session);
-          require_command.addCommand("clean_seat", player.token);
-          room.host.socket.send(require_command.serialize());
+          if (room.paused) {
+            room.pause_leave.push(player.token);
+          } else {
+            let require_command = new CommandPacket("require", session);
+            require_command.addCommand("clean_seat", player.token);
+            room.host.socket.send(require_command.serialize());
+          }
         }
         
         channels[session].players = channels[session].players.filter(item => item.token != player.token);
@@ -183,7 +187,8 @@ function set_joingame(client, session, player, mdict) {
            watchers: [],
            seat: [],
            mdict: false,
-           paused: false
+           paused: false,
+           pause_leave: []
          }
          const a = new CommandPacket("sessionset", offlineid);
          a.addCommand("mdict", false);
@@ -211,7 +216,8 @@ function set_joingame(client, session, player, mdict) {
           watchers: [],
           seat: [],
           mdict: mdict,
-          paused: false
+          paused: false,
+          pause_leave: []
         }
         const a = new CommandPacket("sessionset", session);
         a.addCommand("mdict", mdict);
@@ -237,6 +243,15 @@ function set_joingame(client, session, player, mdict) {
         const p = new CommandPacket("sessionset", session);
         p.addCommand("pause", false);
         routeTo(session, p, Router.ALL);
+
+        // clean seats of players who left during pause.
+        let require_command = new CommandPacket("require", session);
+        for (let token of room.pause_leave) {
+          require_command.addCommand("clean_seat", token);
+        }
+        room.host.socket.send(require_command.serialize());
+        room.pause_leave = [];
+
         return;
       }
 
