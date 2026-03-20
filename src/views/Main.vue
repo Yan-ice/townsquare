@@ -44,6 +44,7 @@
   import TimerCircle from "@/components/TimerCircle.vue";
 import OfflineShowInfoModal from "../components/modals/OfflineShowInfoModal.vue";
 import PauseModal from "../components/modals/PauseModal.vue";
+import UserRoleSelectionModal from "../components/modals/UserRoleSelectionModal.vue";
 
   export default {
     components: {
@@ -64,6 +65,7 @@ import PauseModal from "../components/modals/PauseModal.vue";
       PromptModal,
       OfflineShowInfoModal,
       PauseModal,
+      UserRoleSelectionModal,
       Gradients,
       TimerCircle,
     },

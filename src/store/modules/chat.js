@@ -2,13 +2,16 @@
 import Vue from "vue";
 
 const state = () => ({
-    messageLogs: {},     // otherId -> messages 
+    messageLogs: {},     // otherId -> messages
     currentMessagingId: null,
     chatAppliers: {},  // ownerId -> array of users
-    chatRooms: {},     // ownerId -> array of users  
-    isMute: false, 
+    chatRooms: {},     // ownerId -> array of users
+    isMute: false,
     networkPoor: false,
-    isSpeaking: false
+    isSpeaking: false,
+    // 用户自定义角色选择：存储从各个从端/玩家发来的角色选择
+    // 格式: { [userId]: { id: string, name: string, roles: Array<Role> } }
+    userRoleSelections: {}
 });
 
 function setMessage(state, userId, mes) {
@@ -79,6 +82,15 @@ const getters = {
         const roomId = getters.myRoomId;
         if (!roomId) return null;
         return state.chatAppliers[roomId] || [];
+    },
+
+    // 获取所有用户提交的角色选择，转换为组件可用的数组格式
+    allUserRoleSelections: (state) => {
+        return Object.values(state.userRoleSelections).map(item => ({
+            id: item.id,
+            name: item.name,
+            roles: item.roles.map(r => ({ ...r })) // 返回副本保证不会直接修改store
+        }));
     },
 };
 
@@ -160,6 +172,30 @@ const mutations = {
             const idx = state.chatAppliers[owner].indexOf(userId);
             if (idx !== -1) state.chatAppliers[owner].splice(idx, 1);
         }
+    },
+
+    // ---------- 玩家提交自定义角色选择 ----------
+    submitUserSelectRole(state, { id, name, selectedRoles }) {
+        // id: 提交玩家的ID
+        // name: 提交玩家的名称
+        // selectedRoles: 选中的角色数组
+        Vue.set(state.userRoleSelections, id, {
+            id,
+            name,
+            roles: selectedRoles
+        });
+    },
+
+    // 删除某个用户的角色选择（用于要求重选）
+    removeUserSelectRole(state, { userId }) {
+        if (state.userRoleSelections[userId]) {
+            Vue.delete(state.userRoleSelections, userId);
+        }
+    },
+
+    // 清空所有用户角色选择
+    clearUserSelectRoles(state) {
+        state.userRoleSelections = {};
     },
 };
 

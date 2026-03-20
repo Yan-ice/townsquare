@@ -162,6 +162,10 @@
             选择剧本
             <em>[E]</em>
           </li>
+          <li v-if="!session.isSpectator" @click="toggleModal('user-role-selection')">
+            玩家构筑剧本
+            <em>[ ]</em>
+          </li>
           <li @click="toggleModal('reference')">
             角色能力表
             <em>[R]</em>

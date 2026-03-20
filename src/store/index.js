@@ -147,6 +147,7 @@ export default new Vuex.Store({
       notes: false,
       showInfo: false,
       pause: false,
+      userRoleSelection: false
     },
     edition: editionJSONbyId.get("custom"),
     roles: getRolesByEdition(),
@@ -203,6 +204,15 @@ export default new Vuex.Store({
     toggleModal({ modals }, name) {
       if (name && name != "") {
         modals[name] = !modals[name];
+      }
+      for (let modal in modals) {
+        if (modal === name) continue;
+        modals[modal] = false;
+      }
+    },
+    setModal({ modals, open }, name) {
+      if (name && name != "") {
+        modals[name] = open;
       }
       for (let modal in modals) {
         if (modal === name) continue;
