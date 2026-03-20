@@ -89,7 +89,7 @@ const getters = {
         return Object.values(state.userRoleSelections).map(item => ({
             id: item.id,
             name: item.name,
-            roles: item.roles.map(r => ({ ...r })) // 返回副本保证不会直接修改store
+            roles: item.roles // 直接返回原始引用，保证响应式
         }));
     },
 };
@@ -179,10 +179,16 @@ const mutations = {
         // id: 提交玩家的ID
         // name: 提交玩家的名称
         // selectedRoles: 选中的角色数组
+        // 确保每个角色的 selected 属性是响应式的
+        const roles = selectedRoles.map(role => {
+            const roleCopy = { ...role };
+            Vue.set(roleCopy, "selected", true);
+            return roleCopy;
+        });
         Vue.set(state.userRoleSelections, id, {
             id,
             name,
-            roles: selectedRoles
+            roles: roles
         });
     },
 

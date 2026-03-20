@@ -14,6 +14,7 @@
       <PrivateChatModal />
       <GameStateModal />
       <PromptModal />
+      <UserRoleSelectionModal />
       <OfflineShowInfoModal />
       <PauseModal />
       <Gradients />

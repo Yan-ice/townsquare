@@ -1,10 +1,9 @@
 <template>
-  <Modal
+  <Modal :closable="false"
     class="user-role-selection"
     v-if="modals.userRoleSelection"
-    @close="toggleModal('userRoleSelection')"
   >
-    <h3>{{ title }}</h3>
+    <h3>{{ session.isSpectator ? "选择角色并提交给说书人" : "定制剧本中" }}</h3>
 
     <div class="content-container" :class="{ 'single-panel': session.isSpectator }">
       <!-- 左侧：用户列表滚动窗口 - 仅主端可见 -->
@@ -24,7 +23,6 @@
                 @click="requestReselect(user)"
                 title="要求玩家重选角色"
               >
-                <font-awesome-icon icon="redo" />
                 要求重选
               </div>
             </div>
@@ -63,13 +61,15 @@
 
     <div class="button-group">
       <div class="button" @click="onConfirm" :class="{ disabled: !canConfirm }">
-        <font-awesome-icon icon="check" />
+        <font-awesome-icon icon="file-upload" />
         确定
       </div>
       <div class="button cancel" @click="onCancel" v-if="!session.isSpectator">
+        <font-awesome-icon icon="cog" />
         取消
       </div>
     </div>
+
   </Modal>
 </template>
 
@@ -82,13 +82,6 @@ export default {
   components: {
     Token,
     Modal,
-  },
-  props: {
-    // 外部传入的标题，可以自定义
-    title: {
-      type: String,
-      default: "定制剧本",
-    },
   },
   data: function () {
     return {
@@ -122,7 +115,8 @@ export default {
     },
     ...mapState(["roles", "modals", "session", "edition"]),
     ...mapState("chat", ["userRoleSelections"]),
-    ...mapState("session", ["playerId", "username"]),
+    ...mapState("loginbackend", ["playerId", "username"]),
+
     ...mapState(["fabled"]),
   },
   methods: {
@@ -139,7 +133,8 @@ export default {
     // ========== 公共方法 ==========
     // 切换角色选中状态
     toggleRoleSelection(role, user = null) {
-      role.selected = !role.selected;
+      // 使用 Vue.set 确保响应式
+      this.$set(role, "selected", !role.selected);
       // 如果需要在选中时做额外处理，可以在这里扩展
       this.onRoleToggled(role, user);
     },
@@ -162,12 +157,12 @@ export default {
     },
 
     onCancel() {
-      toggleModal('userRoleSelection');
+      this.toggleModal('userRoleSelection');
       const command = {
         "header": "sync",
         "command": "setModal",
         "param": {
-          modals: "userRoleSelection",
+          name: "userRoleSelection",
           open: false
         }
       };
@@ -238,6 +233,8 @@ export default {
 
         // 使用当前已有的 meta 信息，设置 edition
         const meta = this.edition || {};
+        meta["name"] = "一个超酷的剧本！"
+        meta["author"] = "所有玩家"
         this.setEdition(Object.assign({}, meta, { id: "custom" }));
 
         // 检查并设置 fabled，和 EditionModal 保持一致
@@ -250,6 +247,16 @@ export default {
           });
           this.$store.commit("players/setFabled", { fabled });
         }
+
+        const command = {
+          "header": "sync",
+          "command": "setModal",
+          "param": {
+            name: "userRoleSelection",
+            open: false
+          }
+        };
+        this.$store.commit("session/sendCommand", command);
       }
 
       this.onConfirmCallback(this.getSelectionResult());
@@ -263,6 +270,8 @@ export default {
       // 默认空实现
     },
 
+    // 确认回调 - 你需要实现这个方法来处理选择结果
+    onConfirmCallback(selectionResult) {
       // 结果格式:
       // {
       //   users: Array<{
@@ -279,6 +288,9 @@ export default {
       //   totalSelected: number  // 总共选中数量
       // }
       // 你可以直接使用 selectionResult.allSelectedRoles 进入后续逻辑
+      console.log('Selection result:', selectionResult);
+    },
+
     // ========= 工具方法：获取完整选择结果 ==========
     // 结果包含:
     // 1. users: 所有从端玩家提交上来的信息，每个玩家及其选中角色
@@ -318,10 +330,13 @@ export default {
 
       // 2. 发送指令给对端，要求打开弹窗重新选择
       const command = {
-        "header": "request",
+        "header": "require",
         "receiver": user.id,
-        "command": "toggleModal",
-        "param": "userRoleSelection"
+        "command": "setModal",
+        "param": {
+          name: "userRoleSelection",
+          open: true
+        }
       };
       this.$store.commit("session/sendCommand", command);
     },
@@ -330,22 +345,29 @@ export default {
   },
   mounted: function () {
     this.initAvailableRoles();
-    const command = {
-        "header": "sync",
-        "command": "setModal",
-        "param": {
-          modals: "userRoleSelection",
-          open: true
-        }
-      };
-    this.$store.commit("session/sendCommand", command);
   },
   watch: {
     // 当 roles 变化时重新初始化
     roles() {
       this.initAvailableRoles();
+    },
+    // 当主端打开此弹窗时，同步通知房间内所有玩家打开此弹窗
+    "modals.userRoleSelection": function(isOpen) {
+      if (!this.session.isSpectator && isOpen) {
+        // 获取当前房间所有成员
+        const command = {
+              "header": "sync",
+              "command": "setModal",
+              "param": {
+                name: "userRoleSelection",
+                open: true
+              }
+            };
+            this.$store.commit("session/sendCommand", command);
+      }
     }
   }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -360,8 +382,8 @@ export default {
 
 .left-panel {
   flex: 1;
-  min-width: 45%;
-  max-width: 55%;
+  min-width: 40%;
+  max-width: 40%;
   display: flex;
   flex-direction: column;
 }
@@ -498,9 +520,8 @@ export default {
 .user-tokens li,
 .available-tokens li {
   border-radius: 50%;
-  width: 7vw;
-  min-width: 50px;
-  max-width: 70px;
+  width: 8vw;
+  max-width: 80px;
   margin: 3px;
   opacity: 0.5;
   transition: all 250ms;
@@ -552,28 +573,6 @@ export default {
     right: -5px;
     font-size: 150%;
     display: none;
-  }
-}
-
-/* ========== 底部按钮组 ========== */
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-
-  .button {
-    padding: 8px 16px;
-
-    &.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-  }
-
-  .cancel {
-    background-color: rgba(150, 150, 150, 0.5);
   }
 }
 

@@ -407,6 +407,9 @@ class LiveSession {
             }
           }
         }
+        break;
+      default:
+        this._store.commit(command, params);
       }
   }
 

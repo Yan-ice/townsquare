@@ -210,7 +210,7 @@ export default new Vuex.Store({
         modals[modal] = false;
       }
     },
-    setModal({ modals, open }, name) {
+    setModal({modals}, {name, open}) {
       if (name && name != "") {
         modals[name] = open;
       }

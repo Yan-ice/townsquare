@@ -162,7 +162,7 @@
             选择剧本
             <em>[E]</em>
           </li>
-          <li v-if="!session.isSpectator" @click="toggleModal('user-role-selection')">
+          <li v-if="!session.isSpectator" @click="toggleModal('userRoleSelection')">
             玩家构筑剧本
             <em>[ ]</em>
           </li>
