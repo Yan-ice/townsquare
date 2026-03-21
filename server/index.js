@@ -11,7 +11,7 @@ register.setDefaultLabels({
   app: "clocktower-online"
 });
 
-const PING_INTERVAL = 10000;        // 20秒发送一次 ping
+const PING_INTERVAL = 10000;        // 10秒发送一次 ping
 const MAX_MISSED_PINGS = 6;         // 允许连续丢失 5 次 ping
 
 const options = {};
@@ -699,7 +699,7 @@ const interval = setInterval(
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, terminating.`);
           mark_connection_lost(ws);
           return ws.terminate();
-        } else if (ws.missedPings == 2){
+        } else if (ws.missedPings == 1){
           // 暂时丢失，保持连接但标记离线
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, marking offline but keeping connection.`);
           mark_connection_lost(ws);
@@ -748,7 +748,6 @@ function mark_connection_lost(ws) {
       channels[channel].host['socket'].send(packet.serialize());
 
       // if (ws.missedPings >= MAX_MISSED_PINGS) {
-        ws.terminate();
         room.paused = true;
         const p = new CommandPacket("sessionset", channel);
         p.addCommand("pause", true);
