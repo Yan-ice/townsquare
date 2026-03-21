@@ -383,8 +383,8 @@ export default {
 
 .content-container {
   display: flex;
-  gap: 15px;
-  max-height: 75vh;
+  gap: 10px;
+  max-height: 65vh;
   margin: 10px 0;
 }
 
@@ -530,6 +530,7 @@ export default {
   border-radius: 50%;
   width: 8vw;
   max-width: 80px;
+  min-width: 50px
   margin: 3px;
   opacity: 0.5;
   transition: all 250ms;
@@ -587,7 +588,7 @@ export default {
 /* ========== 自适应调整 ========== */
 .user-role-selection .modal {
   max-width: 85%;
-  max-height: 85%;
+  max-height: 75%;
 }
 
 /* 从端全屏时调整最大尺寸 */
