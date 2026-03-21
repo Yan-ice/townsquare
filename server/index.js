@@ -699,7 +699,7 @@ const interval = setInterval(
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, terminating.`);
           mark_connection_lost(ws);
           return ws.terminate();
-        } else if (ws.missedPings >= 2){
+        } else if (ws.missedPings == 2){
           // 暂时丢失，保持连接但标记离线
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, marking offline but keeping connection.`);
           mark_connection_lost(ws);
@@ -747,13 +747,13 @@ function mark_connection_lost(ws) {
       packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: false});
       channels[channel].host['socket'].send(packet.serialize());
 
-      if (ws.missedPings >= MAX_MISSED_PINGS) {
+      // if (ws.missedPings >= MAX_MISSED_PINGS) {
         ws.terminate();
         room.paused = true;
         const p = new CommandPacket("sessionset", channel);
         p.addCommand("pause", true);
         routeTo(channel, p, Router.ALL);
-      }
+      //}
 
       return;
     }
