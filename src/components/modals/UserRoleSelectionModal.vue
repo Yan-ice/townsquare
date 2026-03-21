@@ -68,6 +68,9 @@
         <font-awesome-icon icon="cog" />
         取消
       </div>
+      <div class="button cancel" @click="wakeupAllPlayer" v-if="!session.isSpectator">
+        有玩家未显示选角色窗口？点此再次唤起
+      </div>
     </div>
 
   </Modal>
@@ -201,6 +204,8 @@ export default {
           },
         };
         this.$store.commit("session/sendCommand", command);
+        // 提交后清空所有选中，不关闭弹窗 - 可以重新选择再次提交
+        this.onClearAll();
       } else {
         // ========== 主端逻辑：收集所有选中的角色 ==========
         // 主端需要：
@@ -257,10 +262,10 @@ export default {
           }
         };
         this.$store.commit("session/sendCommand", command);
-      }
 
-      this.onConfirmCallback(this.getSelectionResult());
-      this.toggleModal('userRoleSelection');
+        this.onConfirmCallback(this.getSelectionResult());
+        this.toggleModal('userRoleSelection');
+      }
     },
 
     // ========== 预留钩子函数 - 方便外部扩展 ==========
@@ -340,6 +345,17 @@ export default {
       };
       this.$store.commit("session/sendCommand", command);
     },
+    wakeupAllPlayer() {
+      const command = {
+              "header": "sync",
+              "command": "setModal",
+              "param": {
+                name: "userRoleSelection",
+                open: true
+              }
+            };
+            this.$store.commit("session/sendCommand", command);
+    },
 
     ...mapMutations(["toggleModal", "setCustomRoles", "setEdition"]),
   },
@@ -355,15 +371,7 @@ export default {
     "modals.userRoleSelection": function(isOpen) {
       if (!this.session.isSpectator && isOpen) {
         // 获取当前房间所有成员
-        const command = {
-              "header": "sync",
-              "command": "setModal",
-              "param": {
-                name: "userRoleSelection",
-                open: true
-              }
-            };
-            this.$store.commit("session/sendCommand", command);
+        this.wakeupAllPlayer();
       }
     }
   }
