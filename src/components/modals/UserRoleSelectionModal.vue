@@ -530,7 +530,7 @@ export default {
   border-radius: 50%;
   width: 8vw;
   max-width: 80px;
-  min-width: 50px
+  min-width: 50px;
   margin: 3px;
   opacity: 0.5;
   transition: all 250ms;
