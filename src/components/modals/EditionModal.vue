@@ -111,7 +111,7 @@ export default {
     },
     async loadScriptsFromServer() {
       try {
-        const url = "https://yanice.online/api/edition_list"; // Flask 路由
+        const url = "https://yanice.online/script/api/edition_list"; // Flask 路由
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
