@@ -68,6 +68,9 @@
         <font-awesome-icon icon="cog" />
         取消
       </div>
+      <div class="button cancel" @click="wakeupAllPlayer" v-if="!session.isSpectator">
+        有玩家未显示选角色窗口？点此再次唤起
+      </div>
     </div>
 
   </Modal>
@@ -201,6 +204,8 @@ export default {
           },
         };
         this.$store.commit("session/sendCommand", command);
+        // 提交后清空所有选中，不关闭弹窗 - 可以重新选择再次提交
+        this.onClearAll();
       } else {
         // ========== 主端逻辑：收集所有选中的角色 ==========
         // 主端需要：
@@ -257,10 +262,10 @@ export default {
           }
         };
         this.$store.commit("session/sendCommand", command);
-      }
 
-      this.onConfirmCallback(this.getSelectionResult());
-      this.toggleModal('userRoleSelection');
+        this.onConfirmCallback(this.getSelectionResult());
+        this.toggleModal('userRoleSelection');
+      }
     },
 
     // ========== 预留钩子函数 - 方便外部扩展 ==========
@@ -340,6 +345,17 @@ export default {
       };
       this.$store.commit("session/sendCommand", command);
     },
+    wakeupAllPlayer() {
+      const command = {
+              "header": "sync",
+              "command": "setModal",
+              "param": {
+                name: "userRoleSelection",
+                open: true
+              }
+            };
+            this.$store.commit("session/sendCommand", command);
+    },
 
     ...mapMutations(["toggleModal", "setCustomRoles", "setEdition"]),
   },
@@ -355,15 +371,7 @@ export default {
     "modals.userRoleSelection": function(isOpen) {
       if (!this.session.isSpectator && isOpen) {
         // 获取当前房间所有成员
-        const command = {
-              "header": "sync",
-              "command": "setModal",
-              "param": {
-                name: "userRoleSelection",
-                open: true
-              }
-            };
-            this.$store.commit("session/sendCommand", command);
+        this.wakeupAllPlayer();
       }
     }
   }
@@ -375,8 +383,8 @@ export default {
 
 .content-container {
   display: flex;
-  gap: 15px;
-  max-height: 75vh;
+  gap: 10px;
+  max-height: 65vh;
   margin: 10px 0;
 }
 
@@ -522,6 +530,7 @@ export default {
   border-radius: 50%;
   width: 8vw;
   max-width: 80px;
+  min-width: 50px;
   margin: 3px;
   opacity: 0.5;
   transition: all 250ms;
@@ -579,7 +588,7 @@ export default {
 /* ========== 自适应调整 ========== */
 .user-role-selection .modal {
   max-width: 85%;
-  max-height: 85%;
+  max-height: 75%;
 }
 
 /* 从端全屏时调整最大尺寸 */

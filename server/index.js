@@ -11,7 +11,7 @@ register.setDefaultLabels({
   app: "clocktower-online"
 });
 
-const PING_INTERVAL = 10000;        // 20秒发送一次 ping
+const PING_INTERVAL = 10000;        // 10秒发送一次 ping
 const MAX_MISSED_PINGS = 6;         // 允许连续丢失 5 次 ping
 
 const options = {};
@@ -677,7 +677,14 @@ function noop() {}
 function heartbeat() {
   this.latency = Math.round((new Date().getTime() - this.pingStart) / 2);
   this.counter = 0;
+
+  // 如果之前因为网络不稳被标记为离线，现在心跳恢复了，重新标记为在线
+  if (this.isAlive === false && this.missedPings > 0) {
+    restore_connection(this);
+  }
+
   this.isAlive = true;
+  this.missedPings = 0;
 }
 
 // start ping interval timer
@@ -692,7 +699,7 @@ const interval = setInterval(
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, terminating.`);
           mark_connection_lost(ws);
           return ws.terminate();
-        } else {
+        } else if (ws.missedPings == 1){
           // 暂时丢失，保持连接但标记离线
           console.log(`client ${ws.username} missed ${ws.missedPings} pings, marking offline but keeping connection.`);
           mark_connection_lost(ws);
@@ -740,12 +747,12 @@ function mark_connection_lost(ws) {
       packet.addCommand("players/update", {player: player.token, property: 'isOnline', value: false});
       channels[channel].host['socket'].send(packet.serialize());
 
-      ws.terminate();
-
-      room.paused = true;
-      const p = new CommandPacket("sessionset", channel);
-      p.addCommand("pause", true);
-      routeTo(channel, p, Router.ALL);
+      // if (ws.missedPings >= MAX_MISSED_PINGS) {
+        room.paused = true;
+        const p = new CommandPacket("sessionset", channel);
+        p.addCommand("pause", true);
+        routeTo(channel, p, Router.ALL);
+      //}
 
       return;
     }
@@ -763,7 +770,69 @@ function mark_connection_lost(ws) {
         channels[channel].host['socket'].send(packet.serialize());
       }
     })
-  }   
+  }
+}
+
+function restore_connection(ws) {
+  const token = ws.userId;
+  if (!token || token === '(未登录)') return;
+
+  const player_info = online_players[token];
+  if (!player_info) return;
+
+  console.log(`Restoring connection for ${player_info.username} after temporary network instability`);
+
+  for (const channel in channels) {
+    if (channels[channel].host['token'] == token) {
+      room = channels[channel];
+
+      // 更新 socket 引用
+      room.host.socket = ws;
+      room.host.username = player_info.username;
+
+      const packet = new CommandPacket("request");
+      packet.addCommand("players/update", {player: token, property: 'isOnline', value: true});
+      channels[channel].host['socket'].send(packet.serialize());
+
+      // 如果之前因为掉线暂停了游戏，恢复游戏
+      if (room.paused) {
+        room.paused = false;
+        const p = new CommandPacket("sessionset", channel);
+        p.addCommand("pause", false);
+        routeTo(channel, p, Router.ALL);
+
+        // clean seats of players who left during pause.
+        let require_command = new CommandPacket("require", channel);
+        for (let token of room.pause_leave) {
+          require_command.addCommand("clean_seat", token);
+        }
+        room.host.socket.send(require_command.serialize());
+        room.pause_leave = [];
+      }
+
+      return;
+    }
+
+    channels[channel].players.forEach((player)=>{
+      if (player['token'] == token) {
+        // 更新 socket 引用
+        player.socket = ws;
+        player.username = player_info.username;
+
+        const packet = new CommandPacket("request");
+        packet.addCommand("players/update", {player: token, property: 'isOnline', value: true});
+        channels[channel].host['socket'].send(packet.serialize());
+      }
+    });
+
+    channels[channel].watchers.forEach((player)=>{
+      if (player['token'] == token) {
+        // 更新 socket 引用
+        player.socket = ws;
+        player.username = player_info.username;
+      }
+    });
+  }
 }
 // handle server shutdown
 wss.on("close", function close() {
